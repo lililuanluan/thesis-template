@@ -17,3 +17,264 @@
   year =	 1995,
 }
 
+@inproceedings{c11tester,
+    author = {Luo, Weiyu and Demsky, Brian},
+    title = {C11Tester: a race detector for C/C++ atomics},
+    year = {2021},
+    isbn = {9781450383172},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3445814.3446711},
+    doi = {10.1145/3445814.3446711},
+    abstract = {Writing correct concurrent code that uses atomics under the C/C++ memory model is extremely difficult. We present C11Tester, a race detector for the C/C++ memory model that can explore executions in a larger fragment of the C/C++ memory model than previous race detector tools. Relative to previous work, C11Tester's larger fragment includes behaviors that are exhibited by ARM processors. C11Tester uses a new constraint-based algorithm to implement modification order that is optimized to allow C11Tester to make decisions in terms of application-visible behaviors. We evaluate C11Tester on several benchmark applications, and compare C11Tester's performance to both tsan11rec, the state of the art tool that controls scheduling for C/C++; and tsan11, the state of the art tool that does not control scheduling.},
+    booktitle = {Proceedings of the 26th ACM International Conference on Architectural Support for Programming Languages and Operating Systems},
+    pages = {630–646},
+    numpages = {17},
+    keywords = {memory models, data races, concurrency, C++11},
+    location = {Virtual, USA},
+    series = {ASPLOS '21}
+}
+
+@article{cdschecker,
+author = {Norris, Brian and Demsky, Brian},
+title = {CDSchecker: checking concurrent data structures written with C/C++ atomics},
+year = {2013},
+issue_date = {October 2013},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {48},
+number = {10},
+issn = {0362-1340},
+url = {https://doi.org/10.1145/2544173.2509514},
+doi = {10.1145/2544173.2509514},
+abstract = {Writing low-level concurrent software has traditionally required intimate knowledge of the entire toolchain and often has involved coding in assembly. New language standards have extended C and C++ with support for low-level atomic operations and a weak memory model, enabling developers to write portable and efficient multithreaded code.Developing correct low-level concurrent code is well-known to be especially difficult under a weak memory model, where code behavior can be surprising. Building reliable concurrent software using C/C++ low-level atomic operations will likely require tools that help developers discover unexpected program behaviors.In this paper we present CDSChecker, a tool for exhaustively exploring the behaviors of concurrent code under the C/C++ memory model. We develop several novel techniques for modeling the relaxed behaviors allowed by the memory model and for minimizing the number of execution behaviors that CDSChecker must explore. We have used CDSChecker to exhaustively unit test several concurrent data structure implementations on specific inputs and have discovered errors in both a recently published C11 implementation of a work-stealing queue and a single producer, single consumer queue implementation.},
+journal = {SIGPLAN Not.},
+month = {oct},
+pages = {131–150},
+numpages = {20},
+keywords = {relaxed memory model, model checking}
+}
+
+@InProceedings{genmc,
+author="Kokologiannakis, Michalis
+and Vafeiadis, Viktor",
+editor="Silva, Alexandra
+and Leino, K. Rustan M.",
+title="GenMC: A Model Checker for Weak Memory Models",
+booktitle="Computer Aided Verification",
+year="2021",
+publisher="Springer International Publishing",
+address="Cham",
+pages="427--440",
+abstract="GenMC is an LLVM-based state-of-the-art stateless model checker for concurrent C/C++ programs. Its modular infrastructure allows it to support complex memory models, such as RC11 and IMM, and makes it easy to extend to support further axiomatic memory models.",
+isbn="978-3-030-81685-8"
+}
+
+@misc{afl,
+  author = {Michal Zalewski},
+  title = {American Fuzzy Lop},
+  year = {2014},
+  url = {https://lcamtuf.coredump.cx/afl/}
+}
+
+@inproceedings {muzz,
+author = {Hongxu Chen and Shengjian Guo and Yinxing Xue and Yulei Sui and Cen Zhang and Yuekang Li and Haijun Wang and Yang Liu},
+title = {{MUZZ}: Thread-aware Grey-box Fuzzing for Effective Bug Hunting in Multithreaded Programs},
+booktitle = {29th USENIX Security Symposium (USENIX Security 20)},
+year = {2020},
+isbn = {978-1-939133-17-5},
+pages = {2325--2342},
+url = {https://www.usenix.org/conference/usenixsecurity20/presentation/chen-hongxu},
+publisher = {USENIX Association},
+month = aug
+}
+
+@inproceedings{conzzer,
+author = {Jiang, Zu-Ming and Bai, Jia-Ju and Lu, Kangjie and Hu, Shi-Min},
+year = {2022},
+month = {01},
+pages = {},
+title = {Context-Sensitive and Directional Concurrency Fuzzing for Data-Race Detection},
+doi = {10.14722/ndss.2022.24296}
+}
+
+@inproceedings{10.1145/1736020.1736040,
+author = {Burckhardt, Sebastian and Kothari, Pravesh and Musuvathi, Madanlal and Nagarakatte, Santosh},
+title = {A randomized scheduler with probabilistic guarantees of finding bugs},
+year = {2010},
+isbn = {9781605588391},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1736020.1736040},
+doi = {10.1145/1736020.1736040},
+abstract = {This paper presents a randomized scheduler for finding concurrency bugs. Like current stress-testing methods, it repeatedly runs a given test program with supplied inputs. However, it improves on stress-testing by finding buggy schedules more effectively and by quantifying the probability of missing concurrency bugs. Key to its design is the characterization of the depth of a concurrency bug as the minimum number of scheduling constraints required to find it. In a single run of a program with n threads and k steps, our scheduler detects a concurrency bug of depth d with probability at least 1/nkd-1. We hypothesize that in practice, many concurrency bugs (including well-known types such as ordering errors, atomicity violations, and deadlocks) have small bug-depths, and we confirm the efficiency of our schedule randomization by detecting previously unknown and known concurrency bugs in several production-scale concurrent programs.},
+booktitle = {Proceedings of the Fifteenth International Conference on Architectural Support for Programming Languages and Operating Systems},
+pages = {167–178},
+numpages = {12},
+keywords = {concurrency, race conditions, randomized algorithms, testing},
+location = {Pittsburgh, Pennsylvania, USA},
+series = {ASPLOS XV}
+}
+
+@article{10.1145/1735970.1736040,
+author = {Burckhardt, Sebastian and Kothari, Pravesh and Musuvathi, Madanlal and Nagarakatte, Santosh},
+title = {A randomized scheduler with probabilistic guarantees of finding bugs},
+year = {2010},
+issue_date = {March 2010},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {38},
+number = {1},
+issn = {0163-5964},
+url = {https://doi.org/10.1145/1735970.1736040},
+doi = {10.1145/1735970.1736040},
+abstract = {This paper presents a randomized scheduler for finding concurrency bugs. Like current stress-testing methods, it repeatedly runs a given test program with supplied inputs. However, it improves on stress-testing by finding buggy schedules more effectively and by quantifying the probability of missing concurrency bugs. Key to its design is the characterization of the depth of a concurrency bug as the minimum number of scheduling constraints required to find it. In a single run of a program with n threads and k steps, our scheduler detects a concurrency bug of depth d with probability at least 1/nkd-1. We hypothesize that in practice, many concurrency bugs (including well-known types such as ordering errors, atomicity violations, and deadlocks) have small bug-depths, and we confirm the efficiency of our schedule randomization by detecting previously unknown and known concurrency bugs in several production-scale concurrent programs.},
+journal = {SIGARCH Comput. Archit. News},
+month = {mar},
+pages = {167–178},
+numpages = {12},
+keywords = {concurrency, race conditions, randomized algorithms, testing}
+}
+
+@article{pct,
+author = {Burckhardt, Sebastian and Kothari, Pravesh and Musuvathi, Madanlal and Nagarakatte, Santosh},
+title = {A randomized scheduler with probabilistic guarantees of finding bugs},
+year = {2010},
+issue_date = {March 2010},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {45},
+number = {3},
+issn = {0362-1340},
+url = {https://doi.org/10.1145/1735971.1736040},
+doi = {10.1145/1735971.1736040},
+abstract = {This paper presents a randomized scheduler for finding concurrency bugs. Like current stress-testing methods, it repeatedly runs a given test program with supplied inputs. However, it improves on stress-testing by finding buggy schedules more effectively and by quantifying the probability of missing concurrency bugs. Key to its design is the characterization of the depth of a concurrency bug as the minimum number of scheduling constraints required to find it. In a single run of a program with n threads and k steps, our scheduler detects a concurrency bug of depth d with probability at least 1/nkd-1. We hypothesize that in practice, many concurrency bugs (including well-known types such as ordering errors, atomicity violations, and deadlocks) have small bug-depths, and we confirm the efficiency of our schedule randomization by detecting previously unknown and known concurrency bugs in several production-scale concurrent programs.},
+journal = {SIGPLAN Not.},
+month = {mar},
+pages = {167–178},
+numpages = {12},
+keywords = {concurrency, race conditions, randomized algorithms, testing}
+}
+
+@inproceedings{pctwm,
+author = {Gao, Mingyu and Chakraborty, Soham and Ozkan, Burcu Kulahcioglu},
+title = {Probabilistic Concurrency Testing for Weak Memory Programs},
+year = {2023},
+isbn = {9781450399166},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3575693.3575729},
+doi = {10.1145/3575693.3575729},
+abstract = {The Probabilistic Concurrency Testing (PCT) algorithm that provides theoretical guarantees on the probability of detecting concurrency bugs does not apply to weak memory programs. The PCT algorithm builds on the interleaving semantics of sequential consistency, which does not hold for weak memory concurrency. It is because weak memory concurrency allows additional behaviors that cannot be produced by any interleaving execution.  
+
+In this paper, we generalize PCT to address weak memory concurrency and present Probabilistic Concurrency Testing for Weak Memory (PCTWM). We empirically evaluate PCTWM on a set of well-known weak memory program benchmarks in comparison to the state-of-the-art weak memory testing tool C11Tester. Our results show that PCTWM can detect concurrency bugs more frequently than C11Tester.},
+booktitle = {Proceedings of the 28th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2},
+pages = {603–616},
+numpages = {14},
+keywords = {Concurrency, Randomized algorithms, Testing, Weak memory},
+location = {Vancouver, BC, Canada},
+series = {ASPLOS 2023}
+}
+
+@inproceedings{rff,
+author = {Meng, Ruijie and P\^{\i}rlea, George and Roychoudhury, Abhik and Sergey, Ilya},
+title = {Greybox Fuzzing of Distributed Systems},
+year = {2023},
+isbn = {9798400700507},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3576915.3623097},
+doi = {10.1145/3576915.3623097},
+abstract = {Grey-box fuzzing is the lightweight approach of choice for finding bugs in sequential programs. It provides a balance between efficiency and effectiveness by conducting a biased random search over the domain of program inputs using a feedback function from observed test executions. For distributed system testing, however, the state-of-practice is represented today by only black-box tools that do not attempt to infer and exploit any knowledge of the system's past behaviours to guide the search for bugs.In this work, we present MALLORY: the first framework for grey-box fuzz-testing of distributed systems. Unlike popular black-box distributed system fuzzers, such as JEPSEN, that search for bugs by randomly injecting network partitions and node faults or by following human-defined schedules, MALLORY is adaptive. It exercises a novel metric to learn how to maximize the number of observed system behaviors by choosing different sequences of faults, thus increasing the likelihood of finding new bugs. Our approach relies on timeline-driven testing. MALLORY dynamically constructs Lamport timelines of the system behaviour and further abstracts these timelines into happens-before summaries, which serve as a feedback function guiding the fuzz campaign. Subsequently, MALLORY reactively learns a policy using Q-learning, enabling it to introduce faults guided by its real-time observation of the summaries.We have evaluated MALLORY on a diverse set of widely-used industrial distributed systems. Compared to the start-of-the-art black-box fuzzer JEPSEN, MALLORY explores 54.27\% more distinct states within 24 hours while achieving a speed-up of 2.24X. At the same time, MALLORY finds bugs 1.87X faster, thereby finding more bugs within the given time budget. MALLORY discovered 22 zero-day bugs (of which 18 were confirmed by developers), including 10 new vulnerabilities, in rigorously tested distributed systems such as Braft, Dqlite and Redis. 6 new CVEs have been assigned.},
+booktitle = {Proceedings of the 2023 ACM SIGSAC Conference on Computer and Communications Security},
+pages = {1615–1629},
+numpages = {15},
+keywords = {distributed systems, greybox fuzzing, reactive system testing},
+location = {<conf-loc>, <city>Copenhagen</city>, <country>Denmark</country>, </conf-loc>},
+series = {CCS '23}
+}
+
+@inproceedings{schfuzz,
+  title={Schfuzz: Detecting Concurrency Bugs with Feedback-Guided Fuzzing},
+  author={Hiromasa Ito and Yutaka Matsubara and Hiroaki Takada},
+  booktitle={International Conference on Evaluation of Novel Approaches to Software Engineering},
+  year={2023},
+  url={https://api.semanticscholar.org/CorpusID:258362077}
+}
+
+@article{Weakestmo2,
+author = {Moiseenko, Evgenii and Kokologiannakis, Michalis and Vafeiadis, Viktor},
+title = {Model checking for a multi-execution memory model},
+year = {2022},
+issue_date = {October 2022},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {6},
+number = {OOPSLA2},
+url = {https://doi.org/10.1145/3563315},
+doi = {10.1145/3563315},
+abstract = {Multi-execution memory models, such as Promising and Weakestmo, are an advanced class of weak memory  
+consistency models that justify certain outcomes of a concurrent program by considering multiple candidate executions collectively. While this key characteristic allows them to support effective compilation to hardware models and a wide range of compiler optimizations, it makes reasoning about them substantially more difficult. In particular, we observe that Promising and Weakestmo inhibit effective model checking because they allow some suprisingly weak behaviors that cannot be generated by examining one execution at a time.  
+
+We therefore introduce Weakestmo2, a strengthening of Weakestmo by constraining its multi-execution  
+nature, while preserving the important properties of Weakestmo: DRF theorems, compilation to hardware models, and correctness of local program transformations. Our strengthening rules out a class of surprisingly weak program behaviors, which we attempt to characterize with the help of two novel properties: load buffering race freedom and certification locality. In addition, we develop WMC, a model checker for Weakestmo2 with performance close to that of the best tools for per-execution models.},
+journal = {Proc. ACM Program. Lang.},
+month = {oct},
+articleno = {152},
+numpages = {28},
+keywords = {Weak memory models, model checking}
+}
+
+@InProceedings{ConFuzz,
+author="Vinesh, Nischai
+and Sethumadhavan, M.",
+editor="Luhach, Ashish Kumar
+and Kosa, Janos Arpad
+and Poonia, Ramesh Chandra
+and Gao, Xiao-Zhi
+and Singh, Dharm",
+title="ConFuzz---A Concurrency Fuzzer",
+booktitle="First International Conference on Sustainable Technologies for Computational Intelligence",
+year="2020",
+publisher="Springer Singapore",
+address="Singapore",
+pages="667--691",
+abstract="Concurrency bugs are as equally vulnerable as the bugs found in the single-threaded programs and these bugs can be exploited using concurrency attacks. Unfortunately, there is not much literature available in detecting various kinds of concurrency issues in a multi-threaded program due to its complexity and uncertainty. In this paper, we aim at detecting concurrency bugs by using directed evolutionary fuzzing with the help of static analysis of the source code. Concurrency bug detection involves two main entities: an input and a particular thread execution order. The evolutionary part of fuzzing will prefer inputs that involve memory access patterns across threads (data flow interleaving) and thread ordering that disturb the data dependence more and direct them to trigger concurrency bugs. This paper suggests the idea of a concurrency fuzzer, which is first of its kind. We use a combination of LLVM, Thread Sanitizer and fuzzing techniques to detect various concurrency issues in an application. The source code of the application is statically analyzed for various paths, from the different thread related function calls to the main function. Every basic block in these paths are assigned a unique ID and a weight based on the distance of the basic block from the thread function calls. These basic blocks are instrumented to print their ID and weight upon execution. The knowledge about the basic blocks in the sliced paths are used to generate new sets of inputs from the old ones, thus covering even more basic blocks in the path and thereby increasing the chances of hitting a concurrency warning. We use Thread Sanitizer present in the LLVM compiler infrastructure to detect the concurrency bug warnings while executing each input. The inputs are directed to discover even new address locations with possible concurrency issues. The system was tested on three simple multi-threaded applications pigz, pbzip2, and pixz. The results show a quicker detection of unique addresses in the application with possible concurrency issues.",
+isbn="978-981-15-0029-9"
+}
+
+@article{AutoInter,
+author = {Ko, Youngjoo and Zhu, Bin and Kim, Jong},
+title = {Fuzzing with automatically controlled interleavings to detect concurrency bugs},
+year = {2022},
+issue_date = {Sep 2022},
+publisher = {Elsevier Science Inc.},
+address = {USA},
+volume = {191},
+number = {C},
+issn = {0164-1212},
+url = {https://doi.org/10.1016/j.jss.2022.111379},
+doi = {10.1016/j.jss.2022.111379},
+journal = {J. Syst. Softw.},
+month = {sep},
+numpages = {15},
+keywords = {Reliability, Multi-threading, Concurrency vulnerabilities, Bug detection, Fuzzing}
+}
+
+@inproceedings{heuristic,
+author = {Liu, Changming and Zou, Deqing and Luo, Peng and Zhu, Bin B. and Jin, Hai},
+title = {A Heuristic Framework to Detect Concurrency Vulnerabilities},
+year = {2018},
+isbn = {9781450365697},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3274694.3274718},
+doi = {10.1145/3274694.3274718},
+abstract = {With a growing demand of concurrent software to exploit multi-core hardware capability, concurrency vulnerabilities have become an inevitable threat to the security of today's IT industry. Existing concurrent program detection schemes focus mainly on detecting concurrency errors such as data races, atomicity violation, etc., with little attention paid to detect concurrency vulnerabilities that may be exploited to infringe security. In this paper, we propose a heuristic framework that combines both static analysis and fuzz testing to detect targeted concurrency vulnerabilities such as concurrency buffer overflow, double free, and use-after-free. The static analysis locates sensitive concurrent operations in a concurrent program, categorizes each finding into a potential type of concurrency vulnerability, and determines the execution order of the sensitive operations in each finding that would trigger the suspected concurrency vulnerability. The results are then plugged into the fuzzer with the execution order fixed by the static analysis in order to trigger the suspected concurrency vulnerabilities.In order to introduce more variance which increases possibility that the concurrency errors can be triggered, we also propose manipulation of thread scheduling priority to enable a fuzzer such as AFL to effectively explore thread interleavings in testing a concurrent program. To the best of our knowledge, this is the first fuzzer that is capable of effectively exploring concurrency errors.In evaluating the proposed heuristic framework with a benchmark suit of six real-world concurrent C programs, the framework detected two concurrency vulnerabilities for the proposed concurrency vulnerability detection, both being confirmed to be true positives, and produced three new crashes for the proposed interleaving exploring fuzzer that existing fuzzers could not produce. These results demonstrate the power and effectiveness of the proposed heuristic framework in detecting concurrency errors and vulnerabilities.},
+booktitle = {Proceedings of the 34th Annual Computer Security Applications Conference},
+pages = {529–541},
+numpages = {13},
+keywords = {Concurrency Vulnerabilities, Fuzzing Test, Thread Schedule},
+location = {San Juan, PR, USA},
+series = {ACSAC '18}
+}
