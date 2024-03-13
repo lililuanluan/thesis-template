@@ -8,7 +8,7 @@ Due to the complexity of the programming language and the logic of the tested pr
 
 % fuzzing
 
-Fuzz testing has become increasingly popular in recent years. It repeatedly executes the tested program by generating random inputs and monitors whether any buggy behaviors are observed. This type of approaches are usually easy to apply and have good scalability. One of the most significant fuzzing tool is AFL, a coverage-guided mutation-based grey-box fuzzer. AFL performs compile-time instrumentation and uses the coverage of the control flow edges as the feedback information for generating new seeds, thus achieving superior efficiency than previous black-box fuzzers. Researchers have developed various techniques to improve the code coverage and accelerate the bug detection. % \cite{}
+Fuzz testing has become increasingly popular in recent years. It repeatedly executes the tested program by generating random inputs and monitors whether any buggy behaviors are observed. This type of approaches are usually easy to apply and have good scalability. One of the most important fuzzing tool is AFL, a coverage-guided mutation-based grey-box fuzzer. AFL performs compile-time instrumentation and uses the coverage of the control flow edges as the feedback information for generating new seeds, thus achieving superior efficiency than previous black-box fuzzers. Researchers have developed various techniques to improve the code coverage and accelerate the bug detection. % \cite{}
 
 A fuzzer typically has a feedback loop. It starts with a seed, or program input, and execute the instrumented program with the seed. The information about the execution is collected to determine whether a seed is interesting, which means the seed has triggered new interested behaviors. The interesting seeds will be used for generating new seeds during repeated executions. A mutation-based fuzzer can mutate (such as bit flipping, hashing, shifting, etc) the interesting seeds to generate new seeds. 
 
@@ -18,7 +18,7 @@ Entering the multi-core era, concurrent programming has gain increasing signific
 
 % weak memory
 
-
+Most concurrency fuzzers mainly focus on testing for programs under sequential consistency memory model. Nowadays modern computer architectures often allow for weak memory behaviors. On the one hand, although SC is easy to understand by programmers, achieving SC is very expensive. On the other hand, by relaxing the memory order and allowing for weak memory behaviors, the efficiency of execution can be significantly improved. However, both developing and testing programs under weak memory has been notoriously hard. Given the success that fuzzing has achieved on sequential programs and multi-threading programs under SC memory, it is reasonable to believe fuzzing can also be helpful for weak memory testing. 
 
 
 
