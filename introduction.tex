@@ -14,9 +14,11 @@ A fuzzer typically has a feedback loop. It starts with a seed, or program input,
 
 % concurrency
 
-Entering the multi-core era, concurrent programming has gain increasing significance. Fuzzing for concurrent programs also attracts interests from researchers. Traditional coverage-guided approaches can face challenges when detecting concurrency bugs, since the code coverage information does not reflect the thread interleavings, some of which may result in concurrency bugs. Therefore, thread-relevant instrumentation is needed for providing concurrency feedback information in the fuzzing loop. Another problem is that, assuming sequential consistency, both the program input and the thread interleavings (or schedules) determine the program's behavior. Given a seed, the bugs that only happen along with infrequent thread-interleavings may not be easy to reveal during repeated execution. 
+Entering the multi-core era, concurrent programming has gain increasing significance. Fuzzing for concurrent programs also attracts interests from researchers. Traditional coverage-guided approaches can face challenges when detecting concurrency bugs, since the code coverage information does not reflect the thread interleavings, some of which may result in concurrency bugs. Therefore, thread-relevant instrumentation is needed for providing concurrency feedback information in the fuzzing loop. Another problem is that, assuming sequential consistency, both the program input and the thread interleavings (or schedules) determine the program's behavior. Given a seed, the bugs that only happen along with infrequent thread-interleavings may not be easy to reveal during repeated execution. Hence concurrency fuzzers can be classified into two types: fuzzers aiming for generating seeds and thread interleavings, with some fuzzers combining the two goals. The latter kind usually incorporate the techniques of controlled concurrency testing. Controlled concurrency testing repeatedly executes the program with probabilistic guarantees or controls the thread interleavings proactively for certain given schedules. PCT, for example, bounds the time of thread-switching, characterized by bug depth, and assign random change points to generate different schedules. Based on those controlling techniques, fuzzers can treat the schedules as another kind of input and mutate insteresting schedules like the conventional procedure. 
 
 % weak memory
+
+
 
 
 
