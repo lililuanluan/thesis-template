@@ -2,6 +2,20 @@
 
 Related work falls into three categories: weak memory models, model checkers and fuzzers. 
 
+AFL\cite{afl} is a coverag guided grey-box fuzzer. The user program is intrumented with deputy functions at the entry of basicblocks evenly. The deputy functions can collect runtime information for code coverage analysis. AFL mutates the input for the program to cover new branches and execution paths. Since AFL is initially designed for sequential programs, which has deterministic results when the input and random seed are fixed, it is unaware of thread interleaving contexts. 
+
+Muzz\cite{muzz} thread-aware grey-box fuzzing tool for multithreaded programs. Instead of instrument the user program evenly, Muzz conducts static analysis first to locate set of specific program statements on which thread-interleavings may only happen, identified as suspicious interleaving scopes. Then Muzz will instrument more deputy instructions inside these scopes. During repeated execution, the inserted functions can collect thread context information, hence the fuzzer is able to select interesting seeds that triggered unique thread interleavings. 
+
+Conzzer\cite{conzzer} is a context-sensitive and directional concurrency fuzzing tool for data-race detection. It is motivated by the fact that some concurrent bugs only happen when two specific functions with callstacks are executed concurrently. Conzzer uses context sensitive concurrent function call pairs as the mutation target. 
+
+
+
+CDSchecker\cite{cdschecker} is an exhaustive model checker exploring the behaviors of concurrent code under the original C/C++11 memory model based on stateless model-checking. A technique of constraint-based treatment of modification order is introduced remove redundancy from the search space. A cycle in the modification order graph corresponds to infeasibility of the constraints. CDSchecker uses depth-first search to check for cycles by adding edges to the modification order graph and rolls back when the constraints are unsatisfiable. The scalability limits and memory model support are extended by the C11Tester. 
+
+C11Tester \cite{c11tester} is a race detector for the C/C++ memory model. It supports concurrency primitives and the weak memory behaviors allowed by the C/C++20 standard. A constraint-based algorithm is proposed to explore the modification order graph. Under the memory model constraints, decisions are made randomly when generating possible thread interleavings and atomic operation behaviors. During repeated execution, execution graphs are generated independantly without feedback information from previous iterations by default. However, C11Tester provides a plugable framework that allows for selecting the next thread and behavior from a set of legal choices.   
+
+GenMC \cite{genmc} is a stateless model checker for C/C++ programs under weak memory models. It suports a variety of memory models such as  RC11, IMM, and LKMM, and is extendable for  further axiomatic memory models. The program is compiled into LLVM-IR for incorporating optimizations including symmetry reduction and lock-aware partial order reduction, making it possible to support different programming languages provided that its memory model is axiomatic well defined. 
+
 \section{Model Checkers}
  
 \lipsum{2} % add some pseudo content
