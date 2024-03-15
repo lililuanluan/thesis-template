@@ -2,36 +2,23 @@
 
 % testing
 
-To address the threat posed by bugs or vulnerability of programs, researchers have investigated varieties of bug detection techniques. Formal verification techniques such as axiomatic approaches use mathematical deduction to prove whether a safety property is guaranteed. Such approaches heavily rely on the expertise of developers and normally require huge amount of time and effort. % \cite{}
-Automated testing, on the other hand, has for long been of great importance for its scalability and efficiency. Testing techniques aimed at discovering bugs and safety vulnerabilities have been developed over the years, primarily including static analysis and dynamic testing. Static analysis tools typically performs bug detection at compile time, relying on some abstraction of the semantics of the source code. % \cite{}
-Due to the complexity of the programming language and the logic of the tested program, such static analysis tools sometimes do not ensure reporting bugs comprehensively and correctly. The other way is dynamic testing, which explores reachable states at runtime. Unit testing, for example, plays a fundamental role in software development. Some influential tools have been developed, including AddressSanitizer, detecting addressability issues, and ThreadSanitizer, which detects data races and deadlocks. However, even though high quality test cases can cover large ranges of program behaviors, there can still be some corner cases that are not exposed. In addition, such test cases require a deep understanding of the program under test and consumes a considerable amount of time and effort to complete. 
+To address the threat posed by bugs or vulnerability of programs, researchers have investigated varieties of bug detection techniques. Formal verification techniques such as axiomatic approaches use mathematical deduction to prove whether a safety property is guaranteed. Such approaches heavily rely on the expertise of developers and normally require huge amount of time and effort\cite{sel4}.
+Automated testing, on the other hand, has for long been of great importance for its scalability and efficiency. Testing techniques aimed at discovering bugs and safety vulnerabilities have been developed over the years, primarily including static analysis and dynamic testing. Static analysis tools\cite{infer, RacerD} typically performs bug detection at compile time, relying on some abstraction of the semantics of the source code. 
+Due to the complexity of the programming language and the logic of the tested program, such static analysis tools sometimes do not ensure reporting bugs comprehensively and correctly. The other way is dynamic testing, which explores reachable states at runtime. Unit testing, for example, plays a fundamental role in software development. Some influential tools have been developed, including AddressSanitizer\cite{ASAN}, detecting addressability issues, and ThreadSanitizer\cite{TSAN}, which detects data races and deadlocks. However, even though high quality test cases can cover large ranges of program behaviors, there can still be some corner cases that are not exposed. In addition, such test cases require a deep understanding of the program under test and consumes a considerable amount of time and effort to complete. 
 
 % fuzzing
 
-Fuzz testing has become increasingly popular in recent years. It repeatedly executes the tested program by generating random inputs and monitors whether any buggy behaviors are observed. This type of approaches are usually easy to apply and have good scalability. One of the most important fuzzing tool is AFL, a coverage-guided mutation-based grey-box fuzzer. AFL performs compile-time instrumentation and uses the coverage of the control flow edges as the feedback information for generating new seeds, thus achieving superior efficiency than previous black-box fuzzers. Researchers have developed various techniques to improve the code coverage and accelerate the bug detection. % \cite{}
+Fuzz testing has become increasingly popular in recent years. It repeatedly executes the tested program by generating random inputs and monitors whether any buggy behaviors are observed. This type of approaches are usually easy to apply and have good scalability. One of the most important fuzzing tool is AFL\cite{afl}, a coverage-guided mutation-based grey-box fuzzer. AFL performs compile-time instrumentation and uses the coverage of the control flow edges as the feedback information for generating new seeds, thus achieving superior efficiency than previous black-box fuzzers. Researchers have developed various techniques to improve the code coverage and accelerate the bug detection. 
 
 A fuzzer typically has a feedback loop. It starts with a seed, or program input, and execute the instrumented program with the seed. The information about the execution is collected to determine whether a seed is interesting, which means the seed has triggered new interested behaviors. The interesting seeds will be used for generating new seeds during repeated executions. A mutation-based fuzzer can mutate (such as bit flipping, hashing, shifting, etc) the interesting seeds to generate new seeds. 
 
 % concurrency
 
-Entering the multi-core era, concurrent programming has gain increasing significance. Fuzzing for concurrent programs also attracts interests from researchers. Traditional coverage-guided approaches can face challenges when detecting concurrency bugs, since the code coverage information does not reflect the thread interleavings, some of which may result in concurrency bugs. Therefore, thread-relevant instrumentation is needed for providing concurrency feedback information in the fuzzing loop. Another problem is that, assuming sequential consistency, both the program input and the thread interleavings (or schedules) determine the program's behavior. Given a seed, the bugs that only happen along with infrequent thread-interleavings may not be easy to reveal during repeated execution. Hence concurrency fuzzers can be classified into two types: fuzzers aiming for generating seeds and thread interleavings, with some fuzzers combining the two goals. The latter kind usually incorporate the techniques of controlled concurrency testing. Controlled concurrency testing repeatedly executes the program with probabilistic guarantees or controls the thread interleavings proactively for certain given schedules. PCT, for example, bounds the time of thread-switching, characterized by bug depth, and assign random change points to generate different schedules. Based on those controlling techniques, fuzzers can treat the schedules as another kind of input and mutate insteresting schedules like the conventional procedure. 
+Entering the multi-core era, concurrent programming has gain increasing significance. Fuzzing for concurrent programs also attracts interests from researchers. Traditional coverage-guided approaches can face challenges when detecting concurrency bugs, since the code coverage information does not reflect the thread interleavings, some of which may result in concurrency bugs. Therefore, thread-relevant instrumentation is needed for providing concurrency feedback information in the fuzzing loop. Another problem is that, assuming sequential consistency, both the program input and the thread interleavings (or schedules) determine the program's behavior. Given a seed, the bugs that only happen along with infrequent thread-interleavings may not be easy to reveal during repeated execution. Hence concurrency fuzzers can be classified into two types: fuzzers aiming for generating seeds\cite{muzz} and thread interleavings\cite{rff, conzzer}, with some fuzzers combining the two goals. The latter kind usually incorporate the techniques of controlled concurrency testing. Controlled concurrency testing repeatedly executes the program with probabilistic guarantees or controls the thread interleavings proactively for certain given schedules. PCT\cite{pct}, for example, bounds the time of thread-switching, characterized by bug depth, and assign random change points to generate different schedules. Based on those controlling techniques, fuzzers can treat the schedules as another kind of input and mutate insteresting schedules like the conventional procedure. 
 
 % weak memory
 
 Most concurrency fuzzers mainly focus on testing for programs under sequential consistency memory model. Nowadays modern computer architectures often allow for weak memory behaviors. On the one hand, although SC is easy to understand by programmers, achieving SC is very expensive. On the other hand, by relaxing the memory order and allowing for weak memory behaviors, the efficiency of execution can be significantly improved. However, both developing and testing programs under weak memory has been notoriously hard. Given the success that fuzzing has achieved on sequential programs and multi-threading programs under SC memory, it is reasonable to believe fuzzing can also be helpful for weak memory testing. 
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -41,7 +28,7 @@ The term \emph{reverse engineering} is defined by Chikofsky and Cross as
 ``\emph{The process of analyzing a subject system with two goals in mind: 
 (1) to identify the system's components and their interrelationships; and,
 (2) to create representations of the system in another form or at a higher 
-level of abstraction}'' \cite{c11tester}.
+level of abstraction}'' .
 
 Note that this Terminology section is not a required section but 
 merely an example.

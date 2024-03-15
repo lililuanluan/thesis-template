@@ -2,6 +2,8 @@
 
 Related work falls into three categories: weak memory models, model checkers and fuzzers. 
 
+
+
 AFL\cite{afl} is a coverag guided grey-box fuzzer. The user program is intrumented with deputy functions at the entry of basicblocks evenly. The deputy functions can collect runtime information for code coverage analysis. AFL mutates the input for the program to cover new branches and execution paths. Since AFL is initially designed for sequential programs, which has deterministic results when the input and random seed are fixed, it is unaware of thread interleaving contexts. 
 
 Muzz\cite{muzz} thread-aware grey-box fuzzing tool for multithreaded programs. Instead of instrument the user program evenly, Muzz conducts static analysis first to locate set of specific program statements on which thread-interleavings may only happen, identified as suspicious interleaving scopes. Then Muzz will instrument more deputy instructions inside these scopes. During repeated execution, the inserted functions can collect thread context information, hence the fuzzer is able to select interesting seeds that triggered unique thread interleavings. 

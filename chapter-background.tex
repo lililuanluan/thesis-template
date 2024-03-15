@@ -1,0 +1,42 @@
+\chapter{\label{cha:title}Background}
+
+Short chapter intro \ldots
+
+\section{Weak Memory Models}
+
+In concurrent programming, shared memory is used for sharing data and passing messages among threads. Memory models are essential for programmers to reason about their code, and for compiler and hardware manufacturers to implement low-level supporting infrastructures. The simplest memory model, proposed by Lamport\cite{SC} in 1979, is the Sequential Consistency Model (SC) . Under the SC model, intra-thread instructions are executed following their program order and threads can interleave in any order. A read operation can only read from the most recent value written to the same memory location. The SC is also known as the strong memory model, with other non-SC memory models referred to as weak memory models.
+
+Consider the store buffer (SB) example, where x, y are shared variables, and r1, r2 are local variables, all initialized with 0. It can be seen that under SC, none of the possible thread interleavings (e.g., abcd, acbd, acdb, ...) results in both r1 and r2 reading the value 1.
+
+% int x = 0, y = 0;
+% // thread 1:
+% a: x = 1;
+% b: r1 = y;
+% // thread 2
+% c: y = 1;
+% d: r2 = x;
+
+However, this behavior can be allowed by some weak memory models provided by hardware architectures and programming languages. Take TSO (total store order)\cite{TSO}, supported by x86 architectures, for example. In TSO model, each thread has a local store buffer. Values written to shared memory will be first stored in the buffer and some time in the future, will be flushed to the shared memory. The store buffer has the FIFO property, hence the ordering of all writes in the same thread will not be broken. 
+
+For the SB example, if the momery model is TSO, it is possible that after executing assignments a and b, the values are buffered, followed by r1 and r2 reading 0, and finally the buffered values updated to the shared memory. 
+
+Some weak memory behaviors can be forbidden by one weak memory model, but allowed by another. In the following message passing (MP) example, after data is set to 1, the sender thread set a flag, y, to 1, hoping the receiver thread only use the data after the flag is set. Under TSO, because of the FIFO property of store buffers, the shared variable y is set to 1 only after the updating of data is finished. But this is not guaranteed under the PSO (partial store order) model\cite{PSO}. In PSO, each memory location has a seperate FIFO store buffer in a thread. In this case, the ordering of moving the values of data and y from their buffers to the shared momery is not restricted. The receiver thread can read y=1 when data has not been updated yet. 
+% // sender
+% data = 1;
+% y = 1;
+% // receiver 
+% while(y == 0) {;}
+% use(data)
+
+There are a variety of other weak memory models, such as the ARMv8, supporting out-of-order executions and speculative executions, and language level memory models, including the JAVA memory model\cite{java} and C++ memory model. The rest of this paper mainly discuss the C/C++ memory model\cite{c++model}. 
+
+
+
+
+
+
+\section{C/C++ Memory Model}
+
+
+
+

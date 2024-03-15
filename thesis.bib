@@ -278,3 +278,188 @@ keywords = {Concurrency Vulnerabilities, Fuzzing Test, Thread Schedule},
 location = {San Juan, PR, USA},
 series = {ACSAC '18}
 }
+
+@inproceedings{sel4,
+author = {Klein, Gerwin and Elphinstone, Kevin and Heiser, Gernot and Andronick, June and Cock, David and Derrin, Philip and Elkaduwe, Dhammika and Engelhardt, Kai and Kolanski, Rafal and Norrish, Michael and Sewell, Thomas and Tuch, Harvey and Winwood, Simon},
+title = {seL4: formal verification of an OS kernel},
+year = {2009},
+isbn = {9781605587523},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1629575.1629596},
+doi = {10.1145/1629575.1629596},
+abstract = {Complete formal verification is the only known way to guarantee that a system is free of programming errors.We present our experience in performing the formal, machine-checked verification of the seL4 microkernel from an abstract specification down to its C implementation. We assume correctness of compiler, assembly code, and hardware, and we used a unique design approach that fuses formal and operating systems techniques. To our knowledge, this is the first formal proof of functional correctness of a complete, general-purpose operating-system kernel. Functional correctness means here that the implementation always strictly follows our high-level abstract specification of kernel behaviour. This encompasses traditional design and implementation safety properties such as the kernel will never crash, and it will never perform an unsafe operation. It also proves much more: we can predict precisely how the kernel will behave in every possible situation.seL4, a third-generation microkernel of L4 provenance, comprises 8,700 lines of C code and 600 lines of assembler. Its performance is comparable to other high-performance L4 kernels.},
+booktitle = {Proceedings of the ACM SIGOPS 22nd Symposium on Operating Systems Principles},
+pages = {207–220},
+numpages = {14},
+keywords = {isabelle/hol, l4, microkernel, sel4},
+location = {Big Sky, Montana, USA},
+series = {SOSP '09}
+}
+
+@InProceedings{infer,
+author="Calcagno, Cristiano
+and Distefano, Dino",
+editor="Bobaru, Mihaela
+and Havelund, Klaus
+and Holzmann, Gerard J.
+and Joshi, Rajeev",
+title="Infer: An Automatic Program Verifier for Memory Safety of C Programs",
+booktitle="NASA Formal Methods",
+year="2011",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="459--465",
+abstract="Infer is a new automatic program verification tool aimed at proving memory safety of C programs. It attempts to build a compositional proof of the program at hand by composing proofs of its constituent modules (functions/procedures). Bugs are extracted from failures of proof attempts. We describe the main features of Infer and some of the main ideas behind it.",
+isbn="978-3-642-20398-5"
+}
+
+@article{RacerD,
+author = {Blackshear, Sam and Gorogiannis, Nikos and O'Hearn, Peter W. and Sergey, Ilya},
+title = {RacerD: compositional static race detection},
+year = {2018},
+issue_date = {November 2018},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {2},
+number = {OOPSLA},
+url = {https://doi.org/10.1145/3276514},
+doi = {10.1145/3276514},
+abstract = {Automatic static detection of data races is one of the most basic problems in reasoning about concurrency. We present RacerD—a static program analysis for detecting data races in Java programs which is fast, can scale to large code, and has proven effective in an industrial software engineering scenario. To our knowledge, RacerD is the first inter-procedural, compositional data race detector which has been shown to have non-trivial precision and impact. Due to its compositionality, it can analyze code changes quickly, and this allows it to perform continuous reasoning about a large, rapidly changing codebase as part of deployment within a continuous integration ecosystem. In contrast to previous static race detectors, its design favors reporting high-confidence bugs over ensuring their absence. RacerD has been in deployment for over a year at Facebook, where it has flagged over 2500 issues that have been fixed by developers before reaching production. It has been important in enabling the development of new code as well as fixing old code: it helped support conversion of part of the main Facebook Android app from a single-threaded to a multi-threaded architecture. In this paper we describe RacerD’s design, implementation, deployment and impact.},
+journal = {Proc. ACM Program. Lang.},
+month = {oct},
+articleno = {144},
+numpages = {28},
+keywords = {Concurrency, Concurrent Separation Logic, Race Freedom, Static Analysis}
+}
+
+@inproceedings {ASAN,
+author = {Konstantin Serebryany and Derek Bruening and Alexander Potapenko and Dmitriy Vyukov},
+title = {{AddressSanitizer}: A Fast Address Sanity Checker},
+booktitle = {2012 USENIX Annual Technical Conference (USENIX ATC 12)},
+year = {2012},
+isbn = {978-931971-93-5},
+address = {Boston, MA},
+pages = {309--318},
+url = {https://www.usenix.org/conference/atc12/technical-sessions/presentation/serebryany},
+publisher = {USENIX Association},
+month = jun
+}
+
+@inproceedings{TSAN,
+author = {Serebryany, Konstantin and Iskhodzhanov, Timur},
+title = {ThreadSanitizer: data race detection in practice},
+year = {2009},
+isbn = {9781605587936},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1791194.1791203},
+doi = {10.1145/1791194.1791203},
+abstract = {Data races are a particularly unpleasant kind of threading bugs. They are hard to find and reproduce -- you may not observe a bug during the entire testing cycle and will only see it in production as rare unexplainable failures. This paper presents ThreadSanitizer -- a dynamic detector of data races. We describe the hybrid algorithm (based on happens-before and locksets) used in the detector. We introduce what we call dynamic annotations -- a sort of race detection API that allows a user to inform the detector about any tricky synchronization in the user program. Various practical aspects of using ThreadSanitizer for testing multithreaded C++ code at Google are also discussed.},
+booktitle = {Proceedings of the Workshop on Binary Instrumentation and Applications},
+pages = {62–71},
+numpages = {10},
+keywords = {testing, dynamic data race detection, concurrency bugs, Valgrind},
+location = {New York, New York, USA},
+series = {WBIA '09}
+}
+
+@ARTICLE{SC,
+  author={Lamport},
+  journal={IEEE Transactions on Computers}, 
+  title={How to Make a Multiprocessor Computer That Correctly Executes Multiprocess Programs}, 
+  year={1979},
+  volume={C-28},
+  number={9},
+  pages={690-691},
+  keywords={Computer design;concurrent computing;hardware correctness;multiprocessing;parallel processing},
+  doi={10.1109/TC.1979.1675439}}
+
+@article{TSO,
+  author       = {Peter Sewell and
+                  Susmit Sarkar and
+                  Scott Owens and
+                  Francesco Zappa Nardelli and
+                  Magnus O. Myreen},
+  title        = {x86-TSO: a rigorous and usable programmer's model for x86 multiprocessors},
+  journal      = {Commun. {ACM}},
+  volume       = {53},
+  number       = {7},
+  pages        = {89--97},
+  year         = {2010},
+  url          = {https://doi.org/10.1145/1785414.1785443},
+  doi          = {10.1145/1785414.1785443},
+  timestamp    = {Tue, 06 Nov 2018 12:51:37 +0100},
+  biburl       = {https://dblp.org/rec/journals/cacm/SewellSONM10.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+
+@book{PSO,
+author = {SPARC International, Inc., CORPORATE},
+title = {The SPARC architecture manual: version 8},
+year = {1992},
+isbn = {0138250014},
+publisher = {Prentice-Hall, Inc.},
+address = {USA}
+}
+
+@inproceedings{10.1145/1040305.1040336,
+author = {Manson, Jeremy and Pugh, William and Adve, Sarita V.},
+title = {The Java memory model},
+year = {2005},
+isbn = {158113830X},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1040305.1040336},
+doi = {10.1145/1040305.1040336},
+abstract = {This paper describes the new Java memory model, which has been revised as part of Java 5.0. The model specifies the legal behaviors for a multithreaded program; it defines the semantics of multithreaded Java programs and partially determines legal implementations of Java virtual machines and compilers.The new Java model provides a simple interface for correctly synchronized programs -- it guarantees sequential consistency to data-race-free programs. Its novel contribution is requiring that the behavior of incorrectly synchronized programs be bounded by a well defined notion of causality. The causality requirement is strong enough to respect the safety and security properties of Java and weak enough to allow standard compiler and hardware optimizations. To our knowledge, other models are either too weak because they do not provide for sufficient safety/security, or are too strong because they rely on a strong notion of data and control dependences that precludes some standard compiler transformations.Although the majority of what is currently done in compilers is legal, the new model introduces significant differences, and clearly defines the boundaries of legal transformations. For example, the commonly accepted definition for control dependence is incorrect for Java, and transformations based on it may be invalid.In addition to providing the official memory model for Java, we believe the model described here could prove to be a useful basis for other programming languages that currently lack well-defined models, such as C++ and C#.},
+booktitle = {Proceedings of the 32nd ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
+pages = {378–391},
+numpages = {14},
+keywords = {multithreading, memory model, concurrency, Java},
+location = {Long Beach, California, USA},
+series = {POPL '05}
+}
+
+@article{java,
+author = {Manson, Jeremy and Pugh, William and Adve, Sarita V.},
+title = {The Java memory model},
+year = {2005},
+issue_date = {January 2005},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {40},
+number = {1},
+issn = {0362-1340},
+url = {https://doi.org/10.1145/1047659.1040336},
+doi = {10.1145/1047659.1040336},
+abstract = {This paper describes the new Java memory model, which has been revised as part of Java 5.0. The model specifies the legal behaviors for a multithreaded program; it defines the semantics of multithreaded Java programs and partially determines legal implementations of Java virtual machines and compilers.The new Java model provides a simple interface for correctly synchronized programs -- it guarantees sequential consistency to data-race-free programs. Its novel contribution is requiring that the behavior of incorrectly synchronized programs be bounded by a well defined notion of causality. The causality requirement is strong enough to respect the safety and security properties of Java and weak enough to allow standard compiler and hardware optimizations. To our knowledge, other models are either too weak because they do not provide for sufficient safety/security, or are too strong because they rely on a strong notion of data and control dependences that precludes some standard compiler transformations.Although the majority of what is currently done in compilers is legal, the new model introduces significant differences, and clearly defines the boundaries of legal transformations. For example, the commonly accepted definition for control dependence is incorrect for Java, and transformations based on it may be invalid.In addition to providing the official memory model for Java, we believe the model described here could prove to be a useful basis for other programming languages that currently lack well-defined models, such as C++ and C#.},
+journal = {SIGPLAN Not.},
+month = {jan},
+pages = {378–391},
+numpages = {14},
+keywords = {multithreading, memory model, concurrency, Java}
+}
+
+@article{c++model,
+author = {Batty, Mark and Owens, Scott and Sarkar, Susmit and Sewell, Peter and Weber, Tjark},
+title = {Mathematizing C++ concurrency},
+year = {2011},
+issue_date = {January 2011},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {46},
+number = {1},
+issn = {0362-1340},
+url = {https://doi.org/10.1145/1925844.1926394},
+doi = {10.1145/1925844.1926394},
+abstract = {Shared-memory concurrency in C and C++ is pervasive in systems programming, but has long been poorly defined. This motivated an ongoing shared effort by the standards committees to specify concurrent behaviour in the next versions of both languages. They aim to provide strong guarantees for race-free programs, together with new (but subtle) relaxed-memory atomic primitives for high-performance concurrent code. However, the current draft standards, while the result of careful deliberation, are not yet clear and rigorous definitions, and harbour substantial problems in their details.In this paper we establish a mathematical (yet readable) semantics for C++ concurrency. We aim to capture the intent of the current (`Final Committee') Draft as closely as possible, but discuss changes that fix many of its problems. We prove that a proposed x86 implementation of the concurrency primitives is correct with respect to the x86-TSO model, and describe our Cppmem tool for exploring the semantics of examples, using code generated from our Isabelle/HOL definitions.Having already motivated changes to the draft standard, this work will aid discussion of any further changes, provide a correctness condition for compilers, and give a much-needed basis for analysis and verification of concurrent C and C++ programs.},
+journal = {SIGPLAN Not.},
+month = {jan},
+pages = {55–66},
+numpages = {12},
+keywords = {semantics, relaxed memory models}
+}
+
+
