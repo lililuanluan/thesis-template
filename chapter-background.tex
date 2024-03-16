@@ -8,7 +8,8 @@ In concurrent programming, shared memory is used for sharing data and passing me
 
 Consider the store buffer (SB) example, where x, y are shared variables, and r1, r2 are local variables, all initialized with 0. It can be seen that under SC, none of the possible thread interleavings (e.g., abcd, acbd, acdb, ...) results in both r1 and r2 reading the value 1.
 
-% int x = 0, y = 0;
+% x = 0;
+% y = 0;
 % // thread 1:
 % a: x = 1;
 % b: r1 = y;
@@ -20,13 +21,15 @@ However, this behavior can be allowed by some weak memory models provided by har
 
 For the SB example, if the momery model is TSO, it is possible that after executing assignments a and b, the values are buffered, followed by r1 and r2 reading 0, and finally the buffered values updated to the shared memory. 
 
-Some weak memory behaviors can be forbidden by one weak memory model, but allowed by another. In the following message passing (MP) example, after data is set to 1, the sender thread set a flag, y, to 1, hoping the receiver thread only use the data after the flag is set. Under TSO, because of the FIFO property of store buffers, the shared variable y is set to 1 only after the updating of data is finished. But this is not guaranteed under the PSO (partial store order) model\cite{PSO}. In PSO, each memory location has a seperate FIFO store buffer in a thread. In this case, the ordering of moving the values of data and y from their buffers to the shared momery is not restricted. The receiver thread can read y=1 when data has not been updated yet. 
+Some weak memory behaviors can be forbidden by one weak memory model, but allowed by another. In the following message passing (MP) example, after data is set to 1, the sender thread initialize the pointer, p, with the address of data, hoping the receiver thread only use the data after the pointer is initialized (inidicating data is set). Under TSO, because of the FIFO property of store buffers, the shared variable p is initialized only after the updating of data is finished. But this is not guaranteed under the PSO (partial store order) model\cite{PSO}. In PSO, each memory location has a seperate FIFO store buffer in a thread. In this case, the ordering of moving the values of data and p from their buffers to the shared momery is not restricted. The receiver thread can read y=1 when data has not been updated yet. 
+% p = nullptr
+% data = 0
 % // sender
 % data = 1;
-% y = 1;
+% p = &data;
 % // receiver 
-% while(y == 0) {;}
-% use(data)
+% while(p == nullptr) {;}
+% use(*p)
 
 There are a variety of other weak memory models, such as the ARMv8, supporting out-of-order executions and speculative executions, and language level memory models, including the JAVA memory model\cite{java} and C++ memory model. The rest of this paper mainly discuss the C/C++ memory model\cite{c++model}. 
 
@@ -36,7 +39,50 @@ There are a variety of other weak memory models, such as the ARMv8, supporting o
 
 
 \section{C/C++ Memory Model}
+C/C++ provides additional concurrency primitives, including atomics, mutex, threads and fences, along with a extensive specification of its memory model.
+The first C/C++ memory model was described in a proposal\cite{c++model-proposal} in 2008, which was refined and formalized by \cite{c++model}. The following contents use the notations and definitions in \cite{c++model}, unless otherwise specified. 
 
+The memory model can be defined as a function, taking a set of candidate executions $X$ as input. These executions must be allowed by the operational semantics and are consistent, denoted as pre-executions. The function returns "NONE" if any executions have undefined behaviors; otherwise, it returns all pre-executions.
 
+A candidate execution X contains two components, $X = (X_{opsem}, X_{witness})$, where $X_{opsem}$ is determined by the operational semantics and $X_{witness}$ is an existential witness of some further data, both are composed of some memory actions (actions for short) and relations. An execution can be represented as a graph, with its actions as nodes and relations as edges. An action can be a non-atomic read or write, atomic operations, mutex operations and fences, represented by <aid, tid, type, location, value>. The $X_{opsem}$ contains three type of relations: 
 
+\begin{itemize}
+    \item \textit{sequenced-before} (sb): A relation between intra-thread actions given by C/C++ language specifications, usually analogous to program order. When two seperate actions are written in two seperate statements, the former is sequenced-before the latter. Arguments of functions or operands of some operators like '==' do not have specified evaluation order, thus do not have sequenced-before relations. 
+    \item \textit{additional-synchronized-with} (asw): The thread-creation action introduces an asw relation from the sequenced-before-maximal actions of the parent thread to the sequenced-before-minimal actions of the child.
+    \item \textit{data-dependency} (dd):  The dd is provided by the operational semantics, primarily used for release/consume atomics. For example, a store to a pointer and the use of the pointed data have a dd relation. 
+\end{itemize}
 
+In the SB example, assuming x and y atomic variables, the $X_{opsem}$ of a candidate execution can be drawn as: 
+%   x = 0
+%     | sb
+%   y = 0
+%   /asw    \asw
+% x = 1     y = 1
+%   |sb       |sb
+% read y    read x
+
+The $X_{witness}$ part contains additional three relations. These relations are not uniquely determined by the operational semantics. Therefore, given a program p, the candidate execution X can only have one $X_{opsem}$, but have multiple choices of $X_{witness}$. 
+
+\begin{itemize}
+    \item \textit{read-from} (rf): If a read action (non atomic read, atomic read, rmw) reads a value from a write action (non atomic write, atomic write, rmw), an rf edge from the write to the read is established. In addition, a lock and its last preceding unlock action of the same mutex also establish an rf. The rf reads-from map is defined as a function containing all these rf relations in the execution. 
+    \item \textit{modification-order} (mo): A total order of all writes to the same atomic location. Each location can have an independent mo "chain", unrelated to other locations.
+    \item \textit{sequentially-consistent} (sc): Totally orders all mutex actions and actions with \texttt{memory\_order\_seq\_cst} memory order.
+\end{itemize}
+
+In the SB example, if all writes and reads are \texttt{memory\_order\_seq\_cst}, a possible $X_{opsem}$ for the SB example can be:
+% rf
+% x=1 -rf-> read x in thread2
+% y=1 -rf-> read y in thread1
+% sc
+% x=0 -sc-> y=0 -sc-> x=1 -sc-> y=1 -sc-> read y -sc-> read x
+% mo
+% y=0 -mo-> y=1
+% x=0 -mo-> x=1
+
+There are some derived relations defined based on the above six relations. These derived relations will help to define the memory model and rule out illegal executions.
+
+\begin{itemize}
+    \item \textit{synchronizes-with} (sw): Every unlock action of a mutex has an sw edge pointing to the lock odered after it in the sc order mentioned above. All asw relations are sw. A read-acquire (read with \texttt{memory\_order\_acquire}) reading from a write-release gives rise to a sw relation. More generally, when the read-acquire R reads from a write W, it also sw other write-release that is ordered before W in the modification order. However, not all write-releases preceding W can have sw relations with W, only those contained by the \textit{release sequence} of W. The definition of \textit{release sequence} is omitted here. 
+    \item \textit{dependency-ordered-before} (dob): Similar to sw in release/acquire pairs, dob is introduced for release/consume pairs. The formal definition is ommited here. Instead, we use the MP example for illustration. The reading and dereferencing of p carry a dd relation given by the operational semantics, which forms a \textit{carries-a-dependency-to} (cad) relation. When \texttt{p==nullptr} reads from \texttt{p=\&data}, they from a \textit{dependency-ordered-before} relation. As a result, \texttt{*p}, having a cad with \texttt{p==nullptr}, also has a dob from \texttt{p=\&data}. 
+    \item \textit{happens-before} (hb): If the execution has no consume operations, hence no dob relations, the hb relation is a transitive closure of $sb \cup sw\$. More generally, hb is defined as the union of sb and \textit{inter-thread-happens-before}, which combines the sw and dob relations.
+\end{itemize}

@@ -437,7 +437,7 @@ doi = {10.1145/1047659.1040336},
 abstract = {This paper describes the new Java memory model, which has been revised as part of Java 5.0. The model specifies the legal behaviors for a multithreaded program; it defines the semantics of multithreaded Java programs and partially determines legal implementations of Java virtual machines and compilers.The new Java model provides a simple interface for correctly synchronized programs -- it guarantees sequential consistency to data-race-free programs. Its novel contribution is requiring that the behavior of incorrectly synchronized programs be bounded by a well defined notion of causality. The causality requirement is strong enough to respect the safety and security properties of Java and weak enough to allow standard compiler and hardware optimizations. To our knowledge, other models are either too weak because they do not provide for sufficient safety/security, or are too strong because they rely on a strong notion of data and control dependences that precludes some standard compiler transformations.Although the majority of what is currently done in compilers is legal, the new model introduces significant differences, and clearly defines the boundaries of legal transformations. For example, the commonly accepted definition for control dependence is incorrect for Java, and transformations based on it may be invalid.In addition to providing the official memory model for Java, we believe the model described here could prove to be a useful basis for other programming languages that currently lack well-defined models, such as C++ and C#.},
 journal = {SIGPLAN Not.},
 month = {jan},
-pages = {378–391},
+pages = {378-391},
 numpages = {14},
 keywords = {multithreading, memory model, concurrency, Java}
 }
@@ -462,4 +462,26 @@ numpages = {12},
 keywords = {semantics, relaxed memory models}
 }
 
+
+
+
+@article{c++model-proposal,
+author = {Boehm, Hans-J. and Adve, Sarita V.},
+title = {Foundations of the C++ concurrency memory model},
+year = {2008},
+issue_date = {June 2008},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {43},
+number = {6},
+issn = {0362-1340},
+url = {https://doi.org/10.1145/1379022.1375591},
+doi = {10.1145/1379022.1375591},
+abstract = {Currently multi-threaded C or C++ programs combine a single-threaded programming language with a separate threads library. This is not entirely sound [7].We describe an effort, currently nearing completion, to address these issues by explicitly providing semantics for threads in the next revision of the C++ standard. Our approach is similar to that recently followed by Java [25], in that, at least for a well-defined and interesting subset of the language, we give sequentially consistent semantics to programs that do not contain data races. Nonetheless, a number of our decisions are often surprising even to those familiar with the Java effort:We (mostly) insist on sequential consistency for race-free programs, in spite of implementation issues that came to light after the Java work.We give no semantics to programs with data races. There are no benign C++ data races.We use weaker semantics for trylock than existing languages or libraries, allowing us to promise sequential consistency with an intuitive race definition, even for programs with trylock.This paper describes the simple model we would like to be able to provide for C++ threads programmers, and explain how this, together with some practical, but often under-appreciated implementation constraints, drives us towards the above decisions.},
+journal = {SIGPLAN Not.},
+month = {jun},
+pages = {68–78},
+numpages = {11},
+keywords = {c++, data race, memory consistency, memory model, sequential consistency, trylock}
+}
 
