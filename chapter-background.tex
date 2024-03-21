@@ -66,7 +66,7 @@ The $X_{witness}$ part contains additional three relations. These relations are 
 \begin{itemize}
     \item \textit{read-from} (rf): If a read action (non atomic read, atomic read, rmw) reads a value from a write action (non atomic write, atomic write, rmw), an rf edge from the write to the read is established. In addition, a lock and its last preceding unlock action of the same mutex also establish an rf. The rf reads-from map is defined as a function containing all these rf relations in the execution. 
     \item \textit{modification-order} (mo): A total order of all writes to the same atomic location. Each location can have an independent mo "chain", unrelated to other locations.
-    \item \textit{sequentially-consistent} (sc): Totally orders all mutex actions and actions with \texttt{memory\_order\_seq\_cst} memory order.
+    \item \textit{sequentially-consistent} (sc): Totally orders all mutex actions and actions with memory\_order\_seq\_cst memory order.
 \end{itemize}
 
 In the SB example, if all writes and reads are \texttt{memory\_order\_seq\_cst}, a possible $X_{opsem}$ for the SB example can be:
@@ -84,5 +84,5 @@ There are some derived relations defined based on the above six relations. These
 \begin{itemize}
     \item \textit{synchronizes-with} (sw): Every unlock action of a mutex has an sw edge pointing to the lock odered after it in the sc order mentioned above. All asw relations are sw. A read-acquire (read with \texttt{memory\_order\_acquire}) reading from a write-release gives rise to a sw relation. More generally, when the read-acquire R reads from a write W, it also sw other write-release that is ordered before W in the modification order. However, not all write-releases preceding W can have sw relations with W, only those contained by the \textit{release sequence} of W. The definition of \textit{release sequence} is omitted here. 
     \item \textit{dependency-ordered-before} (dob): Similar to sw in release/acquire pairs, dob is introduced for release/consume pairs. The formal definition is ommited here. Instead, we use the MP example for illustration. The reading and dereferencing of p carry a dd relation given by the operational semantics, which forms a \textit{carries-a-dependency-to} (cad) relation. When \texttt{p==nullptr} reads from \texttt{p=\&data}, they from a \textit{dependency-ordered-before} relation. As a result, \texttt{*p}, having a cad with \texttt{p==nullptr}, also has a dob from \texttt{p=\&data}. 
-    \item \textit{happens-before} (hb): If the execution has no consume operations, hence no dob relations, the hb relation is a transitive closure of $sb \cup sw\$. More generally, hb is defined as the union of sb and \textit{inter-thread-happens-before}, which combines the sw and dob relations.
+    \item \textit{happens-before} (hb): If the execution has no consume operations, hence no dob relations, the hb relation is a transitive closure of $sb \cup sw$. More generally, hb is defined as the union of sb and \textit{inter-thread-happens-before}, which combines the sw and dob relations.
 \end{itemize}
