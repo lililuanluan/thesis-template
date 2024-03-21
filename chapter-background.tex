@@ -42,7 +42,7 @@ There are a variety of other weak memory models, such as the ARMv8, supporting o
 C/C++ provides additional concurrency primitives, including atomics, mutex, threads and fences, along with a extensive specification of its memory model.
 The first C/C++ memory model was described in a proposal\cite{c++model-proposal} in 2008, which was refined and formalized by \cite{c++model}. The following contents use the notations and definitions in \cite{c++model}, unless otherwise specified. 
 
-The memory model can be defined as a function, taking a set of candidate executions $X$ as input. These executions must be allowed by the operational semantics and are consistent, denoted as pre-executions. The function returns "NONE" if any executions have undefined behaviors; otherwise, it returns all pre-executions.
+The memory model can be defined as a function, taking a set of candidate executions $X$ as input. These executions must be allowed by the operational semantics and are consistent, denoted as pre-executions. The function returns "NONE" if any executions have undefined behaviors; otherwise, it returns "SOME" pre-executions.
 
 A candidate execution X contains two components, $X = (X_{opsem}, X_{witness})$, where $X_{opsem}$ is determined by the operational semantics and $X_{witness}$ is an existential witness of some further data, both are composed of some memory actions (actions for short) and relations. An execution can be represented as a graph, with its actions as nodes and relations as edges. An action can be a non-atomic read or write, atomic operations, mutex operations and fences, represented by <aid, tid, type, location, value>. The $X_{opsem}$ contains three type of relations: 
 
@@ -69,12 +69,12 @@ The $X_{witness}$ part contains additional three relations. These relations are 
     \item \textit{sequentially-consistent} (sc): Totally orders all mutex actions and actions with \texttt{memory\_order\_seq\_cst} memory order.
 \end{itemize}
 
-In the SB example, if all writes and reads are \texttt{memory\_order\_seq\_cst}, a possible $X_{opsem}$ for the SB example can be:
+In the SB example, assuming the initializations are non-atomic and other writes and reads are \texttt{memory\_order\_seq\_cst}, a possible $X_{witness}$ for the SB example can be:
 % rf
 % x=1 -rf-> read x in thread2
 % y=1 -rf-> read y in thread1
 % sc
-% x=0 -sc-> y=0 -sc-> x=1 -sc-> y=1 -sc-> read y -sc-> read x
+% x=1 -sc-> y=1 -sc-> read y -sc-> read x
 % mo
 % y=0 -mo-> y=1
 % x=0 -mo-> x=1
@@ -83,6 +83,27 @@ There are some derived relations defined based on the above six relations. These
 
 \begin{itemize}
     \item \textit{synchronizes-with} (sw): Every unlock action of a mutex has an sw edge pointing to the lock odered after it in the sc order mentioned above. All asw relations are sw. A read-acquire (read with \texttt{memory\_order\_acquire}) reading from a write-release gives rise to a sw relation. More generally, when the read-acquire R reads from a write W, it also sw other write-release that is ordered before W in the modification order. However, not all write-releases preceding W can have sw relations with W, only those contained by the \textit{release sequence} of W. The definition of \textit{release sequence} is omitted here. 
-    \item \textit{dependency-ordered-before} (dob): Similar to sw in release/acquire pairs, dob is introduced for release/consume pairs. The formal definition is ommited here. Instead, we use the MP example for illustration. The reading and dereferencing of p carry a dd relation given by the operational semantics, which forms a \textit{carries-a-dependency-to} (cad) relation. When \texttt{p==nullptr} reads from \texttt{p=\&data}, they from a \textit{dependency-ordered-before} relation. As a result, \texttt{*p}, having a cad with \texttt{p==nullptr}, also has a dob from \texttt{p=\&data}. 
-    \item \textit{happens-before} (hb): If the execution has no consume operations, hence no dob relations, the hb relation is a transitive closure of $sb \cup sw\$. More generally, hb is defined as the union of sb and \textit{inter-thread-happens-before}, which combines the sw and dob relations.
+    \item \textit{dependency-ordered-before} (dob): Similar to sw in release/acquire pairs, dob is introduced for release/consume pairs. The formal definition is ommited here. Instead, take the MP example for illustration. The reading and dereferencing of p carry a dd relation given by the operational semantics, which forms a \textit{carries-a-dependency-to} (cad) relation. When \texttt{p==nullptr} reads from \texttt{p=\&data}, they from a \textit{dependency-ordered-before} relation. As a result, \texttt{*p}, having a cad with \texttt{p==nullptr}, also has a dob from \texttt{p=\&data}. 
+    \item \textit{happens-before} (hb): If the execution has no consume operations, hence no dob relations, the hb relation is a transitive closure of $sb \cup sw$. More generally, hb is defined as the union of sb and \textit{inter-thread-happens-before}, which combines the sw and dob relations.
 \end{itemize}
+
+
+The three relations in $X_{witness}$ (rf, mo and sc) can not be arbitrarily composed to make an execution. Instead, they have to satisfy some constraints, called \textit{coherence}. The coherence constraints have the form "A-B Coherence", or CoAB, where both A and B can be a read or write and  $A \xrightarrow{\text{hb}} B$. As illustrated before, the hb is derived from sb, sw and dob, where sw is derived from sc and rf and dob is derived from rf. The constraints on hb, mo and rf will ultimately constain the combinations of rf, mo and sc. The coherence constraints are listed below:
+
+\begin{itemize}
+    \item \textit{Read-Read Coherence} (CoRR): Two reads ordered by hb cannot read from two writes ordered by mo in the other direction. 
+    \item \textit{Write-Read Coherence} (CoWR): When a write, $w$, happens before a read $r$, $r$ cannot read from a write that precedes $w$ in mo. 
+    \item \textit{Write-Write Coherence} (CoWW): The mo and hb relations of two writes, $w_1$ and $w_2$, should have same directions. For instance, $w_1 \xrightarrow{\text{mo}} w_2 \land w_2 \xrightarrow{\text{hb}} w_1$ is not allowed. 
+    \item \textit{Read-Write Coherence} (CoRW): When a read happens before a write $w$, it cannot read from a write that is ordered after $w$ in mo. This forbids the $rf \cup hb \cup mo$ to be cyclic.
+\end{itemize}
+
+
+Take the SB example, if the reads and writes are SC atomic operations, the following execution where both reads read the value 0 is not allowed, since this execution violates the CoWR constraint. However, both reads reading the value 0 from the initializations is allowed when the reads and writes are relaxed. 
+% rf
+% x=0 -rf-> read x in thread2
+% y=0 -rf-> read y in thread1
+% sc
+% x=1 -sc-> y=1 -sc-> read y -sc-> read x
+% mo
+% y=0 -mo-> y=1
+% x=0 -mo-> x=1

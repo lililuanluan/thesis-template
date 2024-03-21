@@ -2,6 +2,11 @@
 
 Related work falls into three categories: weak memory models, model checkers and fuzzers. 
 
+% memory model
+
+
+
+
 
 
 AFL\cite{afl} is a coverag guided grey-box fuzzer. The user program is intrumented with deputy functions at the entry of basicblocks evenly. The deputy functions can collect runtime information for code coverage analysis. AFL mutates the input for the program to cover new branches and execution paths. Since AFL is initially designed for sequential programs, which has deterministic results when the input and random seed are fixed, it is unaware of thread interleaving contexts. 
