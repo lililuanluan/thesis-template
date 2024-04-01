@@ -1,0 +1,27 @@
+\begin{figure}
+  %\footnotesize
+  \centering
+  \begin{tikzpicture}[yscale=0.85]
+    \node (s) at (0,0)  {\begin{tabular}{c}$i: [X=Y=0]$ \\ {\footnotesize\color{teal}$\set{(X,i_x),(Y,i_y)}$}\end{tabular}};
+    \node (t11) at (-3,-2)  {\begin{tabular}{c}$e_1: \W(X,1)$ \\ {\footnotesize\color{teal}$\set{(X,e_1),(Y,i_y)}$}\end{tabular}}; 
+    \node (t21) at (0,-2)  {\begin{tabular}{c}$e_2: \R(X, 1)$  \\ {\footnotesize\color{teal}$\set{(X,e_1),(Y,i_y)}$}\end{tabular}};
+    \node (t22) at (0,-4) {\begin{tabular}{c}$e_3: \W(Y,1)$ \\ {\footnotesize\color{teal}$\set{(X,e_1),(Y,e_3)}$}\end{tabular}};
+    \node (t31) at (3, -2)  {\begin{tabular}{c}$e_4: \R(Y, 1)$ \\ {\footnotesize\color{teal}$\set{(X,i_x),(Y,e_3)}$}\end{tabular}};
+    \node (t32) at (3, -4) {\begin{tabular}{c}$e_5: \R(X, 0)$ \\ {\footnotesize\color{teal}$\set{(X,i_x),(Y,e_3)}$}\end{tabular}};
+  
+  % \node at (1.2,-1.75)  {{\footnotesize\color{blue}$\set{(X,e_1)}$}};
+  % \node at (3.7,-1.75)  {{\footnotesize\color{blue}$\set{(Y,e_3)}$}};
+  
+  %
+    \draw[po] (s) to node[right]{(1)} (t11);
+    \draw[po] (s) to node[right]{(2)} (t21) ;
+    \draw[po] (t21) to node[right]{(3)} (t22);
+    \draw[po] (s) to node[right]{(4)} (t31);
+    \draw[po] (t31) to node[right]{(5)} (t32);
+    \draw[rf] (t11) to node[above]{(2)} node[below]{$\rf$} (t21) ;
+    \draw[rf] (t22) to node[above]{(4)} node[below]{$\rf$} (t31) ;
+  \end{tikzpicture}
+  %\caption{A $d=2$ execution of Program~\ref{prg:MP2} that hits the assertion violation}
+  \caption{A $d=2, \; h=1$ execution of MP2. The illustrated execution selects $[e_2, e_4]$ as the sinks of the two communication relations and assigns initial priorities as $[T1, T2, T3]$.}
+  \label{fig:mp2:d2}
+  \end{figure}

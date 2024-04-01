@@ -6,6 +6,7 @@
 \usepackage{listings}
 \usepackage{mscthesis}
 \usepackage{mathtools}
+
 \usepackage{lipsum} % standard filler text, only needed for demo
 
 % %% The package 'algorithm' is useful, but incompatible with memoir.
@@ -17,6 +18,11 @@
 % Include right (LaTeX/PDFLaTeX) graphics package
 % (doesn't work under cygwin apperently)
 %\ifx\pdftexversion\undefined
+% \usepackage{tikz}
+% \usepackage{graphicx}
+% \usepackage{color}
+% \usepackage[outdir=./img/]{epstopdf}
+% \PassOptionsToPackage[dvips]{graphicx}
 \usepackage[dvips]{graphicx}
 \usepackage[dvips]{color}
 %\else
@@ -25,6 +31,7 @@
 %\fi
 
 \usepackage{hyperref}
+
 
 % Used in the bibliography to enable \citeauthor{citation}
 \usepackage[numbers]{natbib}
@@ -108,6 +115,7 @@
 
 \include{introduction} 
 \include{chapter-background} 
+\include{chapter-c11tester} 
 \include{related_work} 
 \include{conclusions_and_future_work} 
 

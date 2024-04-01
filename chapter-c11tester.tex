@@ -1,0 +1,18 @@
+\chapter{\label{cha:title}c11tester}
+
+C11Tester is a automatic testing tool that supports a large gragment of C/C++ weak memory model. In this chapter we present the implementation of C11Tester and customazation points of its plugable framework. 
+
+\section{Instrumentation}
+
+C11Tester uses a LLVM pass compiler pass, CDSPass, to instrument all atomic operations, non-atomic accesses to shared memory locations, thread functions, mutex operations and fence operations by inserting a corresponding function call. The compiled program is linked with a dynamic library containing the function calls. 
+
+\subsection{Threads}
+C11Tester impelments a thread library that supports the same APIs of C++'s standard library and Posix thread library. The user's thread function calls will be mapped into user space fibers, instead of kernel space threads. Thus, all threads will be executed in a sequential manner with scheduling managed by a central scheduler, which is provided by the C11Tester. A context switching approach is applied to simulate the interleavings of threads to improve efficiency. 
+
+\subsection{Actions}
+Each atomic operation, thread creation and joining, mutex locks and unlocks, and memory fences will create a Action object, containing its type, value, memory order, thread id and other runtime information. Since all threads are sequenced during execution, each action will have a unique sequence number. The relations between actions, such as read from and synchronized with, are also maintained by the Action class. 
+
+\subsection{Scheduler}
+Although C/C++ programs under weak memory model do not use scheduling semantics, C11Tester does contain a central scheduler. It's worth noting that the scheduler do not simulate schedulings of threads, instead, it's designed to check actions of different threads in a total order. This is based on the implementation of mapping user's threads into fibers and checking them sequentially. All actions within the same thread will be checked following their sequence order, as a step, and the scheduler decides whether to check actions of other threads in the next step. Hence, two decisions will be made in each step, the behavior of the current action and the next thread to select. If the current action is a read, C11Tester will choose a write action to read from. Since the read-modify-write operations are instrumented with two functions, a read and a write, the scheduler ensures these two actions are atomic, i.e. to check them without switching to other threads in between. 
+
+

@@ -4,7 +4,7 @@ PROJECT         = thesis
 
 .PHONY          = all clean
 
-.PRECIOUS: $(PROJECT).ps
+# .PRECIOUS: $(PROJECT).ps
 
 all: pdf
 
