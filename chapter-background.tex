@@ -109,3 +109,7 @@ Take the SB example, if the reads and writes are SC atomic operations, the follo
 % x=0 -mo-> x=1
 
 The above mentioned C/C++ memory model is an axiomatic model, specifying which executions are allowed and which are not. However, this model is deemed to be flawed. Firstly, the data-dependency relation and those associated with consume-release atomics are specified but are not implemented on most platforms, where they are typically treated as acquire-release atomic operations. Furthermore, there exist some executions actually allowed by the model but should be rulled out in principle.  For instance, in a load buffer (LB) program, where two threads load from different locations and store the loaded value to the other location. If all the atomic operations have a relaxed memory order, any loaded value is allowed by the model. The problem is called \textit{out-of-thin-air} (OOTA) problem. Since the model was proposed, enumerous efforts have been taken to revise it. These will be summarized in section \ref{cha:related}.
+
+% execution graph
+
+% is rf sufficient for execution
