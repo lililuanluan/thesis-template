@@ -1,0 +1,49 @@
+\chapter{\label{cha:title}fuzzing}
+
+In this chapter, we describe a fuzzing algorithm for concurrent programs under weak memory models.
+
+\section{Overview}
+
+The fuzzer aims to improve the performance of randomized testing approaches. There are some model checkers, such as C11Tester or GenMC's estimation mode, that uses random-based testing, and some exhaustive model checkers, such as GenMC, that enumerate all possible executions. Exhaustive checkers are useful when the search space is limited, typically when the program under test is not too large. Random-based checking is frequently used for testing large programs. Such a checker usually constructs one execution graph based on random decisions of threads and reads-from relations during each exploration. For the next iteration, it starts over from the beginning and randomly explores again. A problem with this is because it does not keep states among explorations, some repetitive efforts may be taken. Sometimes different random decisions may result in same executions, or some infrequent execution graphs may not be revealed. 
+
+The fuzzer uses partially constructed graphs, represented by "prefix" in the following context, as guidance for further explorations. 
+The fuzzer maintains a set of prefixes, initialized empty. At the beginning of each exploration, it pickes a prefix from the set. If there are no existing prefix in the set, the exploration will be random. Otherwise, the model checker will start from the prefix and randomly construct the remaining part of the execution graph. When the exploration is finished, an execution graph will be constructed and the fuzzer will determine whether this execution graph is interesting. The conditions for a graph to be interested could be that it is a new execution graph or it contains some new relations or events. The interested graph will be mutated to generate new prefixes. For example, the fuzzer can change a reads-from relation in that graph and cut out the invalid part after that rf in the graph to get a prefix. The fuzzer may dynamically drop some prefixes based on their ability to find new interesting graphs. Below is a simplified diagram of the fuzzing loop.
+
+
+
+\begin{algorithm}
+    \caption{Fuzzing algorithm}
+    \begin{algorithmic}
+    \STATE \textbf{Input:} Program $P$ and number of explorations $N$
+    \STATE \textbf{Output:} $N$ execution graphs
+    
+    \STATE prefix\_set $\leftarrow \emptyset$
+    \STATE graphs $\leftarrow [ ]$
+    
+    \FOR{$i \leftarrow 1$ \TO $N$}
+        \IF{prefix\_set $\neq \emptyset$}
+            \STATE $p \leftarrow$ get\_prefix(prefix\_set)
+            \STATE $g \leftarrow $ explore\_from\_prefix($p$)
+        \ELSE 
+            \STATE $g \leftarrow $ explore\_randomly()
+        \ENDIF 
+        \IF{is\_interesting(g)}
+            \STATE $p' \leftarrow$ mutate(g)
+            \STATE prefix\_set $\leftarrow$ prefix\_set $\cup p'$        
+        \ENDIF
+        \STATE graphs $\leftarrow$ [graphs, g]
+    \ENDFOR
+    
+    \RETURN graphs
+    \end{algorithmic}
+\end{algorithm}
+
+
+
+
+% \subsection{Threads}
+
+
+
+
+
