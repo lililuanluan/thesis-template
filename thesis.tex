@@ -21,6 +21,7 @@
 % }
 
 
+
 \usepackage{mscthesis}
 \usepackage{mathtools}
 
@@ -34,18 +35,19 @@
 
 % Include right (LaTeX/PDFLaTeX) graphics package
 % (doesn't work under cygwin apperently)
-%\ifx\pdftexversion\undefined
-% \usepackage{tikz}
-% \usepackage{graphicx}
-% \usepackage{color}
-% \usepackage[outdir=./img/]{epstopdf}
-% \PassOptionsToPackage[dvips]{graphicx}
+\ifx\pdftexversion\undefined
+\usepackage{tikz}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage[outdir=./img/]{epstopdf}
+\PassOptionsToPackage[dvips]{graphicx}
 \usepackage[dvips]{graphicx}
 \usepackage[dvips]{color}
-%\else
-%\usepackage[pdftex]{graphicx}
-%\usepackage[pdftex]{color}
-%\fi
+\else
+
+\usepackage[pdftex]{graphicx}
+\usepackage[pdftex]{color}
+\fi
 
 \usepackage{hyperref}
 
@@ -93,7 +95,7 @@
 % }
 
 % Optional (postscript) cover picture. Put this in comments when not needed.
-\coverpicture{\includegraphics[width=13cm]{img/maze.ps}}
+% \coverpicture{\includegraphics[width=13cm]{img/maze.ps}}
 
 
 % A copyright notice and maybe something about the cover picture
