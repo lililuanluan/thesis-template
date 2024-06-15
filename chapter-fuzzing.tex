@@ -2,6 +2,70 @@
 
 In this chapter, we describe a fuzzing algorithm for concurrent programs under weak memory models.
 
+\section{Motivation}
+
+As discussed before, the behaviors of programs under weak memory models are modeled by execution graphs, with nodes representing the events and edges representing the relations. In general, the process of checking such programs is constructing the execution graphs and checking the consistency and validity of the graphs. The search space, or state space, is the set of all possible execution graphs. Due to various combinations of the relations, branches of control flows and loops, he size of the search space can sometimes be quite large or even infinite. For the brevity of discussion, assume the model checker is single-threaded, each time taking one step, either adding a node to the graph or forming a relation between two nodes. In addition, the model checker has some mechanism to ensure the steps taken are valid according to the memory model. Consider the following program: 
+
+
+\begin{lstlisting}[caption={P1}, label={P1}]
+atomic<int> x = {}; // s0
+
+void thread1() {
+    x.store(1, relaxed);  // s1 
+    x.store(2, relaxed);  // s2 
+    x.store(3, relaxed);  // s3 
+}
+void thread2() {
+    int r1 = x.load(relaxed);   // r1
+    int r2 = x.load(relaxed);   // r2 
+    int r3 = x.load(relaxed);   // r3 
+    cout << r1 << r2 << r3 << '\n';
+}
+\end{lstlisting}
+
+Since all loads and stores are relaxed, the loads will have no synchronization constraints. Each load can have 4 possible stores to read from: s0, s1, s2 and s3. Hence the size of the search space is: $4^3 = 64$. Comparing this with the SC model, if all loads and stores are sc, the total number of executions is $\binom{6}{3} = 20$. 
+
+The probability of finding different executions are not uniform distribution. Some execution graphs are easier to be found, others can have low probability. Consider another example:
+\begin{lstlisting}[caption={P2}, label={P2}]
+atomic<int> x = {};
+
+void thread1() {
+    if(x == 0) {            // a
+        if(x == 1)          // b
+            if(x == 2) {    // c 
+                cout << 'A';
+            }
+    }
+    cout << 'B';
+}
+void thread2() {
+    x++;    // d
+    x++;    // e
+}
+\end{lstlisting}
+
+Suppose the model checker make random decisions uniformly when adding events. The first events in thread 1 and 2 are: x.load() and x++. Thread1 printing 'B' requires that x++ is selected first, with the probability of $\frac{1}{2}$. However, printing 'B' requires a sepecific ordering or selecting events, i.e. {a, d, b, e, c}, with the probability of $\frac{1}{2} \times \frac{1}{2}  \times \frac{1}{2}  \times \frac{1}{2} =  \frac{1}{16}$.
+
+
+Different orders of adding events and forming relations may result in same executions. Take ~\ref{P1} for example. The model checker can first select r1 first and set its rf as s0, or it can first add s1-3 and then set r1 reading from s0. Both cases are equivalent.
+
+Here is a summary of several challenges or properties of random based model checking for weak memory programs:
+\begin{itemize}
+    \item The search space of execution graphs are usually large, sometimes infinite.
+    \item The probability of finding executions are not uniform. Some infrequent graphs exist.
+    \item Different decisions made by the model check may result in same executions.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
 \section{Overview}
 
 The fuzzer aims to improve the performance of randomized testing approaches. There are some model checkers, such as C11Tester or GenMC's estimation mode, that uses random-based testing, and some exhaustive model checkers, such as GenMC, that enumerate all possible executions. Exhaustive checkers are useful when the search space is limited, typically when the program under test is not too large. Random-based checking is frequently used for testing large programs. Such a checker usually constructs one execution graph based on random decisions of threads and reads-from relations during each exploration. For the next iteration, it starts over from the beginning and randomly explores again. A problem with this is because it does not keep states among explorations, some repetitive efforts may be taken. Sometimes different random decisions may result in same executions, or some infrequent execution graphs may not be revealed. 

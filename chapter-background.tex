@@ -8,6 +8,19 @@ In concurrent programming, shared memory is used for sharing data and passing me
 
 Consider the store buffer (SB) example, where x, y are shared variables, and r1, r2 are local variables, all initialized with 0. It can be seen that under SC, none of the possible thread interleavings (e.g., abcd, acbd, acdb, ...) results in both r1 and r2 reading the value 1.
 
+
+\begin{lstlisting}
+x = 0;
+y = 0;
+void thread1() {
+    x  = 1;  // (a) 
+    r1 = y;  // (b)
+}
+void thread2() {
+    y  = 1;  // (c)
+    r2 = x;  // (d)
+}
+\end{lstlisting}
 % x = 0;
 % y = 0;
 % // thread 1:
