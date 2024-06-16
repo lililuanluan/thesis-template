@@ -56,21 +56,28 @@ Here is a summary of several challenges or properties of random based model chec
     \item Different decisions made by the model check may result in same executions.
 \end{itemize}
 
-
+The process of the random-based model checking procedure is similar to the Galton board experiment. Consider the following $n$ level decision tree, from top to bottom, each step has two choices, either going left or right. Each node represents a state and the edges represent the decisions. There are some states that can be reached from multiple paths. Take the middle state in the second level for example, it can be reached by first choosing left then right, or by first choosing right then left. There are also some other states that have more strict requirements on the decision making. For example, the state circled in red requires always select the left choices to reach, with the probability of $\frac{1}{2^n}$. 
 \begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
     \centering
-    \includegraphics[scale=0.5]{figure/tree.pdf} % 图片文件名和路径  \caption{tree} % 图片标题
-    \label{fig:example} % 图片标签，用于交叉引用
+    \includegraphics[scale=0.5]{figure/tree.pdf} % 图片文件名和路径  
+    \caption{random decision tree} % 图片标题
+    \label{tree} % 图片标签，用于交叉引用
 \end{figure}
 
 
+If each time we start from the top and randomly make decisions, those states in the middle will be reached more frequently than those in the corners. However, if we can start from some middle states, it would be easier to reach some corner states, and hence the states reached in the end will be more diverse. This is where our fuzzer come to help. An intuitive description of the fuzzer is: whenever the fuzzer reaches a new state (i.e. finds an interesting execution graph), it mutates one of the decisions made. For the next iteration, the fuzzer replays the decision making until the mutated point, change the decision as mutated, and continues randomly afterwards. As shown in  \ref{tree3} (a), suppose the red path is the previous exploration and the fuzzer mutates the second decision from going right to left (b). Then for the next exploration, it replays until the mutated choice and the probability of reaching the left corner state becomes $\frac{1}{2^{n-2}}$ (c). 
 
-
-
-
+\begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
+    \centering
+    \includegraphics[scale=0.5]{figure/tree3.pdf} % 图片文件名和路径  
+    \caption{mutation} % 图片标题
+    \label{tree3} % 图片标签，用于交叉引用
+\end{figure}
 
 
 \section{Overview}
+
+This section provides a high-level overview of the fuzzing algorithm. The implementation details and evaluation results will be presented in later chapters.
 
 The fuzzer aims to improve the performance of randomized testing approaches. There are some model checkers, such as C11Tester or GenMC's estimation mode, that uses random-based testing, and some exhaustive model checkers, such as GenMC, that enumerate all possible executions. Exhaustive checkers are useful when the search space is limited, typically when the program under test is not too large. Random-based checking is frequently used for testing large programs. Such a checker usually constructs one execution graph based on random decisions of threads and reads-from relations during each exploration. For the next iteration, it starts over from the beginning and randomly explores again. A problem with this is because it does not keep states among explorations, some repetitive efforts may be taken. Sometimes different random decisions may result in same executions, or some infrequent execution graphs may not be revealed. 
 

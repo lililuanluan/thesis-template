@@ -6,10 +6,32 @@ Short chapter intro \ldots
 
 In concurrent programming, shared memory is used for sharing data and passing messages among threads. Memory models are essential for programmers to reason about their code, and for compiler and hardware manufacturers to implement low-level supporting infrastructures. The simplest memory model, proposed by Lamport\cite{SC} in 1979, is the Sequential Consistency Model (SC) . Under the SC model, intra-thread instructions are executed following their program order and threads can interleave in any order. A read operation can only read from the most recent value written to the same memory location. The SC is also known as the strong memory model, with other non-SC memory models referred to as weak memory models.
 
-Consider the store buffer (SB) example, where x, y are shared variables, and r1, r2 are local variables, all initialized with 0. It can be seen that under SC, none of the possible thread interleavings (e.g., abcd, acbd, acdb, ...) results in both r1 and r2 reading the value 1.
+Consider the store buffer (SB) \ref{SB} example, where x, y are shared variables, and r1, r2 are local variables, all initialized with 0. It can be seen that under SC, none of the possible thread interleavings (e.g., abcd, acbd, acdb, ...) results in both r1 and r2 reading the value 1.
 
+\lstset{ %
+  language=C++,               % set the language to C++
+  basicstyle=\ttfamily\small, % the size of the fonts that are used for the codeline-numbers
+  stepnumber=1,               % the step between two line-numbers. If it's 1, each line will be numbered
+  numbersep=5pt,              % how far the line-numbers are from the code
+  backgroundcolor=\color{white}, % choose the background color. You must add \usepackage{xcolor}
+  showspaces=false,           % show spaces adding particular underscores
+  showstringspaces=false,     % underline spaces within strings
+  showtabs=false,             % show tabs within strings adding particular underscores
+  frame=none,               % adds a frame around the code
+  rulecolor=\color{black},    % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  tabsize=2,                  % sets default tabsize to 2 spaces
+  captionpos=b,               % sets the caption-position to bottom
+  breaklines=true,            % sets automatic line breaking
+  breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
+  keywordstyle=\color{blue},  % keyword style
+  commentstyle=\color[rgb]{0.2,1,0.4},  % comment style
+  stringstyle=\color{red},    % string literal style
+  xleftmargin=40pt,           % left margin for the whole code block
+  xrightmargin=40pt           % right margin for the whole code block
+}
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={SB}, label={SB}]
+
 x = 0;
 y = 0;
 void thread1() {
@@ -20,7 +42,9 @@ void thread2() {
     y  = 1;  // (c)
     r2 = x;  // (d)
 }
+
 \end{lstlisting}
+
 % x = 0;
 % y = 0;
 % // thread 1:
@@ -34,7 +58,22 @@ However, this behavior can be allowed by some weak memory models provided by har
 
 For the SB example, if the momery model is TSO, it is possible that after executing assignments a and b, the values are buffered, followed by r1 and r2 reading 0, and finally the buffered values updated to the shared memory. 
 
-Some weak memory behaviors can be forbidden by one weak memory model, but allowed by another. In the following message passing (MP) example, after data is set to 1, the sender thread initialize the pointer, p, with the address of data, hoping the receiver thread only use the data after the pointer is initialized (inidicating data is set). Under TSO, because of the FIFO property of store buffers, the shared variable p is initialized only after the updating of data is finished. But this is not guaranteed under the PSO (partial store order) model\cite{PSO}. In PSO, each memory location has a seperate FIFO store buffer in a thread. In this case, the ordering of moving the values of data and p from their buffers to the shared momery is not restricted. The receiver thread can read y=1 when data has not been updated yet. 
+Some weak memory behaviors can be forbidden by one weak memory model, but allowed by another. In the following message passing (MP) \ref{MP} example, after data is set to 1, the sender thread initialize the pointer, p, with the address of data, hoping the receiver thread only use the data after the pointer is initialized (inidicating data is set). Under TSO, because of the FIFO property of store buffers, the shared variable p is initialized only after the updating of data is finished. But this is not guaranteed under the PSO (partial store order) model\cite{PSO}. In PSO, each memory location has a seperate FIFO store buffer in a thread. In this case, the ordering of moving the values of data and p from their buffers to the shared momery is not restricted. The receiver thread can read y=1 when data has not been updated yet. 
+
+\begin{lstlisting}[caption={MP}, label={MP}]
+p = nullptr;
+data = 1;
+// sender thread
+void sender() {
+    data = 1;
+    p = &data;
+}
+// receiver thread
+void receiver() {
+    while(p == nullptr) {;}
+    use(*p);
+}
+\end{lstlisting}
 % p = nullptr
 % data = 0
 % // sender
@@ -45,9 +84,6 @@ Some weak memory behaviors can be forbidden by one weak memory model, but allowe
 % use(*p)
 
 There are a variety of other weak memory models, such as the ARMv8, supporting out-of-order executions and speculative executions, and language level memory models, including the JAVA memory model\cite{java} and C++ memory model. The rest of this paper mainly discuss the C/C++ memory model\cite{c++model}. 
-
-
-
 
 
 
