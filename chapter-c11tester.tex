@@ -52,4 +52,35 @@ If the model checker selects thrd2, the two events in it, writing to data and fl
 
 Considering another case, suppose the model checker selects thrd3 after creating both threads. The load of flag will be executed and only the initialization of data is visible to it. After reading the initial value, the store of data is consumed. When thrd3 is finished, the stores in thrd2 will be executed. When writing to data, the race detecter checks previous actions relating to that memory location. The store in thrd3 is already explored and it has no happen before relations with the current store, so the two stores are concurrent and a data race is reported. 
 
+One optimization that C11Tester implements is that it will consume writes with release and relaxed memory orders, only pausing on sc writes. This is because the sc order is part of the C/C++11 memory model so different sc order will result in different executions. Besides, consuming the weak writes will not lose the ability to cover possible executions. Consider the following example  \ref{P4}, 
+\begin{lstlisting}[caption={P4}, label={P4}]
+    std::atomic<int> var = {};      // (w0)
+    void t2() {
+        auto _ = var.load(acquire); // (r1)
+    }
+    void t3() {
+        var.store(1, sc);           // (w1)
+        var.store(2, release);      // (w2)
+        var.store(3, release);      // (w3)
+    }
+\end{lstlisting}
+after creating two threads, if t2 is selected first, r1 can only read from the initial value. If t3 is selected, the first event, w1, in this thread will be executed. The next two events are release writes, so the model checker will not re-select threads after w1. Instead, it will execute w2 and w3 until t3 is finished. Then it finds the only active thread is t2, so it selects t2. Now the set of available writes for r1 to read from becomes: w1, w2 and w3, and r1 is free to randomly select one of them. Although making thread decisions after each event is also feasible, the optimized version is more efficient and still able to cover all 4 possible executions.
+
+Another optimization performed by C11Tester is that it avoids backtracking during exploration. To achieve this, it performs consistency checking at each step to ensure it's valid. It make decisions based on the implications of the memory model and already explored events. In \ref{P4} for example, if t3 has been explored, when choosing the rf relation for r1 in t2, the rf-set only contains w1, w2 and w3, where w0 is excluded. If r1 had selected w0 and the model checker continues until some point where the execution graph is found to be infeasible under the memory model, it would have to perform backtracking to make a different choise for r1. Consider another example \ref{P5}, 
+\begin{lstlisting}[caption={P5}, label={P5}]
+    std::atomic<int> var = {};      // (w0)
+    void t2() {
+        auto _1 = var.load(acquire); // (r1)
+        auto _2 = var.load(acquire); // (r2)
+    }
+    void t3() {
+        var.store(1, sc);           // (w1)
+        var.store(2, release);      // (w2)
+        var.store(3, release);      // (w3)
+    }
+\end{lstlisting}
+if r1 has already seelcted w3 to read from, only w3 will be included in the rf-set for r2, becuase w3 $\xrightarrow{\text{rf}}$ r2 implies that w0-2 are modification-ordered before w3 and thus should not be visible to r2, which is sequence ordered after r1. Otherwise the RR coherence will be violated. Excluding infeasible writes from the rf-set ensures the rf's to be valid, which in turn avoids the backtracking efforts. 
+
+
+
 
