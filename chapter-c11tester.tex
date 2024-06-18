@@ -81,6 +81,54 @@ Another optimization performed by C11Tester is that it avoids backtracking durin
 \end{lstlisting}
 if r1 has already seelcted w3 to read from, only w3 will be included in the rf-set for r2, becuase w3 $\xrightarrow{\text{rf}}$ r2 implies that w0-2 are modification-ordered before w3 and thus should not be visible to r2, which is sequence ordered after r1. Otherwise the RR coherence will be violated. Excluding infeasible writes from the rf-set ensures the rf's to be valid, which in turn avoids the backtracking efforts. 
 
+To summarize, C11Tester will execute the program from beginning to end, randomly picking threads and writes, with the optimizations of consuming weak writes and constraining rf-sets. 
 
 
+\section{Customazation points of C11Tester}
+
+C11Tester provides two interfaces: selectWrite and selectThread that randomly selects a thread or write from a provided set. These two functions can be overwritten to implement new fuzzers. The provided set already excludes invalid choices so it's safe to pick other choices in the set. Thus we can define two types of mutations: changing the next thread to be added or changing the write that a read event reads from. 
+
+\section{Fuzzer implementation}
+
+To implement a fuzzer described in Algorithm \ref{fuzzer}, there are several specific functions to be defined:
+
+\begin{itemize}
+    \item A hash function that computes a unique identifier for an execution graph, which is used to indicate whether the execution graph has been encountered before and to count the number of unique executions that are found in the end of N iterations. 
+    \item A function that returns a boolen that indicates whether the execution graph is interesting.
+    \item A function that mutate the previous execution graph and produces a prefix of the mutated graph. 
+    \item A function that enforces the prefix, i.e. replays until the mutated choice. 
+\end{itemize}
+
+The hash function for executioin graph encodes: event types, memory orders, reads-from relations. It first iterate threads by their thread ids, and for each event in each thread, it computes the hash of its event type and memory order (for atomic operations). If the event is a read event, it also combines the hash of the write event it reads from. To be noticed, in this hash function the modification order is not included although it's part of the execution graph under many memory models. This is because the hash function only cares about observable behaviours, such as read values, which may be influenced by modification orders. However, changing some modification orders may or may not change the observable behaviours. The hash function is defined in Algorithm \ref{c11fuzzer-hash} as follows:
+
+
+\begin{algorithm}
+    \caption{Hash of execution graphs}
+    \label{c11fuzzer-hash}
+    \begin{algorithmic}
+        \STATE \textbf{Input:} Execution graph $g$
+        \STATE \textbf{Output:} Hash value $h$
+
+        \STATE h $\leftarrow$ 0
+        \FOR{each $i$ from 0 to g.max\_tid()}
+            \STATE events = g.get\_events\_in\_thread(i)
+            \FOR{each $e$ $\in$ events}
+                \STATE h $\leftarrow$ hash\_combine(h, e.type)
+                \STATE h $\leftarrow$ hash\_combine(h, e.memory\_order)
+                \IF{e is a read event}
+                    \STATE h $\leftarrow$ hash\_combine(h, e.rf)
+                \ENDIF
+            \ENDFOR
+        \ENDFOR
+    \RETURN $h$
+    \end{algorithmic}
+\end{algorithm}
+
+The is\_interesting function returns true if the hash of the current execution graph is not covered in previous explorations. This is the least restrictful metric, alternatively, it can be defined as returning true if new rf relations has been covered. Another possible definition is to check whether the execution graph reveals a new bug, which is biased on searching for bugs. In our definition, we aims to find more new executions, with more new buggy executions being a by-product. 
+
+The mutate function uniformly picks a fixed number of decisions, including threads and rf's, with multiple choices in the provided set. For each of them, it mutates the selected decision and cuts out the rest decisions to produce a prefix. Since the only two places where randomness is used are selectWrite and selectThread, the choices of threads and writes will be uniquely mapped to an execution graph. Hence the prefix of a decision trace also defines a prefix of an execution graph. 
+
+% 画图
+
+The mutated prefixes will be added to a prefix set. The replaying function choose a prefix from the set and enforce C11Tester to make the same decisions in that prefix. After enforcing the prefix,  C11Tester is switched to the random mode, continuing random exploration until the graph is completed. 
 
