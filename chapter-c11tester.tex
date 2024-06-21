@@ -155,10 +155,17 @@ The fuzzer and C11Tester are tested under 11 benchmarks: barrier, chase-lev-dequ
 \paragraph{ring-buf}
 
 
+\burcu{TODO: Briefly describe each benchmark}
+
 \section{Evaluation and discussion}
+
+\burcu{TODO: List the research questions you explore, and answer the questions using your experimental results.}
+
+\burcu{Do you have some results for the larger benchmarks in C11Tester?}
 
 Using the 11 benchmarks, we evaluate the ability of finding unique execution graphs of both the fuzzer and C11Tester. The metric used is the number of different execution graphs discovered over $N = 10000$ iterations. Table \ref{c11fuzzer-bench1} and \ref{c11fuzzer-bench2} show the number of unique executions found by two approaches. It can be seen that the fuzzer is able to find a larger number of different execution graphs in a fixed number of iterations than C11Tester with the random-based searching strategy. 
 
+\burcu{TODO: Discuss the results/plots. What do we observe? What can we say about the results?}
 
 \begin{table}[h!]
     \begin{tabular}{ |c|ccccc| } 
