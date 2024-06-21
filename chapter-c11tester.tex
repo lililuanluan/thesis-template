@@ -132,3 +132,143 @@ The mutate function uniformly picks a fixed number of decisions, including threa
 
 The mutated prefixes will be added to a prefix set. The replaying function choose a prefix from the set and enforce C11Tester to make the same decisions in that prefix. After enforcing the prefix,  C11Tester is switched to the random mode, continuing random exploration until the graph is completed. 
 
+\section{Benchmarks}
+
+The fuzzer and C11Tester are tested under 11 benchmarks.
+
+\section{Evaluation and discussion}
+
+Using the 11 benchmarks, we evaluate the ability of finding unique execution graphs of both the fuzzer and C11Tester. The metric used is the number of different execution graphs discovered over $N = 10000$ iterations. Table \ref{c11fuzzer-bench1} and \ref{c11fuzzer-bench2} show the number of unique executions found by two approaches. It can be seen that the fuzzer is able to find a larger number of different execution graphs in a fixed number of iterations than C11Tester with the random-based searching strategy. 
+
+
+\begin{table}[h!]
+    \begin{tabular}{ |c|ccccc| } 
+     \hline
+     Benchmarks & barrier & chase-lev-deque & mpmc-queue & linuxrwlocks & mcs-lock \\ 
+     \hline
+     C11Tester & 6969  & 6244 & 4185 &  981 & 9703 \\ 
+     Fuzzer & 7741 & 8505  & 6373& 1225 &  9994   \\ 
+     \hline
+    \end{tabular}
+    \caption{benchmarks (1)}
+    \label{c11fuzzer-bench1}
+    
+\end{table}
+
+\begin{table}[h!]
+    \begin{tabular}{ |c|cccccc| } 
+     \hline
+     Benchmarks & dekker & rwlock-test  & seqlock-test &bipartite-buf &  left-right  &   ring-buf \\ 
+     \hline
+     C11Tester &  395      &     9998     &     6137     &     297      &     5378     &     328   \\ 
+     Fuzzer & 494      &     9997     &     7962     &     340      &     6678     &     576    \\ 
+     \hline
+    \end{tabular}
+    \caption{benchmarks (2)}
+    \label{c11fuzzer-bench2}
+\end{table}
+
+Figure \ref{cover-plot1-barrier} to \ref{cover-plot1-ring-buf} draws the coverage plots for each benchmark, with orange lines representing the fuzzer and blue lines representing the random tester. It can be obeserved that in all of these cases the fuzzer is able to find more unique executions. In addition, in some benchmarks, see Figure \ref{cover-plot1-chase-lev-deque} or \ref{cover-plot1-mpmc-queue} for example, the fuzzer's speed of finding executions (the slop of coverage plost) is not significantly slowing down as the number of found executions grows. Some coverage plots of the fuzzer, such as in Figure \ref{cover-plot1-bipartite-buf} and \ref{cover-plot1-ring-buf}, also have some "bumps" which the random tester do not have. Such bumps are caused by some prefixes that guides to a group of new interesting executions. 
+
+\begin{figure}[H]
+    
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/barrier.pdf}
+        \caption{barrier}
+        \label{cover-plot1-barrier}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/chase-lev-deque.pdf}
+        \caption{chase-lev-deque}
+        \label{cover-plot1-chase-lev-deque}
+    \end{minipage}
+    
+    \vspace{0.5cm}
+    
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/mpmc-queue.pdf}
+        \caption{mpmc-queue}
+        \label{cover-plot1-mpmc-queue}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/linuxrwlocks.pdf}
+        \caption{linuxrwlocks}
+        \label{cover-plot1-linuxrwlocks}
+    \end{minipage}
+    
+    \vspace{0.5cm}
+    
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/mcs-lock.pdf}
+        \caption{mcs-lock}
+        \label{cover-plot1-mcs-lock}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        % This empty minipage will help the last image to be aligned to the left
+    \end{minipage}
+    
+    
+    
+\end{figure}
+
+
+
+\begin{figure}[H]
+    \centering
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{figure/dekker-change.pdf}
+            \caption{dekker-change}
+            \label{cover-plot1-dekker-change}
+        \end{minipage}
+        \hfill
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{figure/rwlock-test.pdf}
+            \caption{rwlock-test}
+            \label{cover-plot1-rwlock-test}
+        \end{minipage}
+
+        \vspace{0.5cm}
+       
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{figure/seqlock-test.pdf}
+            \caption{seqlock-test}
+            \label{cover-plot1-seqlock-test}
+        \end{minipage}
+        \hfill
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{figure/bipartite_buf.pdf}
+            \caption{bipartite-buf}
+            \label{cover-plot1-bipartite-buf}
+        \end{minipage}
+
+        \vspace{0.5cm}
+        
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{figure/left_right.pdf}
+            \caption{left-right}
+            \label{cover-plot1-left-right}
+        \end{minipage}  
+        \hfill
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{figure/ring_buf.pdf}
+            \caption{ring-buf}
+            \label{cover-plot1-ring-buf}
+        \end{minipage}   
+    
+\end{figure}
