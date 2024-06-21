@@ -77,6 +77,8 @@ If each time we start from the top and randomly make decisions, those states in 
 
 \section{Overview}
 
+\burcu{Could you provide an example of the fuzzing approach on the execution graphs? E.g., Give an example program and a random execution graph of the program. Then, show another execution graph that is obtained by some mutation (e.g., mutates the prev. graph after some prefix) and exposes another behavior of the program.}
+
 This section provides a high-level overview of the fuzzing algorithm. The implementation details and evaluation results will be presented in later chapters.
 
 The fuzzer aims to improve the performance of randomized testing approaches. There are some model checkers, such as C11Tester or GenMC's estimation mode, that uses random-based testing, and some exhaustive model checkers, such as GenMC, that enumerate all possible executions. Exhaustive checkers are useful when the search space is limited, typically when the program under test is not too large. Random-based checking is frequently used for testing large programs. Such a checker usually constructs one execution graph based on random decisions of threads and reads-from relations during each exploration. For the next iteration, it starts over from the beginning and randomly explores again. A problem with this is because it does not keep states among explorations, some repetitive efforts may be taken. Sometimes different random decisions may result in same executions, or some infrequent execution graphs may not be revealed. 
