@@ -1,6 +1,6 @@
 \chapter{\label{cha:title}Background}
 
-Short chapter intro \ldots
+% Short chapter intro \ldots
 
 \section{Weak Memory Models}
 
@@ -115,10 +115,10 @@ The $X_{witness}$ part contains additional three relations. These relations are 
 \begin{itemize}
     \item \textit{read-from} (rf): If a read action (non atomic read, atomic read, rmw) reads a value from a write action (non atomic write, atomic write, rmw), an rf edge from the write to the read is established. In addition, a lock and its last preceding unlock action of the same mutex also establish an rf. The rf reads-from map is defined as a function containing all these rf relations in the execution. 
     \item \textit{modification-order} (mo): A total order of all writes to the same atomic location. Each location can have an independent mo "chain", unrelated to other locations.
-    \item \textit{sequentially-consistent} (sc): Totally orders all mutex actions and actions with \texttt{memory\_order\_seq\_cst} memory order.
+    \item \textit{sequentially-consistent} (sc): Totally orders all mutex actions and actions with \texttt{mo\_seq\_cst} memory order.
 \end{itemize}
 
-In the SB example, assuming the initializations are non-atomic and other writes and reads are \texttt{memory\_order\_seq\_cst}, a possible $X_{witness}$ for the SB example can be:
+In the SB example, assuming the initializations are non-atomic and other writes and reads are \texttt{mo\_seq\_cst}, a possible $X_{witness}$ for the SB example can be:
 % rf
 % x=1 -rf-> read x in thread2
 % y=1 -rf-> read y in thread1

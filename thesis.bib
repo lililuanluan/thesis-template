@@ -9,6 +9,34 @@
   publisher =    "IEEE Computer Society Press",
 }
 
+@misc{mpmc-queue-impl,
+  author = {cbloom},
+  title = {A look at some bounded queues - part 2},
+  url = {https://cbloomrants.blogspot.com/2011/07/07-30-11-look-at-some-bounded-queues.html}
+}
+
+@article{chase-lev-deque-impl,
+author = {L\^{e}, Nhat Minh and Pop, Antoniu and Cohen, Albert and Zappa Nardelli, Francesco},
+title = {Correct and efficient work-stealing for weak memory models},
+year = {2013},
+issue_date = {August 2013},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {48},
+number = {8},
+issn = {0362-1340},
+url = {https://doi.org/10.1145/2517327.2442524},
+doi = {10.1145/2517327.2442524},
+abstract = {Chase and Lev's concurrent deque is a key data structure in shared-memory parallel programming and plays an essential role in work-stealing schedulers. We provide the first correctness proof of an optimized implementation of Chase and Lev's deque on top of the POWER and ARM architectures: these provide very relaxed memory models, which we exploit to improve performance but considerably complicate the reasoning. We also study an optimized x86 and a portable C11 implementation, conducting systematic experiments to evaluate the impact of memory barrier optimizations. Our results demonstrate the benefits of hand tuning the deque code when running on top of relaxed memory models.},
+journal = {SIGPLAN Not.},
+month = {feb},
+pages = {69-80},
+numpages = {12},
+keywords = {work-stealing, relaxed memory model, proof, lock-free algorithm}
+}
+
+
+
 @book{Whe95,
   author =	 "Colin Wheildon",
   title =	 "Type \& Layout",

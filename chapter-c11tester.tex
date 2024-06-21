@@ -134,7 +134,26 @@ The mutated prefixes will be added to a prefix set. The replaying function choos
 
 \section{Benchmarks}
 
-The fuzzer and C11Tester are tested under 11 benchmarks.
+The fuzzer and C11Tester are tested under 11 benchmarks: barrier, chase-lev-deque, mpmc-queue, linuxrwlocks, mcs-lock, dekker, rwlock, seqlock, bipartite-buf, left-right and ring-buf. Some of them are collected from open source libraries, others come from the original C11Tester's benchmark set, which are also taken from open source libraries, internet discussions and papers. Here is a list of descriptions of these benchmarks:
+
+\paragraph{barrier} It comes from a solution of StackOverflow discussion. It implements a spinning barrier that halts a fixed number of threads to wait and releases the barrier when all threads are waiting. It maintains a counter for the number of threads that are waiting so far and a step state that counts the number of barrier synchronizations. It was injected with a bug of using the relaxed memory order of the counter.
+
+\paragraph{chase-lev-deque} An implementation of the Chase-Lev deque data structure using the C11 primitives. It was published in \cite{chase-lev-deque-impl} but found to have bug in its implementation, due to the use of relaxed operations of fences. 
+
+% TODO: ref
+\paragraph{mpmc-queue} A multi-producer multi-consumer queue implementation from a blog post \cite{mpmc-queue-impl}. 
+
+\paragraph{linuxrwlocks} A reader-writer lock implementation from the Linux kernel. An rwlock only allows one writer at a time but can allow multiple readers to access the protected data. 
+
+
+\paragraph{mcs-lock}
+\paragraph{dekker}
+\paragraph{rwlock}
+\paragraph{seqlock}
+\paragraph{bipartite-buf}
+\paragraph{left-right}
+\paragraph{ring-buf}
+
 
 \section{Evaluation and discussion}
 
