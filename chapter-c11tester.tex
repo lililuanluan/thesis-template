@@ -146,13 +146,19 @@ The fuzzer and C11Tester are tested under 11 benchmarks: barrier, chase-lev-dequ
 \paragraph{linuxrwlocks} A reader-writer lock implementation from the Linux kernel. An rwlock only allows one writer at a time but can allow multiple readers to access the protected data. 
 
 
-\paragraph{mcs-lock}
-\paragraph{dekker}
-\paragraph{rwlock}
-\paragraph{seqlock}
-\paragraph{bipartite-buf}
-\paragraph{left-right}
-\paragraph{ring-buf}
+\paragraph{mcs-lock} A list-based contention-free lock originally proposed by Mellor-Crummey and Scott\cite{mcs-lock}. The implementation comes from \cite{mcs-lock-impl}. In this data structure, each thread maintains a node of a queue. When a thread wants to lock, it asks the mutex to set its tail of the queue to be the thread's node. When other threads lock, they have to wait for the tail to be removed by the mutex. 
+
+\paragraph{dekker} A Dekker's critical section algorithm implemented with fences \cite{dekker-fence-impl}. This algorithm ensures only one thread can enter critical section at a time. A shared turn variable records which thread is taking the turn. Each thread has a flag variable to indicate its state. Before entering the critical section, a thread should first raise its own flag and then check whether the turn is not set. All atomic operations on the turn and flags are relaxed but fences are used to synchronize concurrent accesses. 
+
+\paragraph{rwlock} Another rwlock implementation similar to linuxrwlocks.
+\paragraph{seqlock} A sequence lock implementation. The lock protects some shared data using an atomic counter, initialized 0. A writer increments the counter twice, both in the beginning and end of writing. Hence whenever the counter is odd, there must be some other thread modifying the data, so other threads have to wait. 
+
+\paragraph{bipartite-buf} A single-producer-single-consumer test for a bipartite buffer implementation written in C++11, customazed from \cite{lockfree-DNedic}. The bipartite buffer is a variation of the ring buffer which allows in-place processing with linear space guarantee. 
+
+\paragraph{left-right} A generic implementation \cite{lockfree-xenium} of the LiftRight algorithm\cite{left-right}. The algorithm functions similarly to the reader-writer lock, but ensures non-blocking for reads. It uses two instances for the protected data, one of which is used for all reader threads. The writer thread will work on the other instance and after writing is finished, two instances are switched. 
+
+
+\paragraph{ring-buf} A ring buffer that supports adding or removing multiple objects simultaneously \cite{lockfree-DNedic}. It maintains two indexes, a read and a write index of the buffer. After adding or removing, these two indexes will be updated to appropriate values. 
 
 
 \burcu{TODO: Briefly describe each benchmark}
