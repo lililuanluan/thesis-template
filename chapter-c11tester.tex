@@ -401,7 +401,44 @@ Figure \ref{pctwm-barrier} to \ref{pctwm-mpmc-queue} show the coverage plots of 
 
 \subsection{\ref*{RQ:bug}: Bug hitting rate}
 
-bug hitting rate...
+The design of the fuzzer is not biased on finding bugs, but it is also interested whether covering a wider range of execution graphs will improve the bug hitting rate. Some of the above benchmarks contains injected bugs, i.e. inappropriate using of synchronization primitives, which can introduce either data races or assertion failures. The bug hitting rate is computed by:
+\[
+	R_{bug} = \frac{N_{bug}}{N},
+\]
+where $N_{bug}$ is the number of different buggy executions found over $N$ iterations. Since all benchmarks are executed $N$ times, higher number of bugs represent higher bug hitting rate. Table \ref{buggy1} and \ref{buggy2} show the results from the benchmarks.
+
+
+\begin{table}[h!]
+	\begin{tabular}{ |c|ccccc| }
+		\hline
+		Benchmarks  & barrier & chase-lev-deque & mpmc-queue & linuxrwlocks & mcs-lock \\
+		\hline 
+		C11Tester   & 5789    & 5895            & 2341       & 976          & 8525     \\
+		C11Fuzzer   & 6993    & 5858            & 5858       & 1220         & 9418     \\
+        \hline
+	\end{tabular}
+	\caption{bug hitting rate (1)}
+	\label{buggy1}
+
+\end{table}
+
+\begin{table}[h!]
+	\begin{tabular}{ |c|cccccc| }
+		\hline
+		Benchmarks  & dekker & rwlock-test & seqlock-test & bipartite-buf & left-right & ring-buf \\
+		\hline 
+		C11Tester   & 5    & 4697        & 3872         & 297           & 1478       & 328      \\
+		C11Fuzzer   & 5    & 4736        & 5009         & 340           & 1488       & 576      \\
+		\hline
+	\end{tabular}
+	\caption{bug hitting rate (2)}
+	\label{buggy2}
+\end{table}
+
+It can be obeserved that except for dekker benchmark, which in total has 5 different bugs, C11Fuzzer is able to find more bugs in other benchmarks. 
+
+
+
 \subsection{\ref*{RQ:overhead}: Real-world applications}
 
 
