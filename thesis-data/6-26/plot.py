@@ -47,13 +47,13 @@ def process_file(filename):
 def plot_data(unique_hashes_rnd, unique_hashes_mut, unique_hashes_pct, unique_bugs_rnd, unique_bugs_mut, unique_bugs_pct, test_name):
     
     plt.title(test_name)
-    plt.plot(range(1, len(unique_hashes_rnd) + 1), unique_hashes_rnd, label="unique hashes rand")
-    plt.plot(range(1, len(unique_hashes_mut) + 1), unique_hashes_mut, label="unique hashes mutate")
-    plt.plot(range(1, len(unique_hashes_pct) + 1), unique_hashes_pct, label="unique hashes pctwm")
+    plt.plot(range(1, len(unique_hashes_rnd) + 1), unique_hashes_rnd, label="C11Tester")
+    plt.plot(range(1, len(unique_hashes_mut) + 1), unique_hashes_mut, label="C11Fuzzer")
+    plt.plot(range(1, len(unique_hashes_pct) + 1), unique_hashes_pct, label="PCTWM")
     # plt.plot(range(1, len(unique_bugs_rnd) + 1), unique_bugs_rnd, label="unique bugs rand")
     # plt.plot(range(1, len(unique_bugs_mut) + 1), unique_bugs_mut, label="unique bugs mutate")
-    plt.xlabel("Time")
-    plt.ylabel("Counts")
+    plt.xlabel("Number of iterations")
+    plt.ylabel("Number of unique execution graphs")
     plt.legend()
     plt.savefig(test_name + ".pdf")
     plt.close()

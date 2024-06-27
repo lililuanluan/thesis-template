@@ -97,18 +97,18 @@ In this section, we present an example of the fuzzing approach on the execution 
 
 Suppose during exploration, one execution graph is constructed as shown in Figure \ref{example_construct}, where the labels of events and relations are omitted. The read values in thread2 are both 2. In this execution, r2 has only choice to read from, which is w2, since r1 has already read from w2 and r2 reading from w1 will introduce a cycle in the graph. However, r1 can have two choices: w1 and w2. If the fuzzer consider this execution as interesting and change the rf choice for r1, a new execution can be revealed in the next iteration, as shown in Figure \ref{example_mutate}. 
 
-\begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
+\begin{figure}[htbp] 
     \centering
-    \includegraphics[scale=0.5]{figure/example_construct.pdf} % 图片文件名和路径  
-    \caption{construction of an execution graph} % 图片标题
-    \label{example_construct} % 图片标签，用于交叉引用
+    \includegraphics[scale=0.5]{figure/example_construct.pdf} 
+    \caption{construction of an execution graph} 
+    \label{example_construct} 
 \end{figure}
 
-\begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
+\begin{figure}[htbp] 
     \centering
-    \includegraphics[scale=0.5]{figure/example_mutate.pdf} % 图片文件名和路径  
-    \caption{mutate the previous execution graph and re-explore} % 图片标题
-    \label{example_mutate} % 图片标签，用于交叉引用
+    \includegraphics[scale=0.5]{figure/example_mutate.pdf} 
+    \caption{mutate the previous execution graph and re-explore} 
+    \label{example_mutate} 
 \end{figure}
 
 \burcu{Could you provide an example of the fuzzing approach on the execution graphs? E.g., Give an example program and a random execution graph of the program. Then, show another execution graph that is obtained by some mutation (e.g., mutates the prev. graph after some prefix) and exposes another behavior of the program.}
