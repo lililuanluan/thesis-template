@@ -441,7 +441,28 @@ It can be obeserved that except for dekker benchmark, which in total has 5 diffe
 
 \subsection{\ref*{RQ:overhead}: Real-world applications}
 
+The fuzzer is composed of a python script that performs mutation and file IO's and a compiled binary that is hooked to the executed program. For overhead evaluation, several things are measured:
+\begin{itemize}
+	\item The scripting overhead of the random version and the fuzzing version. Substracting them yields the overhead of mutation and IO's. 
+	\item The time used by the binary to load the decisions for replay.
+	\item The time used for the binary to execute.
+\end{itemize}
 
+We test our fuzzer using a real-world application, iris, which is an asynchronous logging library that makes extensive use of atomic operations. Both C11Tester and C11Fuzzer are tested $N=100$ times and an average of the overhead per execution is taken. Table \ref{overhead} shows the measurement results. It can be seen that the mutation takes up most of the overhead. A future improvement could be writing the fuzzer in a compiled language and transfer the heavy file IO into memory. 
+
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{ |c|cccc| }
+		\hline
+		Items  & script & binary & mutation & load-replay \\
+		\hline 
+		C11Tester   & 1.50s    & 39.51s        & 0s         & 0s      \\
+		C11Fuzzer   & 8.9s    & 40.5s        & 7.4s         & 2.9s    \\
+		\hline
+	\end{tabular}
+	\caption{overhead (per execution)}
+	\label{overhead}
+\end{table}
 
 \burcu{TODO: Discuss the results/plots. What do we observe? What can we say about the results?}
 
