@@ -172,6 +172,7 @@ The fuzzer and C11Tester are tested under 11 benchmarks: barrier, chase-lev-dequ
 
 \paragraph*{Research questions} The following research questions are list for evaluating the fuzzing algorithm.
 \begin{enumerate}[label=RQ\arabic*]
+	\item Does the fuzzer detects the bug ealier than the random tester? \label{RQ:hardbug}
 	\item Is the fuzzer able to cover a larger range of execution graphs comparing to other random-based exploration strategies? \label{RQ:coverage}
 	\item When the program has bugs, will being able to detect more bugs come as a byproduct of covering more execution graphs \label{RQ:bug}
 	\item How does the fuzzer cause overhead in C11Tester in real-world applications? \label{RQ:overhead}
@@ -179,24 +180,158 @@ The fuzzer and C11Tester are tested under 11 benchmarks: barrier, chase-lev-dequ
 
 To address the research questions, we use the benchmarks to test our fuzzer and other approaches with same amout of iterations, $N$, and compare their results. If not specifically stated, $N = 10000$.
 
+\subsection{\ref*{RQ:hardbug}: Fuzzer vs C11Tester}
+
+One important metric for a fuzzer is whether it's able to detect the bug effectively. In this section, we use several programs with some hard-to-find bugs and examine the iterations taken to find a bug for the fist time, denoted as $N_{bug1}$. The smaller $N_{bug1}$ is, the more effective the fuzzer or the tester is. Table \ref{c11fuzzer-hardbug} shows $N_{bug1}$ of the fuzzer and the random tester, where dash means not able to detect the bug.
+
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{ |c|ccccc| }
+		\hline
+		Benchmarks & bipartite-hard & long-race & mp & P1  & reorder\_10 \\
+		\hline
+		C11Tester  & 1170           & -         & 2335  & 489 & 9           \\
+		C11Fuzzer  & 754            & 717       & 30 & 74  & 9           \\
+		\hline
+	\end{tabular}
+	\caption{Iterations taken to detect the first bug}
+	\label{c11fuzzer-hardbug}
+\end{table}
+
+
+Take the long-race benchmark for example. This benchmark is taken from the rff's repository, customazed with relaxed memory operations, as shown in Listing. \ref{long-race}.
+
+\begin{lstlisting}[caption={long-race}, label={long-race}]
+	std::atomic<size_t> sum{ 0 };
+	std::atomic<size_t> dif{ 0 };
+	
+	// thread 2
+	void* sub_worker(void* arg) {
+		if (sum.load(relaxed) == 1) {
+			dif.fetch_sub(1, relaxed);
+			if (sum.load(relaxed) == 2) {
+				dif.fetch_sub(1, relaxed);
+				if (sum.load(relaxed) == 3) {
+					dif.fetch_sub(1, relaxed);
+					if (sum.load(relaxed) == 4) {
+						dif.fetch_sub(1, relaxed);
+					}
+				}
+			}
+		}
+		return NULL;
+	}
+	
+	// thread 3
+	void* add_worker(void* arg)	{
+		sum++;
+		if (dif.load(relaxed) == -1) {
+			sum.fetch_add(1, relaxed);
+			if (dif.load(relaxed) == -2) {
+				sum.fetch_add(1, relaxed);
+				if (dif.load(relaxed) == -3) {
+					sum.fetch_add(1, relaxed);
+					if (dif.load(relaxed) == -4) {
+						fprintf(stderr, "Bug found\n");
+						abort();
+					}
+				}
+			}
+		}
+		return NULL;
+	}
+\end{lstlisting}
+
+Hitting the bug requires two workers to modify the shared variable alternately, in a very strict order (we also tested the long-race benchmark with rff, and it took 15 thousand iterations to detect it). There are in total 9 different executions of this program. Figure.\ref{graph-freq} shows how many times each execution graph (represented by their hashes in x-axis) are explored in $N$ iterations. It can be observed that the random tester is mostly biased on the first and second executions, which together take up 96.5\% of $N$. On the contrary, the fuzzer exhibits a more "flattened" frequency plot on executions and covers all 9 execution graphs. This is caused by the mutations on those infrequent executions during exploration. 
+
+Figure.\ref{hardbug:bipartite-buf-hard} to \ref{hard:reorder-10} show the number of unique executions and bugs found in first 1000 iterations. It can be observed that the fuzzer detects the bug ealier than C11Tester and also covers a higher range of executions.
+
+\begin{figure}[htbp] 
+    \centering
+    \includegraphics[scale=0.35]{figure/hardbug/long-race_freq.pdf}  
+    \caption{Frequencies of execution graphs } 
+    \label{graph-freq} % 图片标签，用于交叉引用
+\end{figure}
+
+
+\begin{figure}[H]
+
+	\centering
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figure/hardbug/bipartite_buf_hard_bug.pdf}
+		\caption{bipartite-buf-hard}
+		\label{hardbug:bipartite-buf-hard}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figure/hardbug/long-race_bug.pdf}
+		\caption{long-race}
+		\label{hardbug:long-race}
+	\end{minipage}
+
+	\vspace{0.5cm}
+
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figure/hardbug/mp_bug.pdf}
+		\caption{mp}
+		\label{hardbug:mp}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figure/hardbug/P1_bug.pdf}
+		\caption{P1}
+		\label{header:P1}
+	\end{minipage}
+
+	\vspace{0.5cm}
+
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figure/hardbug/reorder_10_bug.pdf}
+		\caption{reorder-10}
+		\label{hard:reorder-10}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		% This empty minipage will help the last image to be aligned to the left
+	\end{minipage}
+
+
+
+\end{figure}
+
+
+
+
+
+
+
+
+
+
 \subsection{\ref*{RQ:coverage}: Fuzzer vs C11Tester}
 
 Using the 11 benchmarks, we evaluate the ability of finding unique execution graphs of both the fuzzer and C11Tester. The metric used is the number of different execution graphs discovered over $N$ iterations. Table \ref{c11fuzzer-bench1} and \ref{c11fuzzer-bench2} show the number of unique executions found by two approaches. It can be seen that the fuzzer is able to find a larger number of different execution graphs in a fixed number of iterations than C11Tester with the random-based searching strategy in most of the benchmarks, with the average improvement of 27.0\%. The improvements are calculated by:
 \[
-    R_{improvement} = \frac{N_{c11Fuzzer} - N_{c11Tester} }{N_{c11Tester} } \times 100 \% ,
+	R_{improvement} = \frac{N_{c11Fuzzer} - N_{c11Tester} }{N_{c11Tester} } \times 100 \% ,
 \]
-where $N_{c11Fuzzer}$ and $N_{c11Tester}$ are the number of unique execution graphs found by C11Tester and C11Fuzzer, respectively. 
+where $N_{c11Fuzzer}$ and $N_{c11Tester}$ are the number of unique execution graphs found by C11Tester and C11Fuzzer, respectively.
 
 \begin{table}[h!]
 	\begin{tabular}{ |c|ccccc| }
 		\hline
 		Benchmarks  & barrier & chase-lev-deque & mpmc-queue & linuxrwlocks & mcs-lock \\
-		\hline 
+		\hline
 		C11Tester   & 6969    & 6244            & 4185       & 981          & 9703     \\
 		C11Fuzzer   & 7741    & 8505            & 6373       & 1225         & 9994     \\
 		\hline
-        Improvement & 11.1\%  & 36.2\%          & 52.3\%     & 24.9\%       & 3.0\%     \\
-        \hline
+		Improvement & 11.1\%  & 36.2\%          & 52.3\%     & 24.9\%       & 3.0\%    \\
+		\hline
 	\end{tabular}
 	\caption{benchmarks (1)}
 	\label{c11fuzzer-bench1}
@@ -207,12 +342,12 @@ where $N_{c11Fuzzer}$ and $N_{c11Tester}$ are the number of unique execution gra
 	\begin{tabular}{ |c|cccccc| }
 		\hline
 		Benchmarks  & dekker & rwlock-test & seqlock-test & bipartite-buf & left-right & ring-buf \\
-		\hline 
+		\hline
 		C11Tester   & 395    & 9998        & 6137         & 297           & 5378       & 328      \\
 		C11Fuzzer   & 494    & 9997        & 7962         & 340           & 6678       & 576      \\
 		\hline
-        Improvement &25.1\%  & -0.0\%     & 29.7\%        & 14.5\%        & 24.2\%     &75.6\%\\
-        \hline
+		Improvement & 25.1\% & -0.0\%      & 29.7\%       & 14.5\%        & 24.2\%     & 75.6\%   \\
+		\hline
 	\end{tabular}
 	\caption{benchmarks (2)}
 	\label{c11fuzzer-bench2}
@@ -326,21 +461,20 @@ In addition, Figure \ref{cover-plot1-barrier} to \ref{cover-plot1-ring-buf} draw
 
 \subsection{\ref*{RQ:coverage}: C11Fuzzer vs PCTWM}
 
-PCTWM \cite{pctwm} is a state-of-art weak concurrency tester that expands the idea of PCT, which constrains the cope of exploring executions. It is expected that PCTWM should cover a smaller range of execution graphs than that of C11Tester, which performs an unbounded random search. A subset of the benchmarks described above a tested with the same configurations of bug depth and communication events, shown in Table \ref{pctwm-configs}. 
+PCTWM \cite{pctwm} is a state-of-art weak concurrency tester that expands the idea of PCT, which constrains the cope of exploring executions. It is expected that PCTWM should cover a smaller range of execution graphs than that of C11Tester, which performs an unbounded random search. A subset of the benchmarks described above a tested with the same configurations of bug depth and communication events, shown in Table \ref{pctwm-configs}.
 
 \begin{table}[h]
 	\begin{tabular}{ |c|ccc| }
 		\hline
-		Benchmark  & bug depth (d) & communication (k) & history (h)  \\
-		\hline 
-		barrier   & 1    & 10        & 2              \\
-		chase-lev-deque   & 2    & 56        & 1              \\
-        mcs-lock        & 1  & 16  &  1 \\
-        seqlock-test    & 4  &  18  &   1 \\
-        linuxrwlocks    & 5  &  100 & 10    \\
-        mpmc-queue      & 2  &  17  & 2 \\
+		Benchmark       & bug depth (d) & communication (k) & history (h) \\
 		\hline
-        
+		barrier         & 1             & 10                & 2           \\
+		chase-lev-deque & 2             & 56                & 1           \\
+		mcs-lock        & 1             & 16                & 1           \\
+		seqlock-test    & 4             & 18                & 1           \\
+		linuxrwlocks    & 5             & 100               & 10          \\
+		mpmc-queue      & 2             & 17                & 2           \\
+		\hline
 	\end{tabular}
 	\caption{PCTWM parameters}
 	\label{pctwm-configs}
@@ -366,7 +500,7 @@ Figure \ref{pctwm-barrier} to \ref{pctwm-mpmc-queue} show the coverage plots of 
 	\end{minipage}
 	\vspace{0.5cm}
 
-    \begin{minipage}{0.45\textwidth}
+	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/pctwm/mcs-lock.pdf}
 		\caption{mcs-lock}
@@ -381,7 +515,7 @@ Figure \ref{pctwm-barrier} to \ref{pctwm-mpmc-queue} show the coverage plots of 
 	\end{minipage}
 	\vspace{0.5cm}
 
-    \begin{minipage}{0.45\textwidth}
+	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/pctwm/linuxrwlocks.pdf}
 		\caption{linuxrwlocks}
@@ -411,11 +545,11 @@ where $N_{bug}$ is the number of different buggy executions found over $N$ itera
 \begin{table}[h!]
 	\begin{tabular}{ |c|ccccc| }
 		\hline
-		Benchmarks  & barrier & chase-lev-deque & mpmc-queue & linuxrwlocks & mcs-lock \\
-		\hline 
-		C11Tester   & 5789    & 5895            & 2341       & 976          & 8525     \\
-		C11Fuzzer   & 6993    & 5858            & 5858       & 1220         & 9418     \\
-        \hline
+		Benchmarks & barrier & chase-lev-deque & mpmc-queue & linuxrwlocks & mcs-lock \\
+		\hline
+		C11Tester  & 5789    & 5895            & 2341       & 976          & 8525     \\
+		C11Fuzzer  & 6993    & 5858            & 5858       & 1220         & 9418     \\
+		\hline
 	\end{tabular}
 	\caption{bug hitting rate (1)}
 	\label{buggy1}
@@ -425,17 +559,17 @@ where $N_{bug}$ is the number of different buggy executions found over $N$ itera
 \begin{table}[h!]
 	\begin{tabular}{ |c|cccccc| }
 		\hline
-		Benchmarks  & dekker & rwlock-test & seqlock-test & bipartite-buf & left-right & ring-buf \\
-		\hline 
-		C11Tester   & 5    & 4697        & 3872         & 297           & 1478       & 328      \\
-		C11Fuzzer   & 5    & 4736        & 5009         & 340           & 1488       & 576      \\
+		Benchmarks & dekker & rwlock-test & seqlock-test & bipartite-buf & left-right & ring-buf \\
+		\hline
+		C11Tester  & 5      & 4697        & 3872         & 297           & 1478       & 328      \\
+		C11Fuzzer  & 5      & 4736        & 5009         & 340           & 1488       & 576      \\
 		\hline
 	\end{tabular}
 	\caption{bug hitting rate (2)}
 	\label{buggy2}
 \end{table}
 
-It can be obeserved that except for dekker benchmark, which in total has 5 different bugs, C11Fuzzer is able to find more bugs in other benchmarks. 
+It can be obeserved that except for dekker benchmark, which in total has 5 different bugs, C11Fuzzer is able to find more bugs in other benchmarks.
 
 
 
@@ -443,21 +577,21 @@ It can be obeserved that except for dekker benchmark, which in total has 5 diffe
 
 The fuzzer is composed of a python script that performs mutation and file IO's and a compiled binary that is hooked to the executed program. For overhead evaluation, several things are measured:
 \begin{itemize}
-	\item The scripting overhead of the random version and the fuzzing version. Substracting them yields the overhead of mutation and IO's. 
+	\item The scripting overhead of the random version and the fuzzing version. Substracting them yields the overhead of mutation and IO's.
 	\item The time used by the binary to load the decisions for replay.
 	\item The time used for the binary to execute.
 \end{itemize}
 
-We test our fuzzer using a real-world application, iris, which is an asynchronous logging library that makes extensive use of atomic operations. Both C11Tester and C11Fuzzer are tested $N=100$ times and an average of the overhead per execution is taken. Table \ref{overhead} shows the measurement results. It can be seen that the mutation takes up most of the overhead. A future improvement could be writing the fuzzer in a compiled language and transfer the heavy file IO into memory. 
+We test our fuzzer using a real-world application, iris, which is an asynchronous logging library that makes extensive use of atomic operations. Both C11Tester and C11Fuzzer are tested $N=100$ times and an average of the overhead per execution is taken. Table \ref{overhead} shows the measurement results. It can be seen that the mutation takes up most of the overhead. A future improvement could be writing the fuzzer in a compiled language and transfer the heavy file IO into memory.
 
 \begin{table}[h!]
 	\centering
 	\begin{tabular}{ |c|cccc| }
 		\hline
-		Items  & script & binary & mutation & load-replay \\
-		\hline 
-		C11Tester   & 1.50s    & 39.51s        & 0s         & 0s      \\
-		C11Fuzzer   & 8.9s    & 40.5s        & 7.4s         & 2.9s    \\
+		Items     & script & binary & mutation & load-replay \\
+		\hline
+		C11Tester & 1.50s  & 39.51s & 0s       & 0s          \\
+		C11Fuzzer & 8.9s   & 40.5s  & 7.4s     & 2.9s        \\
 		\hline
 	\end{tabular}
 	\caption{overhead (per execution)}
