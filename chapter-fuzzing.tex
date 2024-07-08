@@ -49,9 +49,9 @@ Suppose the model checker make random decisions uniformly when adding events. Th
 
 Different orders of adding events and forming relations may result in same executions. Take ~\ref{P1} for example. The model checker can first select r1 first and set its rf as s0, or it can first add s1-3 and then set r1 reading from s0. Both cases are equivalent.
 
-Here is a summary of several challenges or properties of random based model checking for weak memory programs:
+Here is a summary of several observations of random based testing for weak memory programs:
 \begin{itemize}
-    \item The search space of execution graphs are usually large, sometimes infinite.
+    \item The search space of execution graphs are usually large, larger than in the strong memory model.
     \item The probability of finding executions are not uniform. Some infrequent graphs exist.
     \item Different decisions made by the model check may result in same executions.
 \end{itemize}
@@ -88,8 +88,8 @@ In this section, we present an example of the fuzzing approach on the execution 
         x.store(2, release);    // w2
     }
     void thread2() {
-        auto r1 = var.load(acquire);    // r1
-        auto r2 = var.load(acquire);    // r2
+        auto r1 = x.load(acquire);    // r1
+        auto r2 = x.load(acquire);    // r2
     }
     \end{lstlisting}
 
@@ -99,14 +99,14 @@ Suppose during exploration, one execution graph is constructed as shown in Figur
 
 \begin{figure}[htbp] 
     \centering
-    \includegraphics[scale=0.5]{figure/example_construct.pdf} 
+    \includegraphics[scale=0.5]{figure/exec-graph/example_construct.pdf} 
     \caption{construction of an execution graph} 
     \label{example_construct} 
 \end{figure}
 
 \begin{figure}[htbp] 
     \centering
-    \includegraphics[scale=0.5]{figure/example_mutate.pdf} 
+    \includegraphics[scale=0.5]{figure/exec-graph//example_mutate.pdf} 
     \caption{mutate the previous execution graph and re-explore} 
     \label{example_mutate} 
 \end{figure}

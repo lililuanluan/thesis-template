@@ -45,14 +45,7 @@ void thread2() {
 
 \end{lstlisting}
 
-% x = 0;
-% y = 0;
-% // thread 1:
-% a: x = 1;
-% b: r1 = y;
-% // thread 2
-% c: y = 1;
-% d: r2 = x;
+
 
 However, this behavior can be allowed by some weak memory models provided by hardware architectures and programming languages. Take TSO (total store order)\cite{TSO}, supported by x86 architectures, for example. In TSO model, each thread has a local store buffer. Values written to shared memory will be first stored in the buffer and some time in the future, will be flushed to the shared memory. The store buffer has the FIFO property, hence the ordering of all writes in the same thread will not be broken. 
 
@@ -74,14 +67,7 @@ void receiver() {
     use(*p);
 }
 \end{lstlisting}
-% p = nullptr
-% data = 0
-% // sender
-% data = 1;
-% p = &data;
-% // receiver 
-% while(p == nullptr) {;}
-% use(*p)
+
 
 There are a variety of other weak memory models, such as the ARMv8, supporting out-of-order executions and speculative executions, and language level memory models, including the JAVA memory model\cite{java} and C++ memory model. The rest of this paper mainly discuss the C/C++ memory model\cite{c++model}. 
 
@@ -101,7 +87,7 @@ A candidate execution X contains two components, $X = (X_{opsem}, X_{witness})$,
     \item \textit{data-dependency} (dd):  The dd is provided by the operational semantics, primarily used for release/consume atomics. For example, a store to a pointer and the use of the pointed data have a dd relation. 
 \end{itemize}
 
-In the SB example, assuming x and y atomic variables, the $X_{opsem}$ of a candidate execution can be drawn as: 
+In the SB example, assuming x and y atomic variables, the $X_{opsem}$ of a candidate execution can be drawn as in Figure.\ref{XopsemSB}
 %   x = 0
 %     | sb
 %   y = 0
@@ -109,6 +95,13 @@ In the SB example, assuming x and y atomic variables, the $X_{opsem}$ of a candi
 % x = 1     y = 1
 %   |sb       |sb
 % read y    read x
+
+\begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
+    \centering
+    \includegraphics[scale=1]{figure/exec-graph/SB1.pdf} % 图片文件名和路径  
+    \caption{$X_{opsem}$ of SB} % 图片标题
+    \label{XopsemSB} % 图片标签，用于交叉引用
+\end{figure}
 
 The $X_{witness}$ part contains additional three relations. These relations are not uniquely determined by the operational semantics. Therefore, given a program p, the candidate execution X can only have one $X_{opsem}$, but have multiple choices of $X_{witness}$. 
 
@@ -118,7 +111,7 @@ The $X_{witness}$ part contains additional three relations. These relations are 
     \item \textit{sequentially-consistent} (sc): Totally orders all mutex actions and actions with \texttt{mo\_seq\_cst} memory order.
 \end{itemize}
 
-In the SB example, assuming the initializations are non-atomic and other writes and reads are \texttt{mo\_seq\_cst}, a possible $X_{witness}$ for the SB example can be:
+In the SB example, assuming the initializations are non-atomic and other writes and reads are \texttt{mo\_seq\_cst}, a possible $X_{witness}$ for the SB example can be shown in Figure.\ref{XwitnessSB}
 % rf
 % x=1 -rf-> read x in thread2
 % y=1 -rf-> read y in thread1
@@ -127,6 +120,13 @@ In the SB example, assuming the initializations are non-atomic and other writes 
 % mo
 % y=0 -mo-> y=1
 % x=0 -mo-> x=1
+
+\begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
+    \centering
+    \includegraphics[scale=1]{figure/exec-graph/SB2.pdf} % 图片文件名和路径  
+    \caption{$X_{witness}$ of SB} % 图片标题
+    \label{XwitnessSB} % 图片标签，用于交叉引用
+\end{figure}
 
 There are some derived relations defined based on the above six relations. These derived relations will help to define the memory model and rule out illegal executions.
 
@@ -147,7 +147,14 @@ The three relations in $X_{witness}$ (rf, mo and sc) can not be arbitrarily comp
 \end{itemize}
 
 
-Take the SB example, if the reads and writes are SC atomic operations, the following execution where both reads read the value 0 is not allowed, since this execution violates the CoWR constraint. However, both reads reading the value 0 from the initializations is allowed when the reads and writes are relaxed. 
+Take the SB example, if the reads and writes are SC atomic operations, the following execution, shown in Figure.\ref{NotAllowedSB}, where both reads read the value 0 is not allowed, since this execution violates the CoWR constraint. However, both reads reading the value 0 from the initializations is allowed when the reads and writes are relaxed. 
+
+\begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
+    \centering
+    \includegraphics[scale=1]{figure/exec-graph/SB3.pdf} % 图片文件名和路径  
+    \caption{Not-allowed of SB} % 图片标题
+    \label{NotAllowedSB} % 图片标签，用于交叉引用
+\end{figure}
 % rf
 % x=0 -rf-> read x in thread2
 % y=0 -rf-> read y in thread1
