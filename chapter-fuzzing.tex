@@ -4,28 +4,35 @@ In this chapter, we describe a fuzzing algorithm for concurrent programs under w
 
 \section{Motivation}
 
-As discussed before, the behaviors of programs under weak memory models are modeled by execution graphs, with nodes representing the events and edges representing the relations. In general, the process of checking such programs is constructing the execution graphs and checking the consistency and validity of the graphs. The search space, or state space, is the set of all possible execution graphs. Due to various combinations of the relations, branches of control flows and loops, he size of the search space can sometimes be quite large or even infinite. For the brevity of discussion, assume the model checker is single-threaded, each time taking one step, either adding a node to the graph or forming a relation between two nodes. In addition, the model checker has some mechanism to ensure the steps taken are valid according to the memory model. Consider the following program: 
+As discussed before, the behaviors of programs under weak memory models are modeled by execution graphs, with nodes representing the events and edges representing the relations. In general, the process of checking such programs is constructing the execution graphs and checking the consistency and validity of the graphs. The search space, or state space, is the set of all possible execution graphs. Due to various combinations of the relations, branches of control flows and loops, he size of the search space can sometimes be quite large or even infinite. For the brevity of discussion, assume the model checker is single-threaded, each time taking one step, either adding a node to the graph or forming a relation between two nodes. In addition, the model checker has some mechanism to ensure the steps taken are valid according to the memory model. Consider the SB example, if all atomic operations are relaxed, the following four execution graphs, shown in Figure.\ref{SB4}, are all allowed, among which, as an comparison, only the first execution is allowed under the sc model.
+
+\begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
+    \centering
+    \includegraphics[scale=0.65]{figure/exec-graph/SB4.pdf} % 图片文件名和路径  
+    \caption{allowed execution graphs of SB} % 图片标题
+    \label{SB4} % 图片标签，用于交叉引用
+\end{figure}
 
 
-\begin{lstlisting}[caption={P1}, label={P1}]
-atomic<int> x = {}; // s0
+% \begin{lstlisting}[caption={P1}, label={P1}]
+% atomic<int> x = {}; // s0
 
-void thread1() {
-    x.store(1, relaxed);  // s1 
-    x.store(2, relaxed);  // s2 
-    x.store(3, relaxed);  // s3 
-}
-void thread2() {
-    int r1 = x.load(relaxed);   // r1
-    int r2 = x.load(relaxed);   // r2 
-    int r3 = x.load(relaxed);   // r3 
-    cout << r1 << r2 << r3 << '\n';
-}
-\end{lstlisting}
+% void thread1() {
+%     x.store(1, relaxed);  // s1 
+%     x.store(2, relaxed);  // s2 
+%     x.store(3, relaxed);  // s3 
+% }
+% void thread2() {
+%     int r1 = x.load(relaxed);   // r1
+%     int r2 = x.load(relaxed);   // r2 
+%     int r3 = x.load(relaxed);   // r3 
+%     cout << r1 << r2 << r3 << '\n';
+% }
+% \end{lstlisting}
 
-Since all loads and stores are relaxed, the loads will have no synchronization constraints. Each load can have 4 possible stores to read from: s0, s1, s2 and s3. Hence the size of the search space is: $4^3 = 64$. Comparing this with the SC model, if all loads and stores are sc, the total number of executions is $\binom{6}{3} = 20$. 
+% Since all loads and stores are relaxed, the loads will have no synchronization constraints. Each load can have 4 possible stores to read from: s0, s1, s2 and s3. Hence the size of the search space is: $4^3 = 64$. Comparing this with the SC model, if all loads and stores are sc, the total number of executions is $\binom{6}{3} = 20$. 
 
-The probability of finding different executions are not uniform distribution. Some execution graphs are easier to be found, others can have low probability. Consider another example:
+In addition, the probability of finding different executions are not uniform distribution. Some execution graphs are easier to be found, others can have low probability. Consider another example:
 \begin{lstlisting}[caption={P2}, label={P2}]
 atomic<int> x = {};
 
