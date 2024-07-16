@@ -1,3 +1,121 @@
 \chapter{\label{cha:genmc}Fuzzing with GenMC}
 
+In this chapter we first present an overview of GenMC. Then we present three different mutation strategies and show their effectiveness in the end.
+
+\section{Overview of GenMC}
+
+GenMC is an model checker for C programs, supporting a variaty of memory models, including RC11\cite{RC11}, IMM\cite{IMM} and LKMM\cite{LKMM} memory models. It uses Kater\cite{Kater} to automatically generate axiomatic memory models that provides the specified interfaces. The memory models to be checked can be selected by the user via command line arguments, with RC11 being the default model. It incorporates an LLVM-based interpreter that compiles the target program into LLVM-IR (intermediate representation) and generates execution graphs in accordance with the specified memory model. Data races, assertion failures and other errors will be reported when detected. GenMC has two modes: estimation mode and verification mode. In estimation mode, the GenMC driver randomly collects a sample of execution graphs, independantly, to get an estimation of the size of the state space and time to finish verification. After estimation, the driver performs an exhaustive enumeration of execution graphs in the verification mode and halts when errors are encountered. The estimation mode can be disabled by command line options, too.
+
+Both the estimation and verification modes share the same set of interfaces, with some functionality turned off during estimation. Since the fuzzer aims to improve randomized testing, here we mainly describes GenMC's estimation mode and show its customization points for our fuzzer.
+
+The core component of GenMC is its driver, an instance created according to command line options including the chosen memory model, transformation options, exploration strategies, etc. The driver is responsible for calling the interpreter to transform the target program into LLVM-IR, constructing execution graphs, checking consistency, and reporting errors. The interpreter is derived from LLVM's execution engine and instruction visitor, used to interpret the source code and keep relevant execution information. The interpreter will ask the scheduler of the driver to fetch the next instruction. Normally, the scheduler randomly picks the next thread and fetches the next instruction of that thread, with some special cases such as RMW instructions, prioritized threads, or reads that need to be rescheduled. Then the interpreter handles each instruction following the visitor pattern. Some special instruction-handling functions are overridden by the driver, such as handleLoad, handleStore, handleFence, and handleSpinStart. For instance, the handleLoad function will pick a write value allowed by the memory model for the load instruction and add it to the execution graph, and the handleStore function will add it to the execution graph and insert it into the modification order (coherence) at some proper place, as well as checking consistency and reporting possible data races.
+
+The execution graph is composed of events, each having a label indicating its position in the graph and other information about the event itself. It also maintains a map that records the store events of each memory location. An event can be looked up using its position, which is a pair of thread id and its index in that thread. Additional information is also stored in the label. For example, a read event label also contains its reads-from information and atomic ordering. Both the stamp and the position uniquely identify an event in a single graph; however, the stamp is determined by the order of adding events to the graph and hence will vary across explorations, while the position is determined by the source code of the tested program.
+
+The driver has a stack of executions, called execStack. Each execution has an execution graph instance and a workqueue. The workqueue stores the exploration operations, called Revisit, to be conducted, on the corresponding graph. The driver fetches an item each time from the workqueue and "revisit" it. When the workqueue is empty, the driver is informed that no more actions are needed for the current graph, so it pops out the current execution from the execStack and continues with other executions. When the execStack is empty the driver finishes its job and report the statistics. In estimation mode, only one kind of Revisit, RerunForwardRevisit, is used, which indicates the driver to reset the execution graph to its initial state and start over the next iteration.
+
+The above mentioned exploration procedure is listed in Algorithm. \ref{driver::run}.
+
+\begin{algorithm}
+	\caption{GenMC driver explore}
+	\label{driver::run}
+	\begin{algorithmic}[1]
+		\STATE $EE \leftarrow \text{getInterpreter}()$
+		\STATE $execStack \leftarrow []$
+
+		\WHILE{not \text{isHalting}()}
+		\STATE /* Continue with the current graph */
+		\STATE $EE$.run()
+		\STATE $r \leftarrow RerunForwardRevisit$
+		\STATE $stamp \leftarrow 0$
+		\STATE pushRevisit($execStack$[last], $r$, $stamp$)
+
+		\STATE $validExecution \leftarrow \text{false}$
+		\WHILE{not $validExecution$}
+		\STATE $[{stamp}, {item}] \leftarrow \text{getNextItem}(execStack[last].workqueue)$
+		\IF{$item$ is empty}
+		\STATE execStack.pop()
+		\IF{not execStack.empty()}
+		\STATE \text{continue}
+		\ELSE
+		\RETURN
+		\ENDIF
+
+		\ELSE
+		\STATE $g \leftarrow execStack[\text{last}].graph$
+		\STATE cutToStamp($g$, $stamp$)
+		% \STATE 
+		\STATE $validExecution \leftarrow \text{isConsistent}(g)$   /*always true for graphs cut from RerunForwardRevisit*/
+		\ENDIF
+		\ENDWHILE
+		\ENDWHILE
+	\end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+\section{Customazation points of GenMC}
+
+In the estimation mode, the driver pushes a RerunForwardRevisit and a zero stamp to the workqueue at the end of each execution, so the graph will always be reset to an empty state, which stays at the end of execStack. It is also viable to push other Revisit objects to the workqueue and the driver will cut the graph accordingly. In addition, we could also cut the graph manually and push it together with a latest stamp so the driver will not cut it again. If the manually cut graph is consistent, the interpreter will continue and finish exploration with it. Both pushing other Revisit and manually cutting the graph serve as the mutation part of our fuzzer. The driver has a function, getRfsApproximation, that can provide a list of stores that a read can read from, so the fuzzer can pick a different store from that list.
+
+\section{Fuzzer implementation}
+
+Similar to what is discussed in section~\ref{c11fuzzer:implementation}, several functions need to be implemented.
+
+\begin{itemize}
+	\item A hash function that computes a unique identifier for an execution graph.
+	\item A function that mutate the previous execution graph and produces a prefix of the mutated graph.
+\end{itemize}
+
+Fist the hash function for a single event should be defined, as shown in Algorithm~\ref{alg:hash-eventlabel}
+
+\begin{algorithm}
+	\caption{Hashing an EventLabel}
+	\label{alg:hash-eventlabel}
+	\begin{algorithmic}[1]
+		\STATE \textbf{Input:} EventLabel $lab$
+		\STATE \textbf{Output:} Hash value $h$ = hash($lab$)
+		\STATE $h \leftarrow 0$
+		\STATE $pos \leftarrow lab.\text{getPos}()$
+		\STATE \text{hash\_combine}(h, pos.thread)
+		\STATE \text{hash\_combine}(h, pos.index)
+
+		\IF{$lab$ is a ReadLabel}
+		\IF{$lab$.getRf() is not empty}
+		\STATE $slab \leftarrow$ $lab$.getRf()
+		\STATE \text{hash\_combine}($h$, hash($slab$))
+		\ENDIF
+		\ENDIF
+		\RETURN $h$
+	\end{algorithmic}
+\end{algorithm}
+
+Then the events are iterated by thread id and indices to compute the hash value of the graph, as listed in Algorithm~\ref{alg:hash-executiongraph}.
+
+
+\begin{algorithm}
+	\caption{Hashing an ExecutionGraph}
+	\label{alg:hash-executiongraph}
+	\begin{algorithmic}[1]
+		\STATE \textbf{Input:} ExecutionGraph $g$
+		\STATE \textbf{Output:} Hash value $h$ = hash($g$)
+		\STATE $h \leftarrow 0$
+		\FOR{$i \leftarrow 0$ to $g.getNumThreads() - 1$}
+		\FOR{$j \leftarrow 0$ to $g.getThreadSize(i) - 1$}
+		\STATE $lab \leftarrow g.getEventLabel(\text{Event}(i, j))$
+		\STATE \text{hash\_combine}(h, \text{hash}($lab$))
+		\ENDFOR
+		\ENDFOR
+		\RETURN $h$
+	\end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+
+
 

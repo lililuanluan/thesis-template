@@ -1,3 +1,94 @@
+
+@article{Kater,
+author = {Kokologiannakis, Michalis and Lahav, Ori and Vafeiadis, Viktor},
+title = {Kater: Automating Weak Memory Model Metatheory and Consistency Checking},
+year = {2023},
+issue_date = {January 2023},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {7},
+number = {POPL},
+url = {https://doi.org/10.1145/3571212},
+doi = {10.1145/3571212},
+abstract = {The metatheory of axiomatic weak memory models covers questions like the 
+correctness of compilation mappings from one model to another and the 
+correctness of local program transformations according to a given model---topics 
+usually requiring lengthy human investigation. 
+We show that these questions can be solved by answering a 
+more basic question: "Given two memory models, is one weaker than the other?" 
+Moreover, for a wide class of axiomatic memory models, we show that this 
+basic question can be reduced to a language inclusion problem between regular 
+languages, which is decidable. 
+
+Similarly, implementing an efficient check for whether an execution graph is 
+consistent according to a given memory model has required non-trivial manual 
+effort. Again, we show that such efficient checks can be derived automatically 
+for a wide class of axiomatic memory models, and that incremental consistency checks 
+can be incorporated in GenMC, a state-of-the-art model checker for concurrent 
+programs. As a result, we get the first time- and space-efficient bounded 
+verifier taking the axiomatic memory model as an input parameter.},
+journal = {Proc. ACM Program. Lang.},
+month = {jan},
+articleno = {19},
+numpages = {29},
+keywords = {Kleene Algebra with Tests, Model Checking, Weak Memory Models}
+}
+
+@misc{LKMM,
+  author = {Paul, McKenney and Ulrich, Weigand and Andrea, Parri and  Boqun, Feng and Alan, Stern},
+  title  = {Linux-Kernel Memory Model},
+  year   = {2020},
+  url    = {https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p0124r7.html}
+}
+
+@article{IMM,
+author = {Podkopaev, Anton and Lahav, Ori and Vafeiadis, Viktor},
+title = {Bridging the gap between programming languages and hardware weak memory models},
+year = {2019},
+issue_date = {January 2019},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {3},
+number = {POPL},
+url = {https://doi.org/10.1145/3290382},
+doi = {10.1145/3290382},
+abstract = {We develop a new intermediate weak memory model, IMM, as a way of modularizing the proofs of correctness of compilation from concurrent programming languages with weak memory consistency semantics to mainstream multi-core architectures, such as POWER and ARM. We use IMM to prove the correctness of compilation from the promising semantics of Kang et al. to POWER (thereby correcting and improving their result) and ARMv7, as well as to the recently revised ARMv8 model. Our results are mechanized in Coq, and to the best of our knowledge, these are the first machine-verified compilation correctness results for models that are weaker than x86-TSO.},
+journal = {Proc. ACM Program. Lang.},
+month = {jan},
+articleno = {69},
+numpages = {31},
+keywords = {C11 memory model, IMM, Weak memory consistency, promising semantics}
+}
+
+@article{RC11,
+author = {Lahav, Ori and Vafeiadis, Viktor and Kang, Jeehoon and Hur, Chung-Kil and Dreyer, Derek},
+title = {Repairing sequential consistency in C/C++11},
+year = {2017},
+issue_date = {June 2017},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {52},
+number = {6},
+issn = {0362-1340},
+url = {https://doi.org/10.1145/3140587.3062352},
+doi = {10.1145/3140587.3062352},
+abstract = {The C/C++11 memory model defines the semantics of concurrent memory accesses in C/C++, and in particular supports racy "atomic" accesses at a range of different consistency levels, from very weak consistency ("relaxed") to strong, sequential consistency ("SC"). Unfortunately, as we observe in this paper, the semantics of SC atomic accesses in C/C++11, as well as in all proposed strengthenings of the semantics, is flawed, in that (contrary to previously published results) both suggested compilation schemes to the Power architecture are unsound. We propose a model, called RC11 (for Repaired C11), with a better semantics for SC accesses that restores the soundness of the compilation schemes to Power, maintains the DRF-SC guarantee, and provides stronger, more useful, guarantees to SC fences. In addition, we formally prove, for the first time, the correctness of the proposed stronger compilation schemes to Power that preserve load-to-store ordering and avoid "out-of-thin-air" reads.},
+journal = {SIGPLAN Not.},
+month = {jun},
+pages = {618–632},
+numpages = {15},
+keywords = {sequential consistency, declarative semantics, Weak memory models, C++11}
+}
+
+
+
+
+
+
+
+
+
+
 @article{CC90,
   author    = {E. J. Chikofsky and J. H. Cross},
   title     = {Reverse Engineering and Design Recovery: A Taxonomy},

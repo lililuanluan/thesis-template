@@ -88,7 +88,7 @@ To summarize, C11Tester will execute the program from beginning to end, randomly
 
 C11Tester provides two interfaces: selectWrite and selectThread that randomly selects a thread or write from a provided set. These two functions can be overwritten to implement new fuzzers. The provided set already excludes invalid choices so it's safe to pick other choices in the set. Thus we can define two types of mutations: changing the next thread to be added or changing the write that a read event reads from.
 
-\section{Fuzzer implementation}
+\section{Fuzzer implementation}\label{c11fuzzer:implementation}
 
 To implement a fuzzer described in Algorithm \ref{fuzzer}, there are several specific functions to be defined:
 
@@ -105,7 +105,7 @@ The hash function for executioin graph encodes: event types, memory orders, read
 \begin{algorithm}
 	\caption{Hash of execution graphs}
 	\label{c11fuzzer-hash}
-	\begin{algorithmic}
+	\begin{algorithmic}[1]
 		\STATE \textbf{Input:} Execution graph $g$
 		\STATE \textbf{Output:} Hash value $h$
 
