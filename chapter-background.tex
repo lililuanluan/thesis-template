@@ -2,6 +2,9 @@
 
 % Short chapter intro \ldots
 
+\section{Fuzzers}
+
+
 \section{Weak Memory Models}
 
 In concurrent programming, shared memory is used for sharing data and passing messages among threads. Memory models are essential for programmers to reason about their code, and for compiler and hardware manufacturers to implement low-level supporting infrastructures. The simplest memory model, proposed by Lamport\cite{SC} in 1979, is the Sequential Consistency Model (SC) . Under the SC model, intra-thread instructions are executed following their program order and threads can interleave in any order. A read operation can only read from the most recent value written to the same memory location. The SC is also known as the strong memory model, with other non-SC memory models referred to as weak memory models.
