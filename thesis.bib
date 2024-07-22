@@ -1,37 +1,105 @@
 
-@article{Kater,
-author = {Kokologiannakis, Michalis and Lahav, Ori and Vafeiadis, Viktor},
-title = {Kater: Automating Weak Memory Model Metatheory and Consistency Checking},
-year = {2023},
-issue_date = {January 2023},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-volume = {7},
-number = {POPL},
-url = {https://doi.org/10.1145/3571212},
-doi = {10.1145/3571212},
-abstract = {The metatheory of axiomatic weak memory models covers questions like the 
-correctness of compilation mappings from one model to another and the 
-correctness of local program transformations according to a given model---topics 
-usually requiring lengthy human investigation. 
-We show that these questions can be solved by answering a 
-more basic question: "Given two memory models, is one weaker than the other?" 
-Moreover, for a wide class of axiomatic memory models, we show that this 
-basic question can be reduced to a language inclusion problem between regular 
-languages, which is decidable. 
+@inproceedings{CollAFL,
+  author    = {Gan, Shuitao and Zhang, Chao and Qin, Xiaojun and Tu, Xuwen and Li, Kang and Pei, Zhongyu and Chen, Zuoning},
+  booktitle = {2018 IEEE Symposium on Security and Privacy (SP)},
+  title     = {CollAFL: Path Sensitive Fuzzing},
+  year      = {2018},
+  volume    = {},
+  number    = {},
+  pages     = {679-696},
+  keywords  = {Fuzzing;Security;Instruments;Computer bugs;Grammar;Target tracking;fuzzing;vulnerability discovery},
+  doi       = {10.1109/SP.2018.00040}
+}
 
-Similarly, implementing an efficient check for whether an execution graph is 
-consistent according to a given memory model has required non-trivial manual 
-effort. Again, we show that such efficient checks can be derived automatically 
-for a wide class of axiomatic memory models, and that incremental consistency checks 
-can be incorporated in GenMC, a state-of-the-art model checker for concurrent 
-programs. As a result, we get the first time- and space-efficient bounded 
-verifier taking the axiomatic memory model as an input parameter.},
-journal = {Proc. ACM Program. Lang.},
-month = {jan},
-articleno = {19},
-numpages = {29},
-keywords = {Kleene Algebra with Tests, Model Checking, Weak Memory Models}
+@misc{TriforceAFL,
+  author = {Nccgroup},
+  title  = {AFL/QEMU fuzzing with full-system emulation.},
+  url    = {https://github.com/nccgroup/TriforceAFL}
+}
+
+@misc{kAFL,
+  author = {Intel Labs},
+  title  = {HW-assisted Feedback Fuzzer for x86 VMs},
+  url    = {https://github.com/IntelLabs/kAFL}
+}
+
+@misc{Driller,
+  author = {Shellphish},
+  title  = {Driller: augmenting AFL with symbolic execution!},
+  url    = {https://github.com/shellphish/driller}
+}
+
+@inproceedings{sage,
+  author    = {Godefroid, Patrice},
+  title     = {Random testing for security: blackbox vs. whitebox fuzzing},
+  year      = {2007},
+  isbn      = {9781595938817},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/1292414.1292416},
+  doi       = {10.1145/1292414.1292416},
+  abstract  = {Fuzz testing is an effective technique for finding security vulnerabilities in software. Fuzz testing is a form of blackbox random testing which randomly mutates well-formed inputs and tests the program on the resulting data. In some cases, grammars are used to randomly generate the well-formed inputs. This also allows the tester to encode application-specific knowledge (such as corner cases of particular interest) as part of the grammar, and to specify test heuristics by assigning probabilistic weights to production rules. Although fuzz testing can be remarkably effective, the limitations of blackbox random testing are well-known. For instance, the then branch of the conditional statement "if (x==10) then" has only one in 232 chances of being exercised if x is a randomly chosen 32-bit input value. This intuitively explains why random testing usually provides low code coverage.Recently, we have proposed an alternative approach of whitebox fuzz testing [4], building upon recent advances in dynamic symbolic execution and test generation [2]. Starting with a well-formed input, our approach symbolically executes the program dynamically and gathers constraints on inputs from conditional statements encountered along the way. The collected constraints are then systematically negated and solved with a constraint solver, yielding new inputs that exercise different execution paths in the program. This process is repeated using a novel search algorithm with a coverage-maximizing heuristic designed to find defects as fast as possible in large search spaces. For example, symbolic execution of the above code fragment on the input x = 0 generates the constraint x ≠ 10. Once this constraint is negated and solved, it yields x = 10, which gives us a new input that causes the program to follow the then branch of the given conditional statement.We have implemented this approach in SAGE (Scalable, Automated, Guided Execution), a tool based on x86 instruction-level tracing and emulation for whitebox fuzzing of file-reading Windows applications. While still in an early stage of development and deployment, SAGE has already discovered more than 30 new bugs in large shipped Windows applications including image processors, media players and file decoders. Several of these bugs are potentially exploitable memory access violations.In this talk, I will briefly review blackbox fuzzing for security testing. Then, I will present an overview of our recent work on whitebox fuzzing [4] (joint work with Michael Y. Levin and David Molnar), with an emphasis on the key algorithms and techniques needed to make this approach effective and scalable (see also [1, 3]).},
+  booktitle = {Proceedings of the 2nd International Workshop on Random Testing: Co-Located with the 22nd IEEE/ACM International Conference on Automated Software Engineering (ASE 2007)},
+  pages     = {1},
+  numpages  = {1},
+  keywords  = {software testing, security, program verification, automatic test generation},
+  location  = {Atlanta, Georgia},
+  series    = {RT '07}
+}
+
+
+
+
+
+
+
+
+@article{millerFuzzer,
+  title     = {An empirical study of the reliability of UNIX utilities},
+  author    = {Miller, Barton P and Fredriksen, Lars and So, Bryan},
+  journal   = {Communications of the ACM},
+  volume    = {33},
+  number    = {12},
+  pages     = {32--44},
+  year      = {1990},
+  publisher = {ACM New York, NY, USA}
+}
+
+
+
+@article{Kater,
+  author     = {Kokologiannakis, Michalis and Lahav, Ori and Vafeiadis, Viktor},
+  title      = {Kater: Automating Weak Memory Model Metatheory and Consistency Checking},
+  year       = {2023},
+  issue_date = {January 2023},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {7},
+  number     = {POPL},
+  url        = {https://doi.org/10.1145/3571212},
+  doi        = {10.1145/3571212},
+  abstract   = {The metatheory of axiomatic weak memory models covers questions like the 
+                correctness of compilation mappings from one model to another and the 
+                correctness of local program transformations according to a given model---topics 
+                usually requiring lengthy human investigation. 
+                We show that these questions can be solved by answering a 
+                more basic question: "Given two memory models, is one weaker than the other?" 
+                Moreover, for a wide class of axiomatic memory models, we show that this 
+                basic question can be reduced to a language inclusion problem between regular 
+                languages, which is decidable. 
+                
+                Similarly, implementing an efficient check for whether an execution graph is 
+                consistent according to a given memory model has required non-trivial manual 
+                effort. Again, we show that such efficient checks can be derived automatically 
+                for a wide class of axiomatic memory models, and that incremental consistency checks 
+                can be incorporated in GenMC, a state-of-the-art model checker for concurrent 
+                programs. As a result, we get the first time- and space-efficient bounded 
+                verifier taking the axiomatic memory model as an input parameter.},
+  journal    = {Proc. ACM Program. Lang.},
+  month      = {jan},
+  articleno  = {19},
+  numpages   = {29},
+  keywords   = {Kleene Algebra with Tests, Model Checking, Weak Memory Models}
 }
 
 @misc{LKMM,
@@ -42,42 +110,42 @@ keywords = {Kleene Algebra with Tests, Model Checking, Weak Memory Models}
 }
 
 @article{IMM,
-author = {Podkopaev, Anton and Lahav, Ori and Vafeiadis, Viktor},
-title = {Bridging the gap between programming languages and hardware weak memory models},
-year = {2019},
-issue_date = {January 2019},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-volume = {3},
-number = {POPL},
-url = {https://doi.org/10.1145/3290382},
-doi = {10.1145/3290382},
-abstract = {We develop a new intermediate weak memory model, IMM, as a way of modularizing the proofs of correctness of compilation from concurrent programming languages with weak memory consistency semantics to mainstream multi-core architectures, such as POWER and ARM. We use IMM to prove the correctness of compilation from the promising semantics of Kang et al. to POWER (thereby correcting and improving their result) and ARMv7, as well as to the recently revised ARMv8 model. Our results are mechanized in Coq, and to the best of our knowledge, these are the first machine-verified compilation correctness results for models that are weaker than x86-TSO.},
-journal = {Proc. ACM Program. Lang.},
-month = {jan},
-articleno = {69},
-numpages = {31},
-keywords = {C11 memory model, IMM, Weak memory consistency, promising semantics}
+  author     = {Podkopaev, Anton and Lahav, Ori and Vafeiadis, Viktor},
+  title      = {Bridging the gap between programming languages and hardware weak memory models},
+  year       = {2019},
+  issue_date = {January 2019},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {3},
+  number     = {POPL},
+  url        = {https://doi.org/10.1145/3290382},
+  doi        = {10.1145/3290382},
+  abstract   = {We develop a new intermediate weak memory model, IMM, as a way of modularizing the proofs of correctness of compilation from concurrent programming languages with weak memory consistency semantics to mainstream multi-core architectures, such as POWER and ARM. We use IMM to prove the correctness of compilation from the promising semantics of Kang et al. to POWER (thereby correcting and improving their result) and ARMv7, as well as to the recently revised ARMv8 model. Our results are mechanized in Coq, and to the best of our knowledge, these are the first machine-verified compilation correctness results for models that are weaker than x86-TSO.},
+  journal    = {Proc. ACM Program. Lang.},
+  month      = {jan},
+  articleno  = {69},
+  numpages   = {31},
+  keywords   = {C11 memory model, IMM, Weak memory consistency, promising semantics}
 }
 
 @article{RC11,
-author = {Lahav, Ori and Vafeiadis, Viktor and Kang, Jeehoon and Hur, Chung-Kil and Dreyer, Derek},
-title = {Repairing sequential consistency in C/C++11},
-year = {2017},
-issue_date = {June 2017},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-volume = {52},
-number = {6},
-issn = {0362-1340},
-url = {https://doi.org/10.1145/3140587.3062352},
-doi = {10.1145/3140587.3062352},
-abstract = {The C/C++11 memory model defines the semantics of concurrent memory accesses in C/C++, and in particular supports racy "atomic" accesses at a range of different consistency levels, from very weak consistency ("relaxed") to strong, sequential consistency ("SC"). Unfortunately, as we observe in this paper, the semantics of SC atomic accesses in C/C++11, as well as in all proposed strengthenings of the semantics, is flawed, in that (contrary to previously published results) both suggested compilation schemes to the Power architecture are unsound. We propose a model, called RC11 (for Repaired C11), with a better semantics for SC accesses that restores the soundness of the compilation schemes to Power, maintains the DRF-SC guarantee, and provides stronger, more useful, guarantees to SC fences. In addition, we formally prove, for the first time, the correctness of the proposed stronger compilation schemes to Power that preserve load-to-store ordering and avoid "out-of-thin-air" reads.},
-journal = {SIGPLAN Not.},
-month = {jun},
-pages = {618–632},
-numpages = {15},
-keywords = {sequential consistency, declarative semantics, Weak memory models, C++11}
+  author     = {Lahav, Ori and Vafeiadis, Viktor and Kang, Jeehoon and Hur, Chung-Kil and Dreyer, Derek},
+  title      = {Repairing sequential consistency in C/C++11},
+  year       = {2017},
+  issue_date = {June 2017},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {52},
+  number     = {6},
+  issn       = {0362-1340},
+  url        = {https://doi.org/10.1145/3140587.3062352},
+  doi        = {10.1145/3140587.3062352},
+  abstract   = {The C/C++11 memory model defines the semantics of concurrent memory accesses in C/C++, and in particular supports racy "atomic" accesses at a range of different consistency levels, from very weak consistency ("relaxed") to strong, sequential consistency ("SC"). Unfortunately, as we observe in this paper, the semantics of SC atomic accesses in C/C++11, as well as in all proposed strengthenings of the semantics, is flawed, in that (contrary to previously published results) both suggested compilation schemes to the Power architecture are unsound. We propose a model, called RC11 (for Repaired C11), with a better semantics for SC accesses that restores the soundness of the compilation schemes to Power, maintains the DRF-SC guarantee, and provides stronger, more useful, guarantees to SC fences. In addition, we formally prove, for the first time, the correctness of the proposed stronger compilation schemes to Power that preserve load-to-store ordering and avoid "out-of-thin-air" reads.},
+  journal    = {SIGPLAN Not.},
+  month      = {jun},
+  pages      = {618–632},
+  numpages   = {15},
+  keywords   = {sequential consistency, declarative semantics, Weak memory models, C++11}
 }
 
 
@@ -101,21 +169,21 @@ keywords = {sequential consistency, declarative semantics, Weak memory models, C
 }
 
 @inproceedings{left-right,
-  TITLE = {{Brief Announcement: Left-Right - A Concurrency Control Technique with Wait-Free Population Oblivious Reads}},
-  AUTHOR = {Ramalhete, Pedro and Correia, Andreia},
-  URL = {https://hal.science/hal-01207881},
-  BOOKTITLE = {{DISC 2015}},
-  ADDRESS = {Tokyo, Japan},
-  ORGANIZATION = {{Toshimitsu Masuzawa and Koichi Wada}},
-  EDITOR = {Yoram Moses and Matthieu Roy},
-  PUBLISHER = {{Springer-Verlag Berlin Heidelberg}},
-  SERIES = {29th International Symposium on Distributed Computing},
-  VOLUME = {LNCS 9363},
-  YEAR = {2015},
-  MONTH = Oct,
-  PDF = {https://hal.science/hal-01207881/file/39-BA.pdf},
-  HAL_ID = {hal-01207881},
-  HAL_VERSION = {v1},
+  title        = {{Brief Announcement: Left-Right - A Concurrency Control Technique with Wait-Free Population Oblivious Reads}},
+  author       = {Ramalhete, Pedro and Correia, Andreia},
+  url          = {https://hal.science/hal-01207881},
+  booktitle    = {{DISC 2015}},
+  address      = {Tokyo, Japan},
+  organization = {{Toshimitsu Masuzawa and Koichi Wada}},
+  editor       = {Yoram Moses and Matthieu Roy},
+  publisher    = {{Springer-Verlag Berlin Heidelberg}},
+  series       = {29th International Symposium on Distributed Computing},
+  volume       = {LNCS 9363},
+  year         = {2015},
+  month        = Oct,
+  pdf          = {https://hal.science/hal-01207881/file/39-BA.pdf},
+  hal_id       = {hal-01207881},
+  hal_version  = {v1}
 }
 
 @misc{lockfree-xenium,
@@ -225,7 +293,7 @@ keywords = {sequential consistency, declarative semantics, Weak memory models, C
   issn       = {0362-1340},
   url        = {https://doi.org/10.1145/2544173.2509514},
   doi        = {10.1145/2544173.2509514},
-  abstract   = {Writing low-level concurrent software has traditionally required intimate knowledge of the entire toolchain and often has involved coding in assembly. New language standards have extended C and C++ with support for low-level atomic operations and a weak memory model, enabling developers to write portable and efficient multithreaded code.Developing correct low-level concurrent code is well-known to be especially difficult under a weak memory model, where code behavior can be surprising. Building reliable concurrent software using C/C++ low-level atomic operations will likely require tools that help developers discover unexpected program behaviors.In this paper we present CDSChecker, a tool for exhaustively exploring the behaviors of concurrent code under the C/C++ memory model. We develop several novel techniques for modeling the relaxed behaviors allowed by the memory model and for minimizing the number of execution behaviors that CDSChecker must explore. We have used CDSChecker to exhaustively unit test several concurrent data structure implementations on specific inputs and have discovered errors in both a recently published C11 implementation of a work-stealing queue and a single producer, single consumer queue implementation.},
+  abstract   = {Writing low-level concurrent software has traditionally required intimate knowledge of the entire toolchain and often has involved coding in assembly. New language standards have extended C and C++ with support for low-level atomic operations and a weak memory model, enabling developers to write portable and efficient multithreaded code.Developing correct low-level concurrent code is well-known to be especially difficult under a weak memory model, where code behavior can be surprising. Building reliable concurrent software using C/C++ low-level atomic operations will likely require tools that help developers discover unexpected program behaviors.In this paper we present CDSChecker, a tool for exhaustively exploring the behaviors of concurrent code under the C/C++ memory model. We develop several novel techniques for modeling the relaxed behaviors allowed by the memory model and for minimizing the number of execution behaviors that CDSChecker must explore. We have used CDSChecker to exhaustively unit test several concurrent data structure implementations on specific input and have discovered errors in both a recently published C11 implementation of a work-stealing queue and a single producer, single consumer queue implementation.},
   journal    = {SIGPLAN Not.},
   month      = {oct},
   pages      = {131-150},
