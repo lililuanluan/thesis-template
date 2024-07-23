@@ -141,10 +141,12 @@ We use the following benchmarks to evaluate the fuzzer.
 
 \paragraph{fib} Two threads update a Fibonacci sequence concurrently. Each update uses the previous values of two variables.
 
-\paragraph{mpmc-queue} A multi-producer multi-consumer bounded queue implementation. 
+\paragraph{mpmc-queue} A multi-producer multi-consumer bounded queue implementation. It maintains three state variables that keeps track of the number of reads and writes that have been started and finished. Each writer obtains an index in the queue's array buffer using cas loop and write to that position. The readers will increment the reading index and read the data. In the test, 2 readers and 4 writers are spawned. 
+
+\paragraph{szymanski} A szymanski mutual exclusion algorithm implementation. Each thread has a flag to inidicate its state. Before entering critical section, each thread updates its own flag and checks the other thread's flag. SC atomic fences are used for synchronization. 
 
 
-\paragraph{ttaslock}
+\paragraph{ttaslock} A spinlock called Test-and-Test-and-Set (TTAS) lock. The lock has an atomic state variable shared by multiple threads. Before locking it, a thread first loads the flag and wait until it is not set. Locking is implemented using a loop that exchanges the state value until the old value of it is not set. In the benchmakr, two threads are luanched to update a non-atomic shared variable and asserts they read their values in the critical section. 
 
 
 \begin{figure}[H]
