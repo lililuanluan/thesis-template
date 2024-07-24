@@ -70,7 +70,7 @@ Similar to what is discussed in section~\ref{c11fuzzer:implementation}, several 
 \end{itemize}
 
 
-\subsection{hash function for execution graphs}
+\subsection{hash function for execution graphs}\label{sec:hashf}
 Firstly the hash function for a single event should be defined, as shown in Algorithm~\ref{alg:hash-eventlabel}
 
 \begin{algorithm}
@@ -131,7 +131,9 @@ The mutation process is composed of two steps: changing an rf relation and cutti
 
 
 
-\section{Evaluation and discussion}
+
+
+\section{benchmarks}
 
 We use the following benchmarks to evaluate the fuzzer.
 
@@ -141,15 +143,61 @@ We use the following benchmarks to evaluate the fuzzer.
 
 \paragraph{fib} Two threads update a Fibonacci sequence concurrently. Each update uses the previous values of two variables.
 
-\paragraph{mpmc-queue} A multi-producer multi-consumer bounded queue implementation. It maintains three state variables that keeps track of the number of reads and writes that have been started and finished. Each writer obtains an index in the queue's array buffer using cas loop and write to that position. The readers will increment the reading index and read the data. In the test, 2 readers and 4 writers are spawned. 
+\paragraph{mpmc-queue} A multi-producer multi-consumer bounded queue implementation. It maintains three state variables that keeps track of the number of reads and writes that have been started and finished. Each writer obtains an index in the queue's array buffer using cas loop and write to that position. The readers will increment the reading index and read the data. In the test, 2 readers and 4 writers are spawned.
 
-\paragraph{szymanski} A szymanski mutual exclusion algorithm implementation. Each thread has a flag to inidicate its state. Before entering critical section, each thread updates its own flag and checks the other thread's flag. SC atomic fences are used for synchronization. 
-
-
-\paragraph{ttaslock} A spinlock called Test-and-Test-and-Set (TTAS) lock. The lock has an atomic state variable shared by multiple threads. Before locking it, a thread first loads the flag and wait until it is not set. Locking is implemented using a loop that exchanges the state value until the old value of it is not set. In the benchmakr, two threads are luanched to update a non-atomic shared variable and asserts they read their values in the critical section. 
+\paragraph{szymanski} A szymanski mutual exclusion algorithm implementation. Each thread has a flag to inidicate its state. Before entering critical section, each thread updates its own flag and checks the other thread's flag. SC atomic fences are used for synchronization.
 
 
-\begin{figure}[H]
+\paragraph{ttaslock} A spinlock called Test-and-Test-and-Set (TTAS) lock. The lock has an atomic state variable shared by multiple threads. Before locking it, a thread first loads the flag and wait until it is not set. Locking is implemented using a loop that exchanges the state value until the old value of it is not set. In the benchmakr, two threads are luanched to update a non-atomic shared variable and asserts they read their values in the critical section.
+
+
+\section{Evaluation and discussion}
+
+\paragraph*{Research questions} Below lists the research questions we want to explore.
+
+\begin{enumerate}[label=RQ\arabic*,resume]
+	\item Is the fuzzer able to explore more distinct execution graphs in a fixed number of iterations than the random tester? \label{RQ:CutVSRandom}
+	\item Among the three mutation strategies, which performs best? Why? \label{RQ:CutComparison}
+	\item What's the runtime overhead of the fuzzer with different mutations, comparing with random testing? \label{RQ:GenMCOverhead}
+\end{enumerate}
+
+\subsection{\ref*{RQ:CutVSRandom}: Fuzzer vs random GenMC }
+
+To address this question, we run both the fuzzer and the GenMC in its estimation mode for 10 thousand iterations. Using the hash function defined in section~\ref{sec:hashf}, we count the number of distinct execution graphs they found. Table~\ref{genmc:num-of-exe} shows the results of each benchmark. The improvements are computed by:
+\[
+	R_{improvement} = \frac{\frac{1}{3} (N_{revisit}+N_{minimal}+N_{maximal}) - N_{random} }{N_{random}} \times 100 \%.
+\]
+
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{|c|cccc|c|}
+		\hline
+		\diagbox{Benchmark}{ Strategy} & random & revisit cut & minimal cut & maximal cut & $R_{improvement}$ \\ \hline
+		big0                           & 39171  & 46211       & 40782       & 42886       & 10.52\%           \\ \hline
+		ring-buffer                    & 564    & 980         & 861         & 1163        & 77.54\%           \\ \hline
+		fib                            & 21782  & 22814       & 43153       & 43216       & 67.08\%           \\ \hline
+		mpmc-queue                     & 23087  & 43278       & 42167       & 68395       & 122.11\%          \\ \hline
+		ms-queue                       & 13672  & 24204       & 19448       & 26563       & 71.18\%           \\ \hline
+		szymanski                      & 103    & 122         & 103         & 115         & 10.03\%           \\ \hline
+		ttaslock                       & 8639   & 8856        & 9478        & 9677        & 8.07\%            \\ \hline
+	\end{tabular}
+	\label{genmc:num-of-exe}
+	\caption{Number of unique execution graphs of each exploration strategy}
+\end{table}
+
+It can be observed that for all of the above benchmakrs, the fuzzer is able to explore higher number of execution graphs than the random tester does. The everage improvement, computed by
+
+
+\[
+	\overline{R_{\text{improvement}}} = \frac{1}{n} \sum N_{improvement}
+\]
+is 52.37\%.
+
+\subsection{\ref*{RQ:CutComparison}: revisit cut vs minimal cut vs maximal cut }
+
+Figure~\ref{genmc:big0} to \ref{genmc:ttaslock} show the execution graph coverage plots of random testing and fuzzing with three mutation strategies. It can be seen that in 5 of these benchmarks, the maximal cut finds the greatest number of execution graphs. The revisit cut performs the best in 2 benchmakrs.
+
+\begin{figure}[h!]
 
 	\centering
 	\begin{minipage}{0.45\textwidth}
@@ -210,7 +258,34 @@ We use the following benchmarks to evaluate the fuzzer.
 		\centering
 		% This empty minipage will help the last image to be aligned to the left
 	\end{minipage}
-
-
-
 \end{figure}
+
+It is hypothesized that the performance relates to the number of events remained in the mutated graph. The more events kept in the mutated graph, the more close their relations are. The random strategy can also be seen as cutting out the whole graph, hence it remains the least number of events. We also count the average number of events in execution graphs for each benchmark and the average number of remained events produced by each cut strategy, as shown in Table~\ref{genmc:average-events}. It can be observed, for instance, that in benchmark big0 and szymanski, the revisit cut keeps the largest number of events in their mutated graphs and performs best in finding more execution graphs. Therefore, the number of explored execution graphs is positively correlated with the number of remaining events in the mutation strategies.
+
+
+
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{|c|cccc|}
+		\hline
+		\diagbox{Benchmark}{ Strategy} & total  & revisit cut & minimal cut & maximal cut \\ \hline
+		big0                           & 28.98  & 25.87       & 9.71        & 21.17       \\ \hline
+		ring-buffer                    & 78.29  & 64.60       & 38.13       & 72.13       \\ \hline
+		fib                            & 39.26  & 23.70       & 17.28       & 27.15       \\ \hline
+		mpmc-queue                     & 86.75  & 62.09       & 32.79       & 75.00       \\ \hline
+		ms-queue                       & 151.26 & 121.97      & 63.25       & 138.81      \\ \hline
+		szymanski                      & 20.96  & 15.33       & 9.25        & 13.16       \\ \hline
+		ttaslock                       & 64.13  & 53.21       & 29.94       & 51.06       \\ \hline
+	\end{tabular}
+	\label{genmc:average-events}
+	\caption{Number of events in original graphs and mutated graphs, on average}
+\end{table}
+
+
+
+
+%% TODO:
+% - 写结果的分析，rq: 1，是否比random好，2，哪个cut好，分析原因，3，overhead是多少
+% 测试大型软件，看能不能编译c++，或重写
+% 测试long-race，verification多久找到，fuzz多久
+% 看verification是什么策略，如何让bug更深
