@@ -319,8 +319,21 @@ It is hypothesized that the performance relates to the number of events remained
 
 
 
-%% TODO:
-% - 写结果的分析，rq: 1，是否比random好，2，哪个cut好，分析原因，3，overhead是多少
-% 测试大型软件，看能不能编译c++，或重写
-% 测试long-race，verification多久找到，fuzz多久
-% 看verification是什么策略，如何让bug更深
+
+\subsection{\ref*{RQ:GenMCOverhead}: Overhead of 3 mutations }
+
+We examine the total time elapsed for exploring 10 thousand iterations, shown in Figure~\ref{genmc:overhead}. The random testing is taken as a baseline for evaluating the overhead. It can be seen that random testing does not always take the shortest time. This is due to the mechanism of GenMC. When adding events to the graph, the GenMC driver first inspects whether there is already an event in that position. If so, it continues without the need to check consistency, pick rf's, or arrange it in the coherence order. Although the maximal cut takes many steps to compute the cut view, it still takes the shortest times in some of the benchmarks since the driver can save effort on those remaining events. Overall, all three mutations have insignificant effects on the runtime performance, with affordable overheads.
+
+
+
+
+\begin{figure}[htbp] 
+	\centering
+	\includegraphics[scale=0.39]{figure/genmc/overhead.pdf} 
+	\caption{Time elapsed by various strategies} 
+	\label{genmc:overhead} 
+\end{figure} 
+
+
+
+
