@@ -122,10 +122,45 @@ The mutation process is composed of two steps: changing an rf relation and cutti
 
 \paragraph{Minimal cut} This cut strategy aims to retain as little events as possible. It only keeps those events that are both porf predecessors of $R$ and $S$. The events in unrelated threads (concurrent events) will be dropped. The minimal cut view can be written as $pporf_{R} \cup pporf_{S}$
 
-\paragraph{Maximal cut} This cut strategy aims to retain as many events as possible. In maximal cut, the unrelated events, which are removed in minimal cut, will be kept. It only removes the events that are porf successors of the read. To get this set of events, the fuzzer iterates through all events in the graph. For each event, if the $R$ is not a porf predecessor of it, it will be added into the set. Because the maximal cut will include more events into the cut view, some special attention needs to be paid to the "pair relations". For example, if a thread-join event is to be added into the view, both itself and its corresponding thread's thread-finish event should not be porf successors of $R$. The maximal cut view can be represented by $\{e \in G \mid R \notin pporf_e, \  R \notin pporf_{e's pair}\} \cup {R}$, where $G$ is the current graph to be mutated.
+\paragraph{Maximal cut} This cut strategy aims to retain as many events as possible. In maximal cut, the unrelated events, which are removed in minimal cut, will be kept. It only removes the events that are porf successors of the read. To get this set of events, the fuzzer iterates through all events in the graph. For each event, if the $R$ is not a porf predecessor of it, it will be added into the set. Because the maximal cut will include more events into the cut view, some special attention needs to be paid to the "pair relations". For example, if a thread-join event is to be added into the view, both itself and its corresponding thread's thread-finish event should not be porf successors of $R$. The maximal cut view can be represented by $\{e \in G \mid R \notin pporf_e, \  R \notin pporf_{e's pair}\} \cup {R}$, where $G$ is the current graph to be mutated. 
 
 
 
+\paragraph{}We use an example to illustrate the above mutations. Suppose the execution graph shown in Figure~\ref{cut:to-be-cut} is the graph to be mutated, assuming all operations are relaxed. The numbers on the should of $\text{R}$'s and $\text{W}$'s are the timestamps given to the events. The select read event is $\text{R}^7(x)$, reading from event $\text{W}^5(x, 1)$. 
+
+\begin{figure}[htbp] 
+	\centering
+	\includegraphics[scale=1]{figure/cuts/cut.pdf} 
+	\caption{The execution graph to be cut} 
+	\label{cut:to-be-cut} 
+\end{figure}
+
+For revisit cut, since the read event has the greater stamp, the graph will be simply cut up until stamp = 7, shown in Figure~\ref{cut:revisit}.
+
+\begin{figure}[htbp] 
+	\centering
+	\includegraphics[scale=1]{figure/cuts/cut-revisit.pdf} 
+	\caption{Revisit cut output} 
+	\label{cut:revisit} 
+\end{figure} 
+
+For minimal cut, the fuzzer counts the porf predecessors of $\text{R}^7(x)$ and $\text{W}^5(x, 1)$. The events in the third thread (the rightmost column) will be removed. $\text{W}^{10}(z, 2)$ and $\text{W}^{8}(y, 2)$ are removed since they porf successors of porf successors of $\text{R}^7(x)$ and $\text{W}^5(x, 1)$, respectively. The resulting graph is shown in Figure~{cut:minimal}.
+
+\begin{figure}[htbp] 
+	\centering
+	\includegraphics[scale=1]{figure/cuts/cut-minimal.pdf} 
+	\caption{Minimal cut output} 
+	\label{cut:minimal} 
+\end{figure} 
+
+For maximal cut, only the porf successors of the read, $\text{R}^7(x)$, will be removed. In this graph, $\text{W}^{10}(z, 2)$ will be removed with all other events remained, shown in Figure~\ref{cut:maximal}.
+
+\begin{figure}[htbp] 
+	\centering
+	\includegraphics[scale=1]{figure/cuts/cut-maximal.pdf} 
+	\caption{Maximal cut output} 
+	\label{cut:maximal} 
+\end{figure} 
 
 
 
