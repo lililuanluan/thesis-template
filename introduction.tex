@@ -20,6 +20,8 @@ Entering the multi-core era, concurrent programming has gain increasing signific
 
 Most concurrency fuzzers mainly focus on testing for programs under sequential consistency memory model. Nowadays modern computer architectures often allow for weak memory behaviors. On the one hand, although SC is easy to understand by programmers, achieving SC is very expensive. On the other hand, by relaxing the memory order and allowing for weak memory behaviors, the efficiency of execution can be significantly improved. However, both developing and testing programs under weak memory has been notoriously hard. Given the success that fuzzing has achieved on sequential programs and multi-threading programs under SC memory, it is reasonable to believe fuzzing can also be helpful for weak memory testing. 
 
+The rest of this thesis is structured as follows: Chapter~\ref{cha:background} provides the background information on fuzzers, weak memory models and the C/C++ memory model. Chapter~\ref{cha:fuzz} presents the intuition and a high level overview of the fuzzing algorithm. Chapter~\ref{cha:c11tester} describes the implementation on C11Tester, with the evaluation results and discussion. Chapter~\ref{cha:genmc} describes the implementation on GenMC and the evaluation of three mutation strategies. Chapter~\ref{cha:conclusion} concludes this thesis and discusses possible future work. Chapter~\ref{cha:related} briefly summarizes some other related work on fuzzing, memory models and model checking, etc. 
+
 
 
 
