@@ -1,3 +1,101 @@
+@inproceedings{fuzz:Razzer,
+  author    = {Jeong, Dae R. and Kim, Kyungtae and Shivakumar, Basavesh and Lee, Byoungyoung and Shin, Insik},
+  booktitle = {2019 IEEE Symposium on Security and Privacy (SP)},
+  title     = {Razzer: Finding Kernel Race Bugs through Fuzzing},
+  year      = {2019},
+  volume    = {},
+  number    = {},
+  pages     = {754-768},
+  keywords  = {Kernel;Instruction sets;Fuzzing;Tools;Computer bugs;Security;Static analysis;data-race;fuzzing;kernel;race-bugs},
+  doi       = {10.1109/SP.2019.00017}
+}
+
+
+
+@inproceedings{fuzz:Krace,
+  author    = {Xu, Meng and Kashyap, Sanidhya and Zhao, Hanqing and Kim, Taesoo},
+  booktitle = {2020 IEEE Symposium on Security and Privacy (SP)},
+  title     = {Krace: Data Race Fuzzing for Kernel File Systems},
+  year      = {2020},
+  volume    = {},
+  number    = {},
+  pages     = {1643-1660},
+  keywords  = {Kernel;Fuzzing;Instruction sets;Concurrent computing;Computer bugs;Synchronization;Delays},
+  doi       = {10.1109/SP40000.2020.00078}
+}
+
+
+@inproceedings{fuzz:SlowFuzz,
+  author    = {Petsios, Theofilos and Zhao, Jason and Keromytis, Angelos D. and Jana, Suman},
+  title     = {SlowFuzz: Automated Domain-Independent Detection of Algorithmic Complexity Vulnerabilities},
+  year      = {2017},
+  isbn      = {9781450349468},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/3133956.3134073},
+  doi       = {10.1145/3133956.3134073},
+  abstract  = {Algorithmic complexity vulnerabilities occur when the worst-case time/space complexity of an application is significantly higher than the respective average case for particular user-controlled inputs. When such conditions are met, an attacker can launch Denial-of-Service attacks against a vulnerable application by providing inputs that trigger the worst-case behavior. Such attacks have been known to have serious effects on production systems, take down entire websites, or lead to bypasses of Web Application Firewalls.Unfortunately, existing detection mechanisms for algorithmic complexity vulnerabilities are domain-specific and often require significant manual effort. In this paper, we design, implement, and evaluate SlowFuzz, a domain-independent framework for automatically finding algorithmic complexity vulnerabilities. SlowFuzz automatically finds inputs that trigger worst-case algorithmic behavior in the tested binary. SlowFuzz uses resource-usage-guided evolutionary search techniques to automatically find inputs that maximize computational resource utilization for a given application.We demonstrate that SlowFuzz successfully generates inputs that match the theoretical worst-case performance for several well-known algorithms. SlowFuzz was also able to generate a large number of inputs that trigger different algorithmic complexity vulnerabilities in real-world applications, including various zip parsers used in antivirus software, regular expression libraries used in Web Application Firewalls, as well as hash table implementations used in Web applications. In particular, SlowFuzz generated inputs that achieve 300-times slowdown in the decompression routine of the bzip utility, discovered regular expressions that exhibit matching times exponential in the input size, and also managed to automatically produce inputs that trigger a high number of collisions in PHP's default hashtable implementation.},
+  booktitle = {Proceedings of the 2017 ACM SIGSAC Conference on Computer and Communications Security},
+  pages     = {2155–2168},
+  numpages  = {14},
+  keywords  = {algorithmic complexity attacks, dos attacks, fuzzing, resource exhaustion attacks},
+  location  = {Dallas, Texas, USA},
+  series    = {CCS '17}
+}
+
+@article{fuzz:Angora,
+  author     = {Peng Chen and
+                Hao Chen},
+  title      = {Angora: Efficient Fuzzing by Principled Search},
+  journal    = {CoRR},
+  volume     = {abs/1803.01307},
+  year       = {2018},
+  url        = {http://arxiv.org/abs/1803.01307},
+  eprinttype = {arXiv},
+  eprint     = {1803.01307},
+  timestamp  = {Wed, 08 Jun 2022 12:58:21 +0200},
+  biburl     = {https://dblp.org/rec/journals/corr/abs-1803-01307.bib},
+  bibsource  = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{fuzz:MOPT,
+  author    = {Chenyang Lyu and Shouling Ji and Chao Zhang and Yuwei Li and Wei-Han Lee and Yu Song and Raheem Beyah},
+  title     = {{MOPT}: Optimized Mutation Scheduling for Fuzzers},
+  booktitle = {28th USENIX Security Symposium (USENIX Security 19)},
+  year      = {2019},
+  isbn      = {978-1-939133-06-9},
+  address   = {Santa Clara, CA},
+  pages     = {1949--1966},
+  url       = {https://www.usenix.org/conference/usenixsecurity19/presentation/lyu},
+  publisher = {USENIX Association},
+  month     = aug
+}
+
+@inproceedings{fuzz:FairFuzz,
+  author    = {Lemieux, Caroline and Sen, Koushik},
+  title     = {FairFuzz: a targeted mutation strategy for increasing greybox fuzz testing coverage},
+  year      = {2018},
+  isbn      = {9781450359375},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/3238147.3238176},
+  doi       = {10.1145/3238147.3238176},
+  abstract  = {In recent years, fuzz testing has proven itself to be one of the most effective techniques for finding correctness bugs and security vulnerabilities in practice. One particular fuzz testing tool, American Fuzzy Lop (AFL), has become popular thanks to its ease-of-use and bug-finding power. However, AFL remains limited in the bugs it can find since it simply does not cover large regions of code. If it does not cover parts of the code, it will not find bugs there. We propose a two-pronged approach to increase the coverage achieved by AFL. First, the approach automatically identifies branches exercised by few AFL-produced inputs (rare branches), which often guard code that is empirically hard to cover by naively mutating inputs. The second part of the approach is a novel mutation mask creation algorithm, which allows mutations to be biased towards producing inputs hitting a given rare branch. This mask is dynamically computed during fuzz testing and can be adapted to other testing targets. We implement this approach on top of AFL in a tool named FairFuzz. We conduct evaluation on real-world programs against state-of-the-art versions of AFL. We find that on these programs FairFuzz achieves high branch coverage at a faster rate that state-of-the-art versions of AFL. In addition, on programs with nested conditional structure, it achieves sustained increases in branch coverage after 24 hours (average 10.6\% increase). In qualitative analysis, we find that FairFuzz has an increased capacity to automatically discover keywords.},
+  booktitle = {Proceedings of the 33rd ACM/IEEE International Conference on Automated Software Engineering},
+  pages     = {475–485},
+  numpages  = {11},
+  keywords  = {rare branches, fuzz testing, coverage-guided greybox fuzzing},
+  location  = {Montpellier, France},
+  series    = {ASE '18}
+}
+
+@misc{fuzz:aflfast,
+  author = {Marcel, Böhme and Michal, Zalewski},
+  title  = {AFLFast},
+  year   = {2016},
+  url    = {https://github.com/mboehme/aflfast}
+}
+
 @misc{mc:PAT,
   author = {LIU YANG},
   title  = {Model checking concurrent and real-time systems : the PAT approach},
