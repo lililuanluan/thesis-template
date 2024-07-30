@@ -1,3 +1,118 @@
+@misc{mc:PAT,
+  author = {LIU YANG},
+  title  = {Model checking concurrent and real-time systems : the PAT approach},
+  url    = {https://scholarbank.nus.edu.sg/handle/10635/17326}
+}
+
+@inproceedings{mc:civl,
+  author    = {Kragl, Bernhard and Qadeer, Shaz},
+  booktitle = {2021 Formal Methods in Computer Aided Design (FMCAD)},
+  title     = {The Civl Verifier},
+  year      = {2021},
+  volume    = {},
+  number    = {},
+  pages     = {143-152},
+  keywords  = {Concurrent computing;Protocols;Atomic layer deposition;Programming;Tools;Linguistics;Cognition},
+  doi       = {10.34727/2021/isbn.978-3-85448-046-4_23}
+}
+
+
+@inproceedings{mc:CBMC,
+  author    = { Clarke, Edmund
+               and Kroening, Daniel
+               and Lerda, Flavio },
+  title     = { A Tool for Checking {ANSI-C} Programs },
+  booktitle = { Tools and Algorithms for the Construction and Analysis of Systems (TACAS 2004) },
+  year      = { 2004 },
+  publisher = { Springer },
+  pages     = { 168--176 },
+  isbn      = { 3-540-21299-X },
+  series    = { Lecture Notes in Computer Science },
+  volume    = { 2988 },
+  editor    = { Kurt Jensen and Andreas Podelski }
+}
+
+
+@inproceedings{mc:PRISM,
+  author    = {Kwiatkowska, Marta
+               and Norman, Gethin
+               and Parker, David},
+  editor    = {Field, Tony
+               and Harrison, Peter G.
+               and Bradley, Jeremy
+               and Harder, Uli},
+  title     = {PRISM: Probabilistic Symbolic Model Checker},
+  booktitle = {Computer Performance Evaluation: Modelling Techniques and Tools},
+  year      = {2002},
+  publisher = {Springer Berlin Heidelberg},
+  address   = {Berlin, Heidelberg},
+  pages     = {200--204},
+  abstract  = {In this paper we describe PRISM, a tool being developed at the University of Birmingham for the analysis of probabilistic systems. PRISM supports three probabilistic models: discrete-time Markov chains, Markov decision processes and continuous-time Markov chains. Analysis is performed through model checking such systems against specifications written in the probabilistic temporal logics PCTL and CSL. The tool features three model checking engines: one symbolic, using BDDs (binary decision diagrams) and MTBDDs (multi-terminal BDDs); one based on sparse matrices; and one which combines both symbolic and sparse matrix methods. PRISM has been successfully used to analyse probabilistic termination, performance, and quality of service properties for a range of systems, including randomized distributed algorithms, manufacturing systems and workstation clusters.},
+  isbn      = {978-3-540-46029-9}
+}
+
+
+
+@inproceedings{mc:NuSMV,
+  author    = {A. Cimatti and E.M. Clarke and F. Giunchiglia and M. Roveri},
+  title     = {NuSMV: a new Symbolic Model Verifier},
+  booktitle = {Proceedings Eleventh Conference on Computer-Aided Verification {(CAV'99)}},
+  pages     = {495-499},
+  year      = 1999,
+  editor    = {{N. H}albwachs and {D. P}eled},
+  series    = {{L}ecture {N}otes in {C}omputer {S}cience},
+  number    = {1633},
+  address   = {{T}rento, {I}taly},
+  month     = {July},
+  publisher = {{S}pringer}
+}
+
+@phdthesis{mc:smv,
+  author    = {McMillan, Kenneth Lauchlin},
+  title     = {Symbolic model checking: an approach to the state explosion problem},
+  year      = {1992},
+  publisher = {Carnegie Mellon University},
+  address   = {USA},
+  abstract  = {Finite state models of concurrent systems grow exponentially as the number of components of the system increases. This is known widely as the state explosion problem in automatic verification, and has limited finite state verification methods to small systems. To avoid this problem, a method called symbolic model checking is proposed and studied. This method avoids building a state graph by using Boolean formulas to represent sets and relations. A variety of properties characterized by least and greatest fixed points can be verified purely by manipulations of these formulas using Ordered Binary Decision Diagrams. Theoretically, a structural class of sequential circuits is demonstrated whose transition relations can be represented by polynomial space OBDDs, though the number of states is exponential. This result is born out by experimental results on example circuits and systems. The most complex of these is the cache consistency protocol of a commercial distributed multiprocessor. The symbolic model checking technique revealed subtle errors in this protocol, resulting from complex execution sequences that would occur with very low probability in random simulation runs.In order to model the cache protocol, a language was developed for describing sequential circuits and protocols at various levels of abstraction. This language has a synchronous dataflow semantics, but allows nondeterminism and supports interleaving processes with shared variables. A system called SMV can automatically verify programs in this language with respect to temporal logic formulas, using the symbolic model checking technique.A technique for proving properties of inductively generated classes of finite state systems is also developed. The proof is checked automatically, but requires a user supplied process called a process invariant to act as an inductive hypothesis. An invariant is developed for the distributed cache protocol, allowing properties of systems with an arbitrary number of processors to be proved.Finally, an alternative method is developed for avoiding the state explosion in the case of asynchronous control circuits. This technique is based on the unfolding of Petri nets, and is used to check for hazards in a distributed mutual exclusion circuit.},
+  note      = {UMI Order No. GAX92-24209}
+}
+
+@article{mc:spin,
+  author   = {Holzmann, G.J.},
+  journal  = {IEEE Transactions on Software Engineering},
+  title    = {The model checker SPIN},
+  year     = {1997},
+  volume   = {23},
+  number   = {5},
+  pages    = {279-295},
+  keywords = {Software systems;Application software;Distributed algorithms;Control system synthesis;Algorithm design and analysis;Error correction codes;Telephony;Design methodology;Concurrent computing;Message passing},
+  doi      = {10.1109/32.588521}
+}
+
+
+
+@article{mc:Clarke,
+  author     = {Clarke, E. M. and Emerson, E. A. and Sistla, A. P.},
+  title      = {Automatic verification of finite-state concurrent systems using temporal logic specifications},
+  year       = {1986},
+  issue_date = {April 1986},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {8},
+  number     = {2},
+  issn       = {0164-0925},
+  url        = {https://doi.org/10.1145/5397.5399},
+  doi        = {10.1145/5397.5399},
+  abstract   = {We give an efficient procedure for verifying that a finite-state concurrent system meets a specification expressed in a (propositional, branching-time) temporal logic. Our algorithm has complexity linear in both the size of the specification and the size of the global state graph for the concurrent system. We also show how this approach can be adapted to handle fairness. We argue that our technique can provide a practical alternative to manual proof construction or use of a mechanical theorem prover for verifying many finite-state concurrent systems. Experimental results show that state machines with several hundred states can be checked in a matter of seconds.},
+  journal    = {ACM Trans. Program. Lang. Syst.},
+  month      = {apr},
+  pages      = {244–263},
+  numpages   = {20}
+}
+
+
+
+
 
 @inproceedings{CollAFL,
   author    = {Gan, Shuitao and Zhang, Chao and Qin, Xiaojun and Tu, Xuwen and Li, Kang and Pei, Zhongyu and Chen, Zuoning},
