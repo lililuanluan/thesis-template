@@ -1,3 +1,51 @@
+@InProceedings{Owicki-Gries,
+author="Wright, Daniel
+and Batty, Mark
+and Dongol, Brijesh",
+editor="Huisman, Marieke
+and P{\u{a}}s{\u{a}}reanu, Corina
+and Zhan, Naijun",
+title="Owicki-Gries Reasoning for C11 Programs with Relaxed Dependencies",
+booktitle="Formal Methods",
+year="2021",
+publisher="Springer International Publishing",
+address="Cham",
+pages="237--254",
+abstract="Deductive verification techniques for C11 programs have advanced significantly in recent years with the development of operational semantics and associated logics for increasingly large fragments of C11. However, these semantics and logics have been developed in a restricted setting to avoid the thin-air-read problem. In this paper, we propose an operational semantics that leverages an intra-thread partial order (called semantic dependencies) induced by a recently developed denotational event-structure-based semantics. We prove that our operational semantics is sound and complete with respect to the denotational semantics. We present an associated logic that generalises a recent Owicki-Gries framework for RC11 (repaired C11), and demonstrate the use of this logic over several example proofs.",
+isbn="978-3-030-90870-6"
+}
+
+@article{Kavanagh2018ADA,
+  title={A denotational account of C11-style memory},
+  author={Ryan Kavanagh and Stephen D. Brookes},
+  journal={ArXiv},
+  year={2018},
+  volume={abs/1804.04214},
+  url={https://api.semanticscholar.org/CorpusID:4839024}
+}
+
+@inproceedings{wmm2016,
+author = {Pichon-Pharabod, Jean and Sewell, Peter},
+title = {A concurrency semantics for relaxed atomics that permits optimisation and avoids thin-air executions},
+year = {2016},
+isbn = {9781450335492},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2837614.2837616},
+doi = {10.1145/2837614.2837616},
+abstract = {Despite much research on concurrent programming languages, especially for Java and C/C++, we still do not have a satisfactory definition of their semantics, one that admits all common optimisations without also admitting undesired behaviour. Especially problematic are the ``thin-air'' examples involving high-performance concurrent accesses, such as C/C++11 relaxed atomics. The C/C++11 model is in a per-candidate-execution style, and previous work has identified a tension between that and the fact that compiler optimisations do not operate over single candidate executions in isolation; rather, they operate over syntactic representations that represent all executions. In this paper we propose a novel approach that circumvents this difficulty. We define a concurrency semantics for a core calculus, including relaxed-atomic and non-atomic accesses, and locks, that admits a wide range of optimisation while still forbidding the classic thin-air examples. It also addresses other problems relating to undefined behaviour. The basic idea is to use an event-structure representation of the current state of each thread, capturing all of its potential executions, and to permit interleaving of execution and transformation steps over that to reflect optimisation (possibly dynamic) of the code. These are combined with a non-multi-copy-atomic storage subsystem, to reflect common hardware behaviour. The semantics is defined in a mechanised and executable form, and designed to be implementable above current relaxed hardware and strong enough to support the programming idioms that C/C++11 does for this fragment. It offers a potential way forward for concurrent programming language semantics, beyond the current C/C++11 and Java models.},
+booktitle = {Proceedings of the 43rd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
+pages = {622–633},
+numpages = {12},
+keywords = {Relaxed memory models, Concurrency, C/C++},
+location = {St. Petersburg, FL, USA},
+series = {POPL '16}
+}
+
+
+
+
+
 @inproceedings{fuzz:Razzer,
   author    = {Jeong, Dae R. and Kim, Kyungtae and Shivakumar, Basavesh and Lee, Byoungyoung and Shin, Insik},
   booktitle = {2019 IEEE Symposium on Security and Privacy (SP)},

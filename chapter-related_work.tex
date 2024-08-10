@@ -1,6 +1,17 @@
 \chapter{\label{cha:related}Related Work}
 
-Related work falls into three categories: weak memory models, model checking and fuzzing.
+Related work falls into three categories: memory models, fuzzing and model checking.
+
+
+\section{Memory models}
+
+In 1979 Lamport\cite{SC} proposed a memory model that models the behaviors of concurrent programs, called sequentially consistent (SC) model. In SC model, multiple tasks or processes can be deemed as if executing in a sequence, one after another. The SC model is usually called the strong memory model, with other more relaxed models called weak memory models. The total store order (TSO) model\cite{TSO} enforces the total order restrictions on all write events, relaxing the the read event orders. The C/C++11\cite{c++model} is a language level memory model that specifies the semantics of the threading library constructs and atomic operations. 
+The RC11 model\cite{RC11} repairs the flawness of the semantics of SC atomic operations in the original C11 memory model which has too strong restrictions that forbids the Power compilation and too weak SC fences.
+\cite{Kavanagh2018ADA} introduces a denotational semantics model that provides a replacement of execution graphs and axiomatic approaches. It defines the denotations for programs based on pomsets of memory actions, which are then used to define the semantics of data races.
+\cite{Owicki-Gries} presents a operational model that performs logical deduction on programs under RC11 memory model following the Owicki-Gries method. 
+\cite{wmm2016} proposes a operational model that defines the thread states using event structures, incorporating a storage subsystem that communicates and synchronizes with the threads. 
+The promising semantics model (PS)\cite{promise-c++model} introduces the concepts of promises and timestamps. The write events are modeled as promises made by threads that should be fullfilled in the future. The threads maintain timestamps for memory locations, restricting their read events to read from writes with larger timestamps. Promise 2.0 (PS 2.0)\cite{promise2.0-c++model} redesigns and refines the PS 1.0 semantics to prevent the OTOA problem by adding a stronger restricton on certifying promises. 
+
 
 \section{Fuzzing}
 
@@ -32,16 +43,3 @@ CBMC\cite{mc:CBMC} is a bounded model checker for C and C++ programs. It verifie
 GenMC \cite{genmc} is a stateless model checker for C/C++ programs under weak memory models. It suports a variety of memory models such as  RC11, IMM, and LKMM, and is extendable for  further axiomatic memory models. The program is compiled into LLVM-IR for incorporating optimizations including symmetry reduction and lock-aware partial order reduction, making it possible to support different programming languages provided that its memory model is axiomatic well defined.
 Civl\cite{mc:civl} is a formal verification tool for concurrent programs, supporting C, C++ and Java. It staticly analyzes the program and perform a sequence of transformations that simplifies the program based on its internal invariants.
 PAT\cite{mc:PAT} is a framework used for automated system analysis based on process algebra CSP. It can be used for verifying systems such as concurrent systems, real-time systems, network service models and probabilistic systems. It verifies system properties including deadlock freedom, liveness, LTL properties and can perform probabilistic model checking.
-
-
-
-% \lipsum{2} % add some pseudo content
-
-% \section{Related part II}
-
-% \lipsum{4} % add some pseudo content 
-
-% \section{Related part III}
-
-% \lipsum{1} % add some pseudo content
-
