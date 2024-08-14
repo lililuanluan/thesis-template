@@ -67,6 +67,7 @@ Similar to what is discussed in section~\ref{c11fuzzer:implementation}, several 
 \begin{itemize}
 	\item A hash function that computes a unique identifier for an execution graph.
 	\item A function that mutate the previous execution graph and produces a prefix of the mutated graph.
+	\item A function that judges whether an execution is interesting.
 \end{itemize}
 
 
@@ -163,10 +164,12 @@ For maximal cut, only the porf successors of the read, $\text{R}^7(x)$, will be 
 \end{figure} 
 
 
+\subsection{the is\_interesting function}
+The is\_interesting function is defined as follows: we first compute the relative frequency for a graph:
+\[f_{rel}(g) = f_g^2 / \frac{\sum_{g_i \in G} f_{g_i}^2}{N}\], where $f_{g_i}$ is the number of occurrence of the execution graph $g_i$ for all graphs in the set of explored graphs $G$. For example, if the fuzzer explores $g_1$, $g_2$ and $g_3$ for 1, 2, and 7 times in a total number of 10 explorations, the relative frequency of $g_1$ defined here is $\frac{7^2}{(1^2 + 2^2 + 7^2) / 10} \approx 0.19 $, and for $g_3$ it is $\frac{1^2}{(1^2 + 2^2 + 7^2) / 10} \approx 9.07 $. If the value is lower than a certain threshold, the corresponding execution graph is considered to be interesting. 
 
 
-
-
+% \frac{f_g}{\sum_{g_i \in G} f_{g_i}^2 / N_G}
 
 \section{benchmarks}
 
@@ -185,6 +188,11 @@ We use the following benchmarks to evaluate the fuzzer.
 
 \paragraph{ttaslock} A spinlock called Test-and-Test-and-Set (TTAS) lock. The lock has an atomic state variable shared by multiple threads. Before locking it, a thread first loads the flag and wait until it is not set. Locking is implemented using a loop that exchanges the state value until the old value of it is not set. In the benchmakr, two threads are luanched to update a non-atomic shared variable and asserts they read their values in the critical section.
 
+\paragraph{treiber-stack} A treiber stack\cite{treiber-stack} implementation using compare-and-swap for pushing and popping nodes.
+
+\paragraph{ms-queue} An ms-queue implementation similar to that in the previous chapter, written in C.
+
+\paragraph{linuxrwlocks} The reader-writer lock implementation of linux kernel, similar to that in the previous chapter but written in C. 
 
 \section{Evaluation and discussion}
 
