@@ -5,14 +5,11 @@ This chapter gives an overview of the project's contributions. After
 this overview, we will reflect on the results and draw some
 conclusions. Finally, some ideas for future work will be discussed.
 
-\section{Contributions}
+\section{Summary}
 
-% \lipsum{3} % add some pseudo content
+This project contributes a novel method of fuzzing C/C++ concurrent programs under weak memory models. We first reviewed the existing fuzzing techniques and catagorized them according to their usage scenarios. As summarized before, fuzzing has been widely applied in sequential programs and sequentially consistent multi-threaded programs. Then we pointed out the lack of research in fuzzing for weak memory concurrency. We porposed a new fuzzing framework that utilizes execution graph semantics, as opposed to those using thread interleaving semantics. We set the metric to be the number of distinct execution graphs explored in a fixed number of iterations when comparing our fuzzer with naive random testers. We also proposed several different mutation strategies on a given execution graph. we implemented our new fuzzer on two state-of-the-art software testing platforms: C11Tester and GenMC. In both impelementations the fuzzing approach can explore a wider range of execution graphs compared to randomized testing. It is also shown that fuzzing is better at detecting rare executions while random testing tends to fall into ferquent executions more biasly. In the implementation on GenMC, we compared the three mutation strategies according to their performance and efficiency. Our work has demonstrated that the feasibility of fuzzing for weak concurrency and proved its superiority over randomized testing. 
 
 
-\section{Conclusions}
-
-% \lipsum{3} % add some pseudo content
 
 \section{Discussion/Reflection}
 
@@ -25,5 +22,4 @@ Lastly, a few comments about the thread interleavings. It is known that in weak 
 
 \section{Future work}
 
-% \lipsum{2} % add some pseudo content
-
+In our current implementation, although the maximal cut performs best in a majority of benchmarks, still other mutations can outperform maximal cut in other cases. One continuation of this work could be develop a compound strategy that dynamically adjusts its preference on mutation methods. Besides the proposed mutation strategies, one could also develop other language or model specific mutations. The current implementation mutates the reads-from relation, including read-modify-writes. There could be other mutations targeting on relations such as modification-orders or primitives such as atomic fences, cas loops and atomic pointers. Besides, the fuzzing procedure relies on positive feedback, i.e. "for whichever has, to it more (execution graphs) will be given". As discussed before, the fuzzing approach can improve the random testing, but it would be also possibel to derive some theoritical analysis on estimating how far it improves from the baseline on a given benchmark. 
