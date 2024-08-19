@@ -244,7 +244,7 @@ Take the long-race benchmark for example. This benchmark is taken from the rff's
 
 Hitting the bug requires two workers to modify the shared variable alternately, in a very strict order (we also tested the long-race benchmark with rff, and it took 15 thousand iterations to detect it). There are in total 9 different executions of this program. Figure.\ref{graph-freq} shows how many times each execution graph (represented by their hashes in x-axis) are explored in $N$ iterations. It can be observed that the random tester is mostly biased on the first and second executions, which together take up 96.5\% of $N$. On the contrary, the fuzzer exhibits a more "flattened" frequency plot on executions and covers all 9 execution graphs. This is caused by the mutations on those infrequent executions during exploration. 
 
-Figure.\ref{hardbug:bipartite-buf-hard} to \ref{hard:reorder-10} show the number of unique executions and bugs found in first 1000 iterations. It can be observed that the fuzzer detects the bug ealier than C11Tester and also covers a higher range of executions.
+Figure.\ref{hard:reorder-10} to \ref{hard:reorder-10} show the number of unique executions and bugs found in first 1000 iterations. It can be observed that the fuzzer detects the bug ealier than C11Tester and also covers a higher range of executions.
 
 \begin{figure}[htbp] 
     \centering
@@ -257,11 +257,17 @@ Figure.\ref{hardbug:bipartite-buf-hard} to \ref{hard:reorder-10} show the number
 \begin{figure}[H]
 
 	\centering
+	% \begin{minipage}{0.45\textwidth}
+	% 	\centering
+	% 	\includegraphics[width=\textwidth]{figure/hardbug/bipartite_buf_hard_bug.pdf}
+	% 	\caption{bipartite-buf-hard}
+	% 	\label{hardbug:bipartite-buf-hard}
+	% \end{minipage}
 	\begin{minipage}{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figure/hardbug/bipartite_buf_hard_bug.pdf}
-		\caption{bipartite-buf-hard}
-		\label{hardbug:bipartite-buf-hard}
+		\includegraphics[width=\textwidth]{figure/hardbug/reorder_10_bug.pdf}
+		\caption{reorder-10}
+		\label{hard:reorder-10}
 	\end{minipage}
 	\hfill
 	\begin{minipage}{0.45\textwidth}
@@ -287,19 +293,19 @@ Figure.\ref{hardbug:bipartite-buf-hard} to \ref{hard:reorder-10} show the number
 		\label{header:P1}
 	\end{minipage}
 
-	\vspace{0.5cm}
+	% \vspace{0.5cm}
 
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/hardbug/reorder_10_bug.pdf}
-		\caption{reorder-10}
-		\label{hard:reorder-10}
-	\end{minipage}
-	\hfill
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		% This empty minipage will help the last image to be aligned to the left
-	\end{minipage}
+	% \begin{minipage}{0.45\textwidth}
+	% 	\centering
+	% 	\includegraphics[width=\textwidth]{figure/hardbug/reorder_10_bug.pdf}
+	% 	\caption{reorder-10}
+	% 	\label{hard:reorder-10}
+	% \end{minipage}
+	% \hfill
+	% \begin{minipage}{0.45\textwidth}
+	% 	\centering
+	% 	% This empty minipage will help the last image to be aligned to the left
+	% \end{minipage}
 
 
 
