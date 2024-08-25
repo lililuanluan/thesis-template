@@ -14,7 +14,7 @@ The execution graph is composed of events, each having a label indicating its po
 
 The driver has a stack of executions, called execStack. Each execution has an execution graph instance and a workqueue. The workqueue stores the exploration operations, called Revisit, to be conducted, on the corresponding graph. The driver fetches an item each time from the workqueue and "revisit" it. When the workqueue is empty, the driver is informed that no more actions are needed for the current graph, so it pops out the current execution from the execStack and continues with other executions. When the execStack is empty the driver finishes its job and report the statistics. In estimation mode, only one kind of Revisit, RerunForwardRevisit, is used, which indicates the driver to reset the execution graph to its initial state and start over the next iteration.
 
-The above mentioned exploration procedure is listed in Algorithm. \ref{driver::run}.
+The above mentioned exploration procedure is listed in Algorithm~\ref{driver::run}.
 
 \begin{algorithm}
 	\caption{GenMC driver explore}
@@ -123,50 +123,50 @@ The mutation process is composed of two steps: changing an rf relation and cutti
 
 \paragraph{Minimal cut} This cut strategy aims to retain as little events as possible. It only keeps those events that are both porf predecessors of $R$ and $S$. The events in unrelated threads (concurrent events) will be dropped. The minimal cut view can be written as $pporf_{R} \cup pporf_{S}$
 
-\paragraph{Maximal cut} This cut strategy aims to retain as many events as possible. In maximal cut, the unrelated events, which are removed in minimal cut, will be kept. It only removes the events that are porf successors of the read. To get this set of events, the fuzzer iterates through all events in the graph. For each event, if the $R$ is not a porf predecessor of it, it will be added into the set. Because the maximal cut will include more events into the cut view, some special attention needs to be paid to the "pair relations". For example, if a thread-join event is to be added into the view, both itself and its corresponding thread's thread-finish event should not be porf successors of $R$. The maximal cut view can be represented by $\{e \in G \mid R \notin pporf_e, \  R \notin pporf_{e's pair}\} \cup {R}$, where $G$ is the current graph to be mutated. 
+\paragraph{Maximal cut} This cut strategy aims to retain as many events as possible. In maximal cut, the unrelated events, which are removed in minimal cut, will be kept. It only removes the events that are porf successors of the read. To get this set of events, the fuzzer iterates through all events in the graph. For each event, if the $R$ is not a porf predecessor of it, it will be added into the set. Because the maximal cut will include more events into the cut view, some special attention needs to be paid to the "pair relations". For example, if a thread-join event is to be added into the view, both itself and its corresponding thread's thread-finish event should not be porf successors of $R$. The maximal cut view can be represented by $\{e \in G \mid R \notin pporf_e, \  R \notin pporf_{e's pair}\} \cup {R}$, where $G$ is the current graph to be mutated.
 
 
 
-\paragraph{}We use an example to illustrate the above mutations. Suppose the execution graph shown in Figure~\ref{cut:to-be-cut} is the graph to be mutated, assuming all operations are relaxed. The numbers on the shoulder of $\text{R}$'s and $\text{W}$'s are the timestamps given to the events. The select read event is $\text{R}^7(x)$, reading from event $\text{W}^5(x, 1)$. 
+\paragraph{}We use an example to illustrate the above mutations. Suppose the execution graph shown in Figure~\ref{cut:to-be-cut} is the graph to be mutated, assuming all operations are relaxed. The numbers on the shoulder of $\text{R}$'s and $\text{W}$'s are the timestamps given to the events. The select read event is $\text{R}^7(x)$, reading from event $\text{W}^5(x, 1)$.
 
-\begin{figure}[htbp] 
+\begin{figure}[htbp]
 	\centering
-	\includegraphics[scale=1]{figure/cuts/cut.pdf} 
-	\caption{The execution graph to be cut} 
-	\label{cut:to-be-cut} 
+	\includegraphics[scale=1]{figure/cuts/cut.pdf}
+	\caption{The execution graph to be cut}
+	\label{cut:to-be-cut}
 \end{figure}
 
 For revisit cut, since the read event has the greater stamp, the graph will be simply cut up until stamp = 7, shown in Figure~\ref{cut:revisit}.
 
-\begin{figure}[htbp] 
+\begin{figure}[htbp]
 	\centering
-	\includegraphics[scale=1]{figure/cuts/cut-revisit.pdf} 
-	\caption{Revisit cut output} 
-	\label{cut:revisit} 
-\end{figure} 
+	\includegraphics[scale=1]{figure/cuts/cut-revisit.pdf}
+	\caption{Revisit cut output}
+	\label{cut:revisit}
+\end{figure}
 
 For minimal cut, the fuzzer counts the porf predecessors of $\text{R}^7(x)$ and $\text{W}^5(x, 1)$. The events in the third thread (the rightmost column) will be removed. $\text{W}^{10}(z, 2)$ and $\text{W}^{8}(y, 2)$ are removed since they porf successors of porf successors of $\text{R}^7(x)$ and $\text{W}^5(x, 1)$, respectively. The resulting graph is shown in Figure~{cut:minimal}.
 
-\begin{figure}[htbp] 
+\begin{figure}[htbp]
 	\centering
-	\includegraphics[scale=1]{figure/cuts/cut-minimal.pdf} 
-	\caption{Minimal cut output} 
-	\label{cut:minimal} 
-\end{figure} 
+	\includegraphics[scale=1]{figure/cuts/cut-minimal.pdf}
+	\caption{Minimal cut output}
+	\label{cut:minimal}
+\end{figure}
 
 For maximal cut, only the porf successors of the read, $\text{R}^7(x)$, will be removed. In this graph, $\text{W}^{10}(z, 2)$ will be removed with all other events remained, shown in Figure~\ref{cut:maximal}.
 
-\begin{figure}[htbp] 
+\begin{figure}[htbp]
 	\centering
-	\includegraphics[scale=1]{figure/cuts/cut-maximal.pdf} 
-	\caption{Maximal cut output} 
-	\label{cut:maximal} 
-\end{figure} 
+	\includegraphics[scale=1]{figure/cuts/cut-maximal.pdf}
+	\caption{Maximal cut output}
+	\label{cut:maximal}
+\end{figure}
 
 
 \subsection{the is\_interesting function}
 The is\_interesting function is defined as follows: we first compute the relative frequency for a graph:
-\[f_{rel}(g) = f_g^2 / \frac{\sum_{g_i \in G} f_{g_i}^2}{N}\], where $f_{g_i}$ is the number of occurrence of the execution graph $g_i$ for all graphs in the set of explored graphs $G$. For example, if the fuzzer explores $g_1$, $g_2$ and $g_3$ for 1, 2, and 7 times in a total number of 10 explorations, the relative frequency of $g_1$ defined here is $\frac{7^2}{(1^2 + 2^2 + 7^2) / 10} \approx 0.19 $, and for $g_3$ it is $\frac{1^2}{(1^2 + 2^2 + 7^2) / 10} \approx 9.07 $. If the value is lower than a certain threshold, the corresponding execution graph is considered to be interesting. 
+\[f_{rel}(g) = f_g^2 / \frac{\sum_{g_i \in G} f_{g_i}^2}{N}\], where $f_{g_i}$ is the number of occurrence of the execution graph $g_i$ for all graphs in the set of explored graphs $G$. For example, if the fuzzer explores $g_1$, $g_2$ and $g_3$ for 1, 2, and 7 times in a total number of 10 explorations, the relative frequency of $g_1$ defined here is $\frac{7^2}{(1^2 + 2^2 + 7^2) / 10} \approx 0.19 $, and for $g_3$ it is $\frac{1^2}{(1^2 + 2^2 + 7^2) / 10} \approx 9.07 $. If the value is lower than a certain threshold, the corresponding execution graph is considered to be interesting.
 
 
 % \frac{f_g}{\sum_{g_i \in G} f_{g_i}^2 / N_G}
@@ -175,15 +175,15 @@ The is\_interesting function is defined as follows: we first compute the relativ
 
 We use the following benchmarks to evaluate the fuzzer.
 
-\paragraph{big0} A syntactic benchmark with multiple threads reading from and writing to shared memory locations using acquire-release memory orders.
+% \paragraph{big0} A syntactic benchmark with multiple threads reading from and writing to shared memory locations using acquire-release memory orders.
 
 \paragraph{ring-buffer} A ring buffer implementation in FreeBSD 8.0.0. Each thread enqueues a message and dequeues one from the buffer. The program checks the correctness and integrity of the messages. The ring buffer uses an array to store data. The enqueue and dequeue operations use compare-and-swap loops to update the queue head and tail pointers.
 
-\paragraph{fib} Two threads update a Fibonacci sequence concurrently. Each update uses the previous values of two variables.
+% \paragraph{fib} Two threads update a Fibonacci sequence concurrently. Each update uses the previous values of two variables.
 
 \paragraph{mpmc-queue} A multi-producer multi-consumer bounded queue implementation. It maintains three state variables that keeps track of the number of reads and writes that have been started and finished. Each writer obtains an index in the queue's array buffer using cas loop and write to that position. The readers will increment the reading index and read the data. In the test, 2 readers and 4 writers are spawned.
 
-\paragraph{szymanski} A szymanski mutual exclusion algorithm implementation. Each thread has a flag to inidicate its state. Before entering critical section, each thread updates its own flag and checks the other thread's flag. SC atomic fences are used for synchronization.
+% \paragraph{szymanski} A szymanski mutual exclusion algorithm implementation. Each thread has a flag to inidicate its state. Before entering critical section, each thread updates its own flag and checks the other thread's flag. SC atomic fences are used for synchronization.
 
 
 \paragraph{ttaslock} A spinlock called Test-and-Test-and-Set (TTAS) lock. The lock has an atomic state variable shared by multiple threads. Before locking it, a thread first loads the flag and wait until it is not set. Locking is implemented using a loop that exchanges the state value until the old value of it is not set. In the benchmakr, two threads are luanched to update a non-atomic shared variable and asserts they read their values in the critical section.
@@ -192,7 +192,9 @@ We use the following benchmarks to evaluate the fuzzer.
 
 \paragraph{ms-queue} An ms-queue implementation similar to that in the previous chapter, written in C.
 
-\paragraph{linuxrwlocks} The reader-writer lock implementation of linux kernel, similar to that in the previous chapter but written in C. 
+\paragraph{linuxrwlocks} The reader-writer lock implementation of linux kernel, similar to that in the previous chapter but written in C.
+
+\paragraph{long-assert} A test case that has a complicated assertion that is hard to triger. One thread checks the assertion involving two shared variables and the other thread modifies one of them after doing some exponential work.
 
 \section{Evaluation and discussion}
 
@@ -202,9 +204,10 @@ We use the following benchmarks to evaluate the fuzzer.
 	\item Is the fuzzer able to explore more distinct execution graphs in a fixed number of iterations than the random tester? \label{RQ:CutVSRandom}
 	\item Among the three mutation strategies, which performs best? Why? \label{RQ:CutComparison}
 	\item What's the runtime overhead of the fuzzer with different mutations, comparing with random testing? \label{RQ:GenMCOverhead}
+	\item Is the fuzzer able to find bugs faster than the model checker?\label{RQ:GenMC_vs_fuzzer}
 \end{enumerate}
 
-\subsection{\ref*{RQ:CutVSRandom}: Fuzzer vs random GenMC }
+\subsection{\ref*{RQ:CutVSRandom}: fuzzer vs random tester }
 
 To address this question, we run both the fuzzer and the GenMC in its estimation mode for 10 thousand iterations. Using the hash function defined in section~\ref{sec:hashf}, we count the number of distinct execution graphs they found. Table~\ref{genmc:num-of-exe} shows the results of each benchmark. The improvements are computed by:
 \[
@@ -328,20 +331,95 @@ It is hypothesized that the performance relates to the number of events remained
 
 
 
-\subsection{\ref*{RQ:GenMCOverhead}: Overhead of 3 mutations }
+\subsection{\ref*{RQ:GenMCOverhead}: overhead of 3 mutations }
 
 We examine the total time elapsed for exploring 10 thousand iterations, shown in Figure~\ref{genmc:overhead}. The random testing is taken as a baseline for evaluating the overhead. It can be seen that random testing does not always take the shortest time. This is due to the mechanism of GenMC. When adding events to the graph, the GenMC driver first inspects whether there is already an event in that position. If so, it continues without the need to check consistency, pick rf's, or arrange it in the coherence order. Although the maximal cut takes many steps to compute the cut view, it still takes the shortest times in some of the benchmarks since the driver can save effort on those remaining events. Overall, all three mutations have insignificant effects on the runtime performance, with affordable overheads.
 
 
 
 
-\begin{figure}[htbp] 
+\begin{figure}[htbp]
 	\centering
-	\includegraphics[scale=0.39]{figure/genmc/overhead.pdf} 
-	\caption{Time elapsed by various strategies} 
-	\label{genmc:overhead} 
-\end{figure} 
+	\includegraphics[scale=0.39]{figure/genmc/overhead.pdf}
+	\caption{Time elapsed by various strategies}
+	\label{genmc:overhead}
+\end{figure}
 
 
+\subsection{\ref*{RQ:GenMC_vs_fuzzer}: fuzzer vs model checker }
+
+Model checkers are also used to verify the correctness of programs and detect bugs. The GenMC model checker implements an optimal algorithm that ensures no duplication while enumerating execution graphs. However, we would like to demonstrate that in some cases, introducing randomness can be more efficient in terms of the number of iterations taken and the time elapsed for detecting a bug. Take the long-assert benchmark for example, as shown in Listing~\ref{long-assert}. In order to violate the assertion, 'x' should read from its initial value while 'y' reads the values 1, 2, 3, 4, and 5, sequentially. In the GenMC's verification process of this program, when the read of 'x' event is added, the driver picks a value for it and pushes other alternative choices to the workqueue, which will be revisited later. Suppose the driver picks a non-zero value, the zero value will be tried again only after the drivers finish exploring graphs with the non-zero choice.
 
 
+\begin{lstlisting}[caption={long-assert}, label={long-assert}]
+	atomic_int x, y;
+
+	void* thread_0(void* ) {
+		x = 42;
+	}
+
+	void* thread_1(void* ) {
+		// fails when x==0, y==1, y==2, y==3, ...
+		assert(x != 0 || y != 1 || y != 2 || y != 3 || y != 4 || y != 5);  
+	}
+
+	void* thread_n(void* unused) {
+		atomic_fetch_add(&y, 1);
+	}
+
+	void* thread_2(void* unused) {
+		pthread_t t[N];	// N is a hyper parameter
+		for (int i = 0U; i < N; i++) {	// y++, ++, ++...
+			pthread_create(&t[i], NULL, thread_n, NULL);
+		}			
+		for (int i = 0U; i < N; i++) {	// join threads
+			pthread_join(t[i], NULL);
+		}			
+		// cas on x after exponential work on y
+		atomic_fetch_add(&x, 1);
+	}
+
+	int main() {
+		pthread_t t0, t1, t2;
+		pthread_create(&t0, NULL, thread_0, NULL);
+		pthread_create(&t1, NULL, thread_1, NULL);
+		pthread_create(&t2, NULL, thread_2, NULL);
+		// join threads...
+	}
+
+\end{lstlisting}
+
+Comparing the model checker, the random tester, and the fuzzer with revisit, minimal and maximal cuts, Figure~\ref{long-assert-N5-iter} and Figure~\ref{long-assert-N5-time} show the average number of iterations (for the model checker, this is the number of graphs prior to the buggy one) and the time taken to find the bug, respectively, with 'N' taken from 5 to 9. It can be observed that the random tester and the fuzzer require fewer iterations to find the bug in all cases. When 'N' is small, the model checker is faster, but as 'N' increases, the fuzzer and random tester become faster.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[scale=0.3]{figure/long-assert/fuzz_assert5_iter.pdf}
+	\caption{Average iterations to detect the bug}
+	\label{long-assert-N5-iter}
+\end{figure}
+
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[scale=0.3]{figure/long-assert/fuzz_assert5_time.pdf}
+	\caption{Average time to detect the bug}
+	\label{long-assert-N5-time}
+\end{figure}
+
+If we change the assertion to \texttt{assert(x!=0||y!=1||y!=2||...||y!=N)}, it becomes increasingly difficult to find the bug as 'N' gets larger. As shown in Figure~\ref{long-assert-N-time} and Figure~\ref{long-assert-N-iter}, the fuzzer with different mutations can take less time and iterations than the random tester. The model checker is not the most time consuming strategy this time but still the revisit cut can take less time to find the bug. 
+
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[scale=0.3]{figure/long-assert/fuzz_iter.pdf}
+	\caption{Average iterations to detect the bug (varying assertion)}
+	\label{long-assert-N-iter}
+\end{figure}
+
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[scale=0.3]{figure/long-assert/fuzz_time.pdf}
+	\caption{Average time to detect the bug (varying assertion)}
+	\label{long-assert-N-time}
+\end{figure}

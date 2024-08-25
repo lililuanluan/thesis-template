@@ -115,7 +115,7 @@ A candidate execution X contains two components, $X = (X_{opsem}, X_{witness})$,
 	\item \textit{data-dependency} (dd):  The dd is provided by the operational semantics, primarily used for release/consume atomics. For example, a store to a pointer and the use of the pointed data have a dd relation.
 \end{itemize}
 
-In the SB example, assuming x and y atomic variables, the $X_{opsem}$ of a candidate execution can be drawn as in Figure.\ref{XopsemSB}
+In the SB example, assuming x and y atomic variables, the $X_{opsem}$ of a candidate execution can be drawn as in Figure~\ref{XopsemSB}
 %   x = 0
 %     | sb
 %   y = 0
@@ -139,7 +139,7 @@ The $X_{witness}$ part contains additional three relations. These relations are 
 	\item \textit{sequentially-consistent} (sc): Totally orders all mutex actions and actions with \texttt{mo\_seq\_cst} memory order.
 \end{itemize}
 
-In the SB example, assuming the initializations are non-atomic and other writes and reads are \texttt{mo\_seq\_cst}, a possible $X_{witness}$ for the SB example can be shown in Figure.\ref{XwitnessSB}
+In the SB example, assuming the initializations are non-atomic and other writes and reads are \texttt{mo\_seq\_cst}, a possible $X_{witness}$ for the SB example can be shown in Figure~\ref{XwitnessSB}
 % rf
 % x=1 -rf-> read x in thread2
 % y=1 -rf-> read y in thread1
@@ -175,7 +175,7 @@ The three relations in $X_{witness}$ (rf, mo and sc) can not be arbitrarily comp
 \end{itemize}
 
 
-Take the SB example, if the reads and writes are SC atomic operations, the following execution, shown in Figure.\ref{NotAllowedSB}, where both reads read the value 0 is not allowed, since this execution violates the CoWR constraint. However, both reads reading the value 0 from the initializations is allowed when the reads and writes are relaxed.
+Take the SB example, if the reads and writes are SC atomic operations, the following execution, shown in Figure~\ref{NotAllowedSB}, where both reads read the value 0 is not allowed, since this execution violates the CoWR constraint. However, both reads reading the value 0 from the initializations is allowed when the reads and writes are relaxed.
 
 \begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
 	\centering

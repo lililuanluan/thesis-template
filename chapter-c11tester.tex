@@ -199,7 +199,7 @@ One important metric for a fuzzer is whether it's able to detect the bug effecti
 \end{table}
 
 
-Take the long-race benchmark for example. This benchmark is taken from the rff's repository, customazed with relaxed memory operations, as shown in Listing. \ref{long-race}.
+Take the long-race benchmark for example. This benchmark is taken from the rff's repository, customazed with relaxed memory operations, as shown in Listing~\ref{long-race}.
 
 \begin{lstlisting}[caption={long-race}, label={long-race}]
 	std::atomic<size_t> sum{ 0 };
@@ -242,9 +242,9 @@ Take the long-race benchmark for example. This benchmark is taken from the rff's
 	}
 \end{lstlisting}
 
-Hitting the bug requires two workers to modify the shared variable alternately, in a very strict order (we also tested the long-race benchmark with rff, and it took 15 thousand iterations to detect it). There are in total 9 different executions of this program. Figure.\ref{graph-freq} shows how many times each execution graph (represented by their hashes in x-axis) are explored in $N$ iterations. It can be observed that the random tester is mostly biased on the first and second executions, which together take up 96.5\% of $N$. On the contrary, the fuzzer exhibits a more "flattened" frequency plot on executions and covers all 9 execution graphs. This is caused by the mutations on those infrequent executions during exploration. 
+Hitting the bug requires two workers to modify the shared variable alternately, in a very strict order (we also tested the long-race benchmark with rff, and it took 15 thousand iterations to detect it). There are in total 9 different executions of this program. Figure~\ref{graph-freq} shows how many times each execution graph (represented by their hashes in x-axis) are explored in $N$ iterations. It can be observed that the random tester is mostly biased on the first and second executions, which together take up 96.5\% of $N$. On the contrary, the fuzzer exhibits a more "flattened" frequency plot on executions and covers all 9 execution graphs. This is caused by the mutations on those infrequent executions during exploration. 
 
-Figure.\ref{hard:reorder-10} to \ref{header:P1} show the number of unique executions and bugs found in first 1000 iterations. It can be observed that the fuzzer detects the bug ealier than C11Tester and also covers a higher range of executions.
+Figure~\ref{hard:reorder-10} to \ref{header:P1} show the number of unique executions and bugs found in first 1000 iterations. It can be observed that the fuzzer detects the bug ealier than C11Tester and also covers a higher range of executions.
 
 \begin{figure}[htbp] 
     \centering
@@ -360,7 +360,7 @@ where $N_{c11Fuzzer}$ and $N_{c11Tester}$ are the number of unique execution gra
 \end{table}
 
 
-In addition, Figure \ref{cover-plot1-barrier} to \ref{cover-plot1-ring-buf} draws the coverage plots for each benchmark, with orange lines representing the fuzzer and blue lines representing the random tester. It can be obeserved that in all of these cases the fuzzer is able to find more unique executions. In addition, in some benchmarks, see Figure \ref{cover-plot1-chase-lev-deque} or \ref{cover-plot1-mpmc-queue} for example, the fuzzer's speed of finding executions (the slop of coverage plost) is not significantly slowing down as the number of found executions grows. Some coverage plots of the fuzzer, such as in Figure \ref{cover-plot1-bipartite-buf} and \ref{cover-plot1-ring-buf}, also have some "bumps" which the random tester do not have. Such bumps are caused by some prefixes that guides to a group of new interesting executions.
+In addition, Figure \ref{cover-plot1-barrier} to \ref{cover-plot1-ring-buf} draws the coverage plots for each benchmark, with orange lines representing the fuzzer and blue lines representing the random tester. It can be observed that in all of these cases the fuzzer is able to find more unique executions. In addition, in some benchmarks, see Figure \ref{cover-plot1-chase-lev-deque} or \ref{cover-plot1-mpmc-queue} for example, the fuzzer's speed of finding executions (the slop of coverage plost) is not significantly slowing down as the number of found executions grows. Some coverage plots of the fuzzer, such as in Figure \ref{cover-plot1-bipartite-buf} and \ref{cover-plot1-ring-buf}, also have some "bumps" which the random tester do not have. Such bumps are caused by some prefixes that guides to a group of new interesting executions.
 
 \begin{figure}[H]
 
@@ -487,7 +487,7 @@ PCTWM \cite{pctwm} is a state-of-art weak concurrency tester that expands the id
 	\label{pctwm-configs}
 \end{table}
 
-Figure \ref{pctwm-barrier} to \ref{pctwm-mpmc-queue} show the coverage plots of number of unique executions found by PCTWM, C11Fuzzer and C11Tester. It can be obeserved that PCTWM's bounded searching scope is usually lower than C11Tester's unbounded random searching scope, which is lower than C11Fuzzer's.
+Figure \ref{pctwm-barrier} to \ref{pctwm-mpmc-queue} show the coverage plots of number of unique executions found by PCTWM, C11Fuzzer and C11Tester. It can be observed that PCTWM's bounded searching scope is usually lower than C11Tester's unbounded random searching scope, which is lower than C11Fuzzer's.
 
 \begin{figure}[H]
 	\centering
@@ -576,7 +576,7 @@ where $N_{bug}$ is the number of different buggy executions found over $N$ itera
 	\label{buggy2}
 \end{table}
 
-It can be obeserved that except for dekker benchmark, which in total has 5 different bugs, C11Fuzzer is able to find more bugs in other benchmarks.
+It can be observed that except for dekker benchmark, which in total has 5 different bugs, C11Fuzzer is able to find more bugs in other benchmarks.
 
 
 
