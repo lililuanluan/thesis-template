@@ -186,7 +186,7 @@ We use the following benchmarks to evaluate the fuzzer.
 % \paragraph{szymanski} A szymanski mutual exclusion algorithm implementation. Each thread has a flag to inidicate its state. Before entering critical section, each thread updates its own flag and checks the other thread's flag. SC atomic fences are used for synchronization.
 
 
-\paragraph{ttaslock} A spinlock called Test-and-Test-and-Set (TTAS) lock. The lock has an atomic state variable shared by multiple threads. Before locking it, a thread first loads the flag and wait until it is not set. Locking is implemented using a loop that exchanges the state value until the old value of it is not set. In the benchmakr, two threads are luanched to update a non-atomic shared variable and asserts they read their values in the critical section.
+\paragraph{ttaslock} A spinlock called Test-and-Test-and-Set (TTAS) lock. The lock has an atomic state variable shared by multiple threads. Before locking it, a thread first loads the flag and wait until it is not set. Locking is implemented using a loop that exchanges the state value until the old value of it is not set. In the benchmark, two threads are luanched to update a non-atomic shared variable and asserts they read their values in the critical section.
 
 \paragraph{treiber-stack} A treiber stack\cite{treiber-stack} implementation using compare-and-swap for pushing and popping nodes.
 
@@ -230,7 +230,7 @@ To address this question, we run both the fuzzer and the GenMC in its estimation
 	\caption{Number of unique execution graphs of each exploration strategy}
 \end{table}
 
-It can be observed that for all of the above benchmakrs, the fuzzer is able to explore higher number of execution graphs than the random tester does. The everage improvement, computed by
+It can be observed that for all of the above benchmarks, the fuzzer is able to explore higher number of execution graphs than the random tester does. The everage improvement, computed by
 
 
 \[
@@ -240,7 +240,7 @@ is 181.62\%.
 
 \subsection{\ref*{RQ:CutComparison}: revisit cut vs minimal cut vs maximal cut }
 
-Figure~\ref{genmc:buf_ring} to \ref{genmc:ttaslock} show the execution graph coverage plots of random testing and fuzzing with three mutation strategies. It can be seen that in 5 of these benchmarks, the maximal cut finds the greatest number of execution graphs. The revisit cut performs the best in 2 benchmakrs.
+Figure~\ref{genmc:buf_ring} to \ref{genmc:ttaslock} show the execution graph coverage plots of random testing and fuzzing with three mutation strategies. It can be seen that in 5 of these benchmarks, the maximal cut finds the greatest number of execution graphs. The revisit cut performs the best in 2 benchmarks.
 
 \begin{figure}[h!]
 
@@ -345,6 +345,61 @@ We examine the total time elapsed for exploring 100 thousand iterations, shown i
 	\caption{Time elapsed by various strategies}
 	\label{genmc:overhead}
 \end{figure}
+
+In addition, it is possible that one strategy may find more execution graphs in a fixed number of iterations than another but takes more time to complete. Therefore another concern is the efficiency of various mutations, defined as $\sigma_T = \frac{N_{graph}}{T}$, where $N_{graph}$ is the number of distinct execution graphs, and $t$ is a fixed time. Note that this ratio is not a constant value over time, as it becomes increasingly difficult to explore new execution graphs as time progresses. Here we set $T$ to be 1 minute and count the number of different execution graphs explored. The results are shown in Figure~\ref{genmc:buf_ring-time} to Figure~\ref{genmc:ttaslock-time}. Our results indicate that the maximal cut has the highest efficiency in a majority of benchmarks, while the random tester generally has the lowest efficiency.
+
+
+
+\begin{figure}[h!]
+
+	\centering
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figure/genmc-time/buf_ring.pdf}
+		\caption{ring-buffer}
+		\label{genmc:buf_ring-time}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figure/genmc-time/linuxrwlocks.pdf}
+		\caption{linuxrwlocks}
+		\label{genmc:linuxrwlocks-time}
+	\end{minipage}
+
+	\vspace{0.5cm}
+
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figure/genmc-time/mpmc-queue.pdf}
+		\caption{mpmc-queue}
+		\label{genmc:mpmc-queue-time}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figure/genmc-time/ms_queue.pdf}
+		\caption{ms-queue}
+		\label{genmc:ms-queue-time}
+	\end{minipage}
+
+	\vspace{0.5cm}
+
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figure/genmc-time/treiber_stack.pdf}
+		\caption{treiber-stack}
+		\label{genmc:treiber_stack-time}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figure/genmc-time/ttaslock.pdf}
+		\caption{ttaslock}
+		\label{genmc:ttaslock-time}
+	\end{minipage}
+\end{figure}
+
 
 
 \subsection{\ref*{RQ:GenMC_vs_fuzzer}: fuzzer vs model checker }
