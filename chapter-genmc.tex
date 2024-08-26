@@ -248,14 +248,14 @@ Figure~\ref{genmc:buf_ring} to \ref{genmc:ttaslock} show the execution graph cov
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc/buf_ring.pdf}
-		\caption{ring-buffer} 
+		\caption{ring-buffer}
 		\label{genmc:buf_ring}
 	\end{minipage}
 	\hfill
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc/linuxrwlocks.pdf}
-		\caption{linuxrwlocks} 
+		\caption{linuxrwlocks}
 		\label{genmc:linuxrwlocks}
 	\end{minipage}
 
@@ -308,7 +308,7 @@ Figure~\ref{genmc:buf_ring} to \ref{genmc:ttaslock} show the execution graph cov
 
 
 
-It is hypothesized that the performance relates to the number of events remained in the mutated graph. The more events kept in the mutated graph, the more close their relations are. The random strategy can also be seen as cutting out the whole graph, hence it remains the least number of events. We also count the average number of events in execution graphs for each benchmark and the average number of remained events produced by each cut strategy, as shown in Table~\ref{genmc:average-events}. It can be observed, for instance, that in benchmark big0 and szymanski, the revisit cut keeps the largest number of events in their mutated graphs and performs best in finding more execution graphs. Therefore, the number of explored execution graphs is positively correlated with the number of remaining events in the mutation strategies.
+It is hypothesized that the performance is related to the number of events that remain in the mutated graph. Generally, the more events that are preserved in the mutated graph, the closer their relations tend to be. The random strategy, for example, can be seen as a method that cuts out the whole portion of the graph, resulting in the fewest remaining events. To better understand this relationship, we measured the average number of events in execution graphs for each benchmark, as well as the average number of events that remain after applying each cutting strategy, as shown in Table~\ref{genmc:average-events}. The data shows that, in the benchmarks linuxrwlocks and ttaslock, the revisit cut strategy retains the highest number of events in their mutated graphs and performs best in discovering more execution graphs. Similarly, in other benchmarks, the maximal cut strategy retains the highest number of events and explores the largest number of distinct graphs. Overall, the results indicate that the number of explored execution graphs is positively correlated with the number of events remaining in the mutation strategies.
 
 
 
@@ -317,13 +317,12 @@ It is hypothesized that the performance relates to the number of events remained
 	\begin{tabular}{|c|cccc|}
 		\hline
 		\diagbox{Benchmark}{ Strategy} & total  & revisit cut & minimal cut & maximal cut \\ \hline
-		big0                           & 28.98  & 25.87       & 9.71        & 21.17       \\ \hline
-		ring-buffer                    & 78.29  & 64.60       & 38.13       & 72.13       \\ \hline
-		fib                            & 39.26  & 23.70       & 17.28       & 27.15       \\ \hline
-		mpmc-queue                     & 86.75  & 62.09       & 32.79       & 75.00       \\ \hline
-		ms-queue                       & 151.26 & 121.97      & 63.25       & 138.81      \\ \hline
-		szymanski                      & 20.96  & 15.33       & 9.25        & 13.16       \\ \hline
-		ttaslock                       & 64.13  & 53.21       & 29.94       & 51.06       \\ \hline
+		ring-buffer                    & 102.18 & 81.88       & 41.15       & 94.11       \\ \hline
+		linuxrwlocks                   & 77.26  & 59.79       & 30.79       & 54.03       \\ \hline
+		mpmc-queue                     & 85.24  & 59.57       & 31.75       & 73.95       \\ \hline
+		ms-queue                       & 172.85 & 136.00      & 66.13       & 159.68      \\ \hline
+		treiber-stack                  & 113.50 & 83.98       & 53.51       & 99.49       \\ \hline
+		ttaslock                       & 65.35  & 59.41       & 21.76       & 51.88       \\ \hline
 	\end{tabular}
 	\label{genmc:average-events}
 	\caption{Number of events in original graphs and mutated graphs, on average}
@@ -345,7 +344,7 @@ We examine the total time elapsed for exploring 100 thousand iterations, shown i
 	\includegraphics[scale=0.37]{figure/genmc/overhead.pdf}
 	\caption{Time elapsed by various strategies}
 	\label{genmc:overhead}
-\end{figure} 
+\end{figure}
 
 
 \subsection{\ref*{RQ:GenMC_vs_fuzzer}: fuzzer vs model checker }
