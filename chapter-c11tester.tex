@@ -1,20 +1,20 @@
 \chapter{\label{cha:c11tester}Fuzzing with C11Tester}
 
-C11Tester is a automatic testing tool that supports a large gragment of C/C++ weak memory model. This chapter presents an overview of C11Tester and customazation points of its plugable framework. Then the fuzzer's implementation is described. Finally we show the evaluation results on some of the benchmarks.
+C11Tester is an automatic testing tool that supports a large fragment of C/C++ weak memory model. This chapter presents an overview of C11Tester and customization points of its pluggable framework. It then describes the fuzzer's implementation. Finally, we show the evaluation results on several benchmarks.
 
 \section{Overview of C11Tester}
 
-The C11Tester contains the following basic constructs: insstrumentation, scheduler, consistency checker and race detecter.
+C11Tester contains the following basic constructs: instrumentation, scheduler, consistency checker and race detector.
 
-C11Tester uses a LLVM pass compiler pass, CDSPass, to instrument all atomic operations, non-atomic accesses to shared memory locations, thread functions, mutex operations and fence operations by inserting a corresponding function call. The compiled program is linked with a dynamic library containing the function calls.
-C11Tester impelments a thread library that supports the same APIs of C++'s standard library and Posix thread library. The user's thread function calls will be mapped into user space fibers, instead of kernel space threads. Thus, all threads will be executed in a sequential manner with scheduling managed by a central scheduler, which is provided by the C11Tester. A context switching approach is applied to simulate the interleavings of threads to improve efficiency.
-Each atomic operation, thread creation and joining, mutex locks and unlocks, and memory fences will create a Action object, containing its type, value, memory order, thread id and other runtime information. Since all threads are sequenced during execution, each action will have a unique sequence number. The relations between actions, such as read from and synchronized with, are also maintained by the Action class.
+C11Tester uses an LLVM pass, CDSPass, to instrument all atomic operations, non-atomic accesses to shared memory locations, thread functions, mutex operations, and fence operations by inserting corresponding function calls. The compiled program is linked with a dynamic library containing these function calls.
+C11Tester implements a thread library that supports the same APIs of C++'s standard library and POSIX thread library. The user's thread function calls will be mapped into user space fibers, instead of kernel space threads. Thus, all threads are executed sequentially, with scheduling managed by a central scheduler provided by C11Tester. A context-switching approach is used to simulate thread interleavings and improve efficiency.
+Each atomic operation, thread creation and joining, mutex locks and unlocks, and memory fences will create an Action object, containing its type, value, memory order, thread ID and other runtime information. Since all threads are sequenced during execution, each action has a unique sequence number. The relations between actions, such as read from and synchronized with, are also maintained by the Action class.
 
-Although C/C++ programs under weak memory model do not use scheduling semantics, C11Tester does contain a central scheduler. It's worth noting that the scheduler do not simulate schedulings of threads, instead, it's designed to check actions of different threads in a total order. This is based on the implementation of mapping user's threads into fibers and checking them sequentially. All actions within the same thread will be checked following their sequence order, as a step, and the scheduler decides whether to check actions of other threads in the next step. Hence, two decisions will be made in each step, the behavior of the current action and the next thread to select. If the current action is a read, C11Tester will choose a write action to read from. Since the read-modify-write operations are instrumented with two functions, a read and a write, the scheduler ensures these two actions are atomic, i.e. to check them without switching to other threads in between.
+Although C/C++ programs under weak memory models do not use scheduling semantics, C11Tester does contain a central scheduler. It is worth noting that the scheduler does not simulate schedulings of threads, instead, it is designed to check actions of different threads in a total order. This is based on the implementation of mapping user's threads into fibers and checking them sequentially. All actions within the same thread will be checked following their sequence order, as a step, and the scheduler decides whether to check actions of other threads in the next step. Hence, two decisions will be made at each step, the behavior of the current action and the next thread to select. If the current action is a read, C11Tester will choose a write action for it to read from. Since the read-modify-write operations are instrumented with two functions, a read and a write, the scheduler ensures these two actions are atomic, i.e.  they are checked without switching to other threads in between.
 
-Memory locations are devided into two types: atomic locations and non-atomic locatios. Non-atomic access to shared memory locations is the source of introducing data races. C11Tester implements a race detecter to check data races. The race detecter will allocate a chunk of shadow memory for each of the non-atomic memory locations. Loading from or writing to non-atomic shared variables are instrumented with specific functions, which will register the current thread's state to the shadow memory. When multiple concurrent access to some shared non-atomic memory with at least one of them being a write is detected, a data race will be reported.
+Memory locations are divided into two types: atomic locations and non-atomic locations. Non-atomic access to shared memory locations is the source of data races. C11Tester implements a race detector to check data races. The race detector allocates a chunk of shadow memory for each of the non-atomic memory locations. Loading from or writing to non-atomic shared variables is instrumented with specific functions, which will register the current thread's state to the shadow memory. When multiple concurrent accesses to some shared non-atomic memory with at least one of them being a write is detected, a data race will be reported.
 
-Here we use an example to demonstrate the process of C11Tester's model checking procedure.
+Here, we use an example to demonstrate the process of C11Tester's model checking procedure.
 
 \begin{lstlisting}[caption={P3}, label={P3}]
 #include "librace.h"
@@ -44,15 +44,15 @@ int main() {
 }
 \end{lstlisting}
 
-In this program, there are two shared variables: non-atomic variable data and atomic flag. The librace.h header is provided by C11Tester, containing the instrumented function store\_8 for non-atomic variables. The initialization of flag, which is non-atomic, deliberately uses 1 as the initial value. Since the c++ standard thread library internally calls POSIX APIs, the thread-related function calls will be hooked by C11Tester's dynamic library.
+In this program, there are two shared variables: a non-atomic variable data and an atomic flag. The librace.h header is provided by C11Tester and contains the instrumented function store\_8 for non-atomic variables. The initialization of flag, which is non-atomic, deliberately uses 1 as the initial value. Since the C++ standard thread library internally calls POSIX APIs, the thread-related function calls will be hooked by C11Tester's dynamic library.
 
-After compilation, the model checker launches the program. After initializing the global variables, the model checker creates the first thread, which is the main thread and assign an tid, 1, to it. The first event is creating thrd2. After thrd2 is created and assigned an tid of 2, two threads, main and thrd2, are active. The model checker will randomly pick a thread to continue. Suppose the main thread is selected, the next event of it is creating thrd3. After creating thrd3, the next event of main is joining thrd2, so it becomes inactive. Now the current active threads are: thrd2 and thrd3.
+After compilation, the model checker launches the program. After initializing the global variables, the model checker creates the first thread, which is the main thread, and assigns an tid, 1, to it. The first event is the creation of thrd2. After thrd2 is created and assigned an tid of 2, two threads, main and thrd2, are active. The model checker will randomly pick a thread to continue. Suppose the main thread is selected; the next event of it is the creation of thrd3. After creating thrd3, the next event of main is joining thrd2, making main inactive. Now, the current active threads are: thrd2 and thrd3.
 
-If the model checker selects thrd2, the two events in it, writing to data and flag, will be consumed, and the thrd2 is finished. Now thrd2 becomes joinable and the currently active threads are: main and thrd3. Suppose main is selected and after joining thrd2 it becomes inactive again. Then thrd3 becomes the only active thread so it will be executed without the need to make a choice. The first event in thrd3 is loading the value of flag. Since the store of flag in thrd2 has already been explored, the non-atomic initialization of flag is hidden in the modification order. Hence only the atomic store is visible to this load, and the rf relation also forms a synchronization-with relation between the two thread. When writing to the non-atomic data, the race detecter checks pervious access to that location. The store in thrd2 happens before the read in the current thread, which happens before the current store, so all events are totally ordered and no data race will be reported.
+If the model checker selects thrd2, the two events in it, writing to data and flag, will be consumed, and the thrd2 is finished. Now, thrd2 becomes joinable and the currently active threads are: main and thrd3. Suppose main is selected and after joining thrd2 it becomes inactive again. Then, thrd3 becomes the only active thread so it will be executed without the need to make a choice. The first event in thrd3 is loading the value of flag. Since the store of flag in thrd2 has already been explored, the non-atomic initialization of flag is hidden in the modification order. Hence, only the atomic store is visible to this load, and the rf relation also forms a synchronization-with relation between the two thread. When writing to the non-atomic data, the race detector checks previous access to that location. The store in thrd2 happens before the read in the current thread, which happens before the current store, so all events are totally ordered and no data race will be reported.
 
-Considering another case, suppose the model checker selects thrd3 after creating both threads. The load of flag will be executed and only the initialization of data is visible to it. After reading the initial value, the store of data is consumed. When thrd3 is finished, the stores in thrd2 will be executed. When writing to data, the race detecter checks previous actions relating to that memory location. The store in thrd3 is already explored and it has no happen before relations with the current store, so the two stores are concurrent and a data race is reported.
+Considering another case, suppose the model checker selects thrd3 after  after both threads have been created. The load of flag will be executed and only the initialization of data is visible to it. After reading the initial value, the store of data is consumed. When thrd3 is finished, the stores in thrd2 will be executed. When writing to data, the race detector checks previous actions related to that memory location. The store in thrd3 has already been explored, and it has no happen-before relations with the current store. Therefore, the two stores are concurrent, and a data race is reported.
 
-One optimization that C11Tester implements is that it will consume writes with release and relaxed memory orders, only pausing on sc writes. This is because the sc order is part of the C/C++11 memory model so different sc order will result in different executions. Besides, consuming the weak writes will not lose the ability to cover possible executions. Consider the following example  \ref{P4},
+One optimization implemented by C11Tester is that it will consume writes with release and relaxed memory orders, only pausing on SC writes. This is because the sc order is part of the C/C++11 memory model, so different sc order will result in different executions. Moreover, consuming weak writes does not prevent covering possible executions. Consider the following example\ref{P4},
 \begin{lstlisting}[caption={P4}, label={P4}]
     std::atomic<int> var = {};      // (w0)
     void t2() {
@@ -64,9 +64,9 @@ One optimization that C11Tester implements is that it will consume writes with r
         var.store(3, release);      // (w3)
     }
 \end{lstlisting}
-after creating two threads, if t2 is selected first, r1 can only read from the initial value. If t3 is selected, the first event, w1, in this thread will be executed. The next two events are release writes, so the model checker will not re-select threads after w1. Instead, it will execute w2 and w3 until t3 is finished. Then it finds the only active thread is t2, so it selects t2. Now the set of available writes for r1 to read from becomes: w1, w2 and w3, and r1 is free to randomly select one of them. Although making thread decisions after each event is also feasible, the optimized version is more efficient and still able to cover all 4 possible executions.
+after creating two threads, if t2 is selected first, r1 can only read from the initial value. If t3 is selected, the first event, w1, in this thread will be executed. The next two events are release writes, so the model checker will not re-select threads after executing w1. Instead, it will execute w2 and w3 until t3 is finished. Then, it finds that the only active thread is t2, so it selects t2. Now, the set of available writes for r1 to read from becomes: w1, w2 and w3, and r1 is free to randomly select one of them. Although making thread decisions after each event is also feasible, the optimized version is more efficient and still able to cover all four possible executions.
 
-Another optimization performed by C11Tester is that it avoids backtracking during exploration. To achieve this, it performs consistency checking at each step to ensure it's valid. It make decisions based on the implications of the memory model and already explored events. In \ref{P4} for example, if t3 has been explored, when choosing the rf relation for r1 in t2, the rf-set only contains w1, w2 and w3, where w0 is excluded. If r1 had selected w0 and the model checker continues until some point where the execution graph is found to be infeasible under the memory model, it would have to perform backtracking to make a different choise for r1. Consider another example \ref{P5},
+Another optimization performed by C11Tester is that it avoids backtracking during exploration. To achieve this, it performs consistency checking at each step to ensure that it is valid. It makes decisions based on the implications of the memory model and the already explored events. In \ref{P4}, for example, if t3 has been explored, when choosing the rf relation for r1 in t2, the rf-set only contains w1, w2 and w3, where w0 is excluded. If r1 had selected w0 and the model checker continued until some point where the execution graph is found to be infeasible under the memory model, it would have to perform backtracking to make a different choice for r1. Consider another example \ref{P5},
 \begin{lstlisting}[caption={P5}, label={P5}]
     std::atomic<int> var = {};      // (w0)
     void t2() {
@@ -79,27 +79,27 @@ Another optimization performed by C11Tester is that it avoids backtracking durin
         var.store(3, release);      // (w3)
     }
 \end{lstlisting}
-if r1 has already seelcted w3 to read from, only w3 will be included in the rf-set for r2, becuase w3 $\xrightarrow{\text{rf}}$ r2 implies that w0-2 are modification-ordered before w3 and thus should not be visible to r2, which is sequence ordered after r1. Otherwise the RR coherence will be violated. Excluding infeasible writes from the rf-set ensures the rf's to be valid, which in turn avoids the backtracking efforts.
+if r1 has already selected w3 to read from, only w3 will be included in the rf-set for r2, because w3 $\xrightarrow{\text{rf}}$ r2 implies that w0-2 are modification-ordered before w3 and thus should not be visible to r2, which is sequence ordered after r1. Otherwise, the RR coherence will be violated. Excluding infeasible writes from the rf-set ensures the rf's to be valid, which in turn avoids the backtracking efforts.
 
 To summarize, C11Tester will execute the program from beginning to end, randomly picking threads and writes, with the optimizations of consuming weak writes and constraining rf-sets.
 
 
-\section{Customazation points of C11Tester}
+\section{Customization points of C11Tester}
 
-C11Tester provides two interfaces: selectWrite and selectThread that randomly selects a thread or write from a provided set. These two functions can be overwritten to implement new fuzzers. The provided set already excludes invalid choices so it's safe to pick other choices in the set. Thus we can define two types of mutations: changing the next thread to be added or changing the write that a read event reads from.
+C11Tester provides two interfaces: selectWrite and selectThread that randomly selects a thread or write from a provided set. These two functions can be overwritten to implement new fuzzers. The provided set already excludes invalid choices, so it is safe to select from the remaining choices in the set. Thus, we can define two types of mutations: changing the next thread to be added or changing the write from which a read event reads.
 
 \section{Fuzzer implementation}\label{c11fuzzer:implementation}
 
-To implement a fuzzer described in Algorithm \ref{fuzzer}, there are several specific functions to be defined:
+To implement a fuzzer as described in Algorithm \ref{fuzzer}, several specific functions need to be defined:
 
 \begin{itemize}
 	\item A hash function that computes a unique identifier for an execution graph, which is used to indicate whether the execution graph has been encountered before and to count the number of unique executions that are found in the end of N iterations.
-	\item A function that returns a boolen that indicates whether the execution graph is interesting.
-	\item A function that mutate the previous execution graph and produces a prefix of the mutated graph.
+	\item A function that returns a boolean indicating whether the execution graph is interesting.
+	\item A function that mutates the previous execution graph and produces a prefix of the mutated graph.
 	\item A function that enforces the prefix, i.e. replays until the mutated choice.
 \end{itemize}
 
-The hash function for executioin graph encodes: event types, memory orders, reads-from relations. It first iterate threads by their thread ids, and for each event in each thread, it computes the hash of its event type and memory order (for atomic operations). If the event is a read event, it also combines the hash of the write event it reads from. To be noticed, in this hash function the modification order is not included although it's part of the execution graph under many memory models. This is because the hash function only cares about observable behaviours, such as read values, which may be influenced by modification orders. However, changing some modification orders may or may not change the observable behaviours. The hash function is defined in Algorithm \ref{c11fuzzer-hash} as follows:
+The hash function for execution graph encodes: event types, memory orders, and reads-from relations. It first iterates through threads by their thread IDs, and for each event in each thread, it computes the hash of its event type and memory order (for atomic operations). If the event is a read event, it also combines the hash of the write event it reads from. Note that in this hash function, the modification order is not included, although it is part of the execution graph under many memory models. This is because the hash function only cares about observable behaviors, such as read values, which may be influenced by modification orders. However, changing some modification orders may or may not change the observable behaviors. The hash function is defined in Algorithm \ref{c11fuzzer-hash} as follows:
 
 
 \begin{algorithm}
@@ -124,41 +124,41 @@ The hash function for executioin graph encodes: event types, memory orders, read
 	\end{algorithmic}
 \end{algorithm}
 
-The is\_interesting function returns true if the hash of the current execution graph is not covered in previous explorations. This is the least restrictful metric, alternatively, it can be defined as returning true if new rf relations has been covered. Another possible definition is to check whether the execution graph reveals a new bug, which is biased on searching for bugs. In our definition, we aims to find more new executions, with more new buggy executions being a by-product.
+The is\_interesting function returns true if the hash of the current execution graph is not covered in previous explorations. This is the least restrictive metric, alternatively, it can be defined as returning true if new rf relations has been covered. Another possible definition is to check whether the execution graph reveals a new bug, which is biased toward searching for bugs. In our definition, we aim to find more new executions, with more new buggy executions being a by-product.
 
-The mutate function uniformly picks a fixed number of decisions, including threads and rf's, with multiple choices in the provided set. For each of them, it mutates the selected decision and cuts out the rest decisions to produce a prefix. Since the only two places where randomness is used are selectWrite and selectThread, the choices of threads and writes will be uniquely mapped to an execution graph. Hence the prefix of a decision trace also defines a prefix of an execution graph.
+The mutate function uniformly picks a fixed number of decisions, including threads and rf's, from multiple choices in the provided set. For each of them, it mutates the selected decision and discards the rest decisions to produce a prefix. Since the only two places where randomness is used are selectWrite and selectThread, the choices of threads and writes will be uniquely mapped to an execution graph. Hence, the prefix of a decision trace also defines a prefix of an execution graph.
 
 % 画图
 
-The mutated prefixes will be added to a prefix set. The replaying function choose a prefix from the set and enforce C11Tester to make the same decisions in that prefix. After enforcing the prefix,  C11Tester is switched to the random mode, continuing random exploration until the graph is completed.
+The mutated prefixes will be added to a prefix set. The replaying function chooses a prefix from the set and enforces C11Tester to make the same decisions in that prefix. After enforcing the prefix, C11Tester switches to random mode and continues random exploration until the graph is completed.
 
 \section{Benchmarks}
 
-The fuzzer and C11Tester are tested under 11 benchmarks: barrier, chase-lev-deque, mpmc-queue, linuxrwlocks, mcs-lock, dekker, rwlock, seqlock, bipartite-buf, left-right and ring-buf. Some of them are collected from open source libraries, others come from the original C11Tester's benchmark set, which are also taken from open source libraries, internet discussions and papers. Here is a list of descriptions of these benchmarks:
+The fuzzer and C11Tester are tested under the benchmarks described below. Some of them are collected from open source libraries, others come from the original C11Tester's benchmark set, which are also taken from open source libraries, internet discussions and papers. Here is a list of descriptions for these benchmarks:
 
-\paragraph{barrier} It comes from a solution of StackOverflow discussion. It implements a spinning barrier that halts a fixed number of threads to wait and releases the barrier when all threads are waiting. It maintains a counter for the number of threads that are waiting so far and a step state that counts the number of barrier synchronizations. It was injected with a bug of using the relaxed memory order of the counter.
+\paragraph{barrier} It comes from a solution of StackOverflow discussion. It implements a spinning barrier that halts a fixed number of threads and releases the barrier when all threads are waiting. It maintains a counter for the number of threads that are waiting currently and a step state that counts the number of barrier synchronizations. It was injected with a bug of using the relaxed memory order of the counter.
 
-\paragraph{chase-lev-deque} An implementation of the Chase-Lev deque data structure using the C11 primitives. It was published in \cite{chase-lev-deque-impl} but found to have bug in its implementation, due to the use of relaxed operations of fences.
+\paragraph{chase-lev-deque} An implementation of the Chase-Lev deque data structure using C11 primitives. It was published in \cite{chase-lev-deque-impl} but was found to have a bug in its implementation, due to the use of relaxed operations of fences.
 
 % TODO: ref
-\paragraph{mpmc-queue} A multi-producer multi-consumer queue implementation from a blog post \cite{mpmc-queue-impl}.
+\paragraph{mpmc-queue} A multi-producer, multi-consumer queue implementation from a blog post \cite{mpmc-queue-impl}.
 
 \paragraph{linuxrwlocks} A reader-writer lock implementation from the Linux kernel. An rwlock only allows one writer at a time but can allow multiple readers to access the protected data.
 
 
-\paragraph{mcs-lock} A list-based contention-free lock originally proposed by Mellor-Crummey and Scott\cite{mcs-lock}. The implementation comes from \cite{mcs-lock-impl}. In this data structure, each thread maintains a node of a queue. When a thread wants to lock, it asks the mutex to set its tail of the queue to be the thread's node. When other threads lock, they have to wait for the tail to be removed by the mutex.
+\paragraph{mcs-lock} A list-based contention-free lock originally proposed by Mellor-Crummey and Scott\cite{mcs-lock}. The implementation comes from \cite{mcs-lock-impl}. In this data structure, each thread maintains a node of a queue. When a thread wants to acquire the lock, it asks the mutex to set its tail of the queue to be the thread's node. When other threads lock, they have to wait for the tail to be removed by the mutex.
 
-\paragraph{dekker} A Dekker's critical section algorithm implemented with fences \cite{dekker-fence-impl}. This algorithm ensures only one thread can enter critical section at a time. A shared turn variable records which thread is taking the turn. Each thread has a flag variable to indicate its state. Before entering the critical section, a thread should first raise its own flag and then check whether the turn is not set. All atomic operations on the turn and flags are relaxed but fences are used to synchronize concurrent accesses.
+\paragraph{dekker} A Dekker's critical section algorithm implemented with fences \cite{dekker-fence-impl}. This algorithm ensures only one thread can enter critical section at a time. A shared turn variable records which thread is taking its turn. Each thread has a flag variable to indicate its state. Before entering the critical section, a thread should first raise its own flag and then check whether the turn is set. All atomic operations on the turn and flags are relaxed but fences are used to synchronize concurrent accesses.
 
 \paragraph{rwlock} Another rwlock implementation similar to linuxrwlocks.
-\paragraph{seqlock} A sequence lock implementation. The lock protects some shared data using an atomic counter, initialized 0. A writer increments the counter twice, both in the beginning and end of writing. Hence whenever the counter is odd, there must be some other thread modifying the data, so other threads have to wait.
+\paragraph{seqlock} A sequence lock implementation. The lock protects some shared data using an atomic counter, initialized to 0. A writer increments the counter twice, both at the beginning and end of writing. Hence whenever the counter is odd, there must be some other thread modifying the data, so other threads have to wait.
 
 \paragraph{bipartite-buf} A single-producer-single-consumer test for a bipartite buffer implementation written in C++11, customazed from \cite{lockfree-DNedic}. The bipartite buffer is a variation of the ring buffer which allows in-place processing with linear space guarantee.
 
-\paragraph{left-right} A generic implementation \cite{lockfree-xenium} of the LiftRight algorithm\cite{left-right}. The algorithm functions similarly to the reader-writer lock, but ensures non-blocking for reads. It uses two instances for the protected data, one of which is used for all reader threads. The writer thread will work on the other instance and after writing is finished, two instances are switched.
+\paragraph{left-right} A generic implementation \cite{lockfree-xenium} of the LiftRight algorithm\cite{left-right}. The algorithm functions similarly to the reader-writer lock but ensures non-blocking for reads. It uses two instances for the protected data, one of which is used by all reader threads. The writer thread will work on the other instance and after writing is finished, two instances are switched.
 
 
-\paragraph{ring-buf} A ring buffer that supports adding or removing multiple objects simultaneously \cite{lockfree-DNedic}. It maintains two indexes, a read and a write index of the buffer. After adding or removing, these two indexes will be updated to appropriate values.
+\paragraph{ring-buf} A ring buffer that supports adding or removing multiple objects simultaneously \cite{lockfree-DNedic}. It maintains two indexes, a read index and a write index of the buffer. After adding or removing, these two indexes will be updated to appropriate values.
 
 
 \burcu{TODO: Briefly describe each benchmark}
@@ -170,19 +170,19 @@ The fuzzer and C11Tester are tested under 11 benchmarks: barrier, chase-lev-dequ
 
 
 
-\paragraph*{Research questions} The following research questions are list for evaluating the fuzzing algorithm.
+\paragraph*{Research questions} The following research questions are listed to evaluate the fuzzing algorithm.
 \begin{enumerate}[label=RQ\arabic*]
-	\item Does the fuzzer detects the bug ealier than the random tester? \label{RQ:hardbug}
-	\item Is the fuzzer able to cover a larger range of execution graphs comparing to other random-based exploration strategies? \label{RQ:coverage}
-	\item When the program has bugs, will being able to detect more bugs come as a byproduct of covering more execution graphs \label{RQ:bug}
-	\item How does the fuzzer cause overhead in C11Tester in real-world applications? \label{RQ:overhead}
+	\item Does the fuzzer detect the bug ealier than the random tester? \label{RQ:hardbug}
+	\item Is the fuzzer able to cover a larger range of execution graphs compared to other random-based exploration strategies? \label{RQ:coverage}
+	\item When the program has bugs, does the ability to detect more bugs come as a byproduct of covering more execution graphs? \label{RQ:bug}
+	\item How does the fuzzer introduce overhead in C11Tester in real-world applications? \label{RQ:overhead}
 \end{enumerate}
 
-To address the research questions, we use the benchmarks to test our fuzzer and other approaches with same amout of iterations, $N$, and compare their results. If not specifically stated, $N = 10000$.
+To address the research questions, we use the benchmarks to test our fuzzer and other approaches with same number of iterations, $N$, and compare their results. Unless otherwise stated, $N = 10000$.
 
 \subsection{\ref*{RQ:hardbug}: Fuzzer vs C11Tester}
 
-One important metric for a fuzzer is whether it's able to detect the bug effectively. In this section, we use several programs with some hard-to-find bugs and examine the iterations taken to find a bug for the fist time, denoted as $N_{bug1}$. The smaller $N_{bug1}$ is, the more effective the fuzzer or the tester is. Table \ref{c11fuzzer-hardbug} shows $N_{bug1}$ of the fuzzer and the random tester, where dash means not able to detect the bug.
+One important metric for a fuzzer is whether it is able to detect the bug effectively. In this section, we use several programs with some hard-to-find bugs and examine the iterations taken to find a bug for the first time, denoted as $N_{bug1}$. The smaller $N_{bug1}$ is, the more effective the fuzzer or the tester is. Table \ref{c11fuzzer-hardbug} shows $N_{bug1}$ for the fuzzer and the random tester, where a dash indicates that the bug was not detected.
 
 \begin{table}[h!]
 	\centering
@@ -242,7 +242,7 @@ Take the long-race benchmark for example. This benchmark is taken from the rff's
 	}
 \end{lstlisting}
 
-Hitting the bug requires two workers to modify the shared variable alternately, in a very strict order (we also tested the long-race benchmark with rff, and it took 15 thousand iterations to detect it). There are in total 9 different executions of this program. Figure~\ref{graph-freq} shows how many times each execution graph (represented by their hashes in x-axis) are explored in $N$ iterations. It can be observed that the random tester is mostly biased on the first and second executions, which together take up 96.5\% of $N$. On the contrary, the fuzzer exhibits a more "flattened" frequency plot on executions and covers all 9 execution graphs. This is caused by the mutations on those infrequent executions during exploration. 
+Hitting the bug requires two workers to alternately modify the shared variable in a very strict order (we also tested the long-race benchmark with rff, and it took 15 thousand iterations to detect it). There are a total of 9 different possible  executions of this program. Figure~\ref{graph-freq} shows how many times each execution graph (represented by their hashes on the x-axis) are explored in $N$ iterations. It can be observed that the random tester is heavily biased towards the first and second executions, which together take up 96.5\% of $N$. In contrast, the fuzzer exhibits a more "flattened" frequency plot on executions and covers all 9 execution graphs. This more even distribution is due to mutations that target those infrequent executions during exploration.
 
 Figure~\ref{hard:reorder-10} to \ref{header:P1} show the number of unique executions and bugs found in first 1000 iterations. It can be observed that the fuzzer detects the bug ealier than C11Tester and also covers a higher range of executions.
 
@@ -322,7 +322,7 @@ Figure~\ref{hard:reorder-10} to \ref{header:P1} show the number of unique execut
 
 \subsection{\ref*{RQ:coverage}: Fuzzer vs C11Tester}
 
-Using the 11 benchmarks, we evaluate the ability of finding unique execution graphs of both the fuzzer and C11Tester. The metric used is the number of different execution graphs discovered over $N$ iterations. Table \ref{c11fuzzer-bench1} and \ref{c11fuzzer-bench2} show the number of unique executions found by two approaches. It can be seen that the fuzzer is able to find a larger number of different execution graphs in a fixed number of iterations than C11Tester with the random-based searching strategy in most of the benchmarks, with the average improvement of 27.0\%. The improvements are calculated by:
+Using the 11 benchmarks, we evaluate the ability of both the fuzzer and C11Tester to find unique execution graphs. The metric used is the number of different execution graphs discovered over $N$ iterations. Table~\ref{c11fuzzer-bench1} and Table~\ref{c11fuzzer-bench2} show the number of unique executions found by two approaches. It can be seen that the fuzzer is able to find a larger number of different execution graphs in a fixed number of iterations than C11Tester with the random-based searching strategy in most of the benchmarks, with the average improvement of 27.0\%. The improvements are calculated by:
 \[
 	R_{improvement} = \frac{N_{c11Fuzzer} - N_{c11Tester} }{N_{c11Tester} } \times 100 \% ,
 \]
@@ -360,7 +360,7 @@ where $N_{c11Fuzzer}$ and $N_{c11Tester}$ are the number of unique execution gra
 \end{table}
 
 
-In addition, Figure \ref{cover-plot1-barrier} to \ref{cover-plot1-ring-buf} draws the coverage plots for each benchmark, with orange lines representing the fuzzer and blue lines representing the random tester. It can be observed that in all of these cases the fuzzer is able to find more unique executions. In addition, in some benchmarks, see Figure \ref{cover-plot1-chase-lev-deque} or \ref{cover-plot1-mpmc-queue} for example, the fuzzer's speed of finding executions (the slop of coverage plost) is not significantly slowing down as the number of found executions grows. Some coverage plots of the fuzzer, such as in Figure \ref{cover-plot1-bipartite-buf} and \ref{cover-plot1-ring-buf}, also have some "bumps" which the random tester do not have. Such bumps are caused by some prefixes that guides to a group of new interesting executions.
+In addition, Figure~\ref{cover-plot1-barrier} to Figure~\ref{cover-plot1-ring-buf} draws the coverage plots for each benchmark, with orange lines representing the fuzzer and blue lines representing the random tester. It can be observed that in all of these cases, the fuzzer is able to find more unique executions. In addition, in some benchmarks, such as Figure~\ref{cover-plot1-chase-lev-deque} or Figure~\ref{cover-plot1-mpmc-queue}, the fuzzer's speed of finding executions (the slop of coverage plost) does not significantly slow down as the number of found executions grows. Some coverage plots of the fuzzer, such as those in Figure~\ref{cover-plot1-bipartite-buf} and Figure~\ref{cover-plot1-ring-buf}, also have some "bumps" which the random tester do not have. Such bumps are caused by some prefixes that guide to a group of new interesting executions.
 
 \begin{figure}[H]
 
@@ -467,7 +467,7 @@ In addition, Figure \ref{cover-plot1-barrier} to \ref{cover-plot1-ring-buf} draw
 
 \subsection{\ref*{RQ:coverage}: C11Fuzzer vs PCTWM}
 
-PCTWM \cite{pctwm} is a state-of-art weak concurrency tester that expands the idea of PCT, which constrains the cope of exploring executions. It is expected that PCTWM should cover a smaller range of execution graphs than that of C11Tester, which performs an unbounded random search. A subset of the benchmarks described above a tested with the same configurations of bug depth and communication events, shown in Table \ref{pctwm-configs}.
+PCTWM \cite{pctwm} is a state-of-the-art weak concurrency tester that expands the idea of PCT, which constrains the cope of exploring executions. It is expected that PCTWM will cover a smaller range of execution graphs than C11Tester, which performs an unbounded random search. A subset of the benchmarks described above is tested with the same configurations of bug depth and communication events, as shown in Table \ref{pctwm-configs}.
 
 \begin{table}[h]
 	\centering
@@ -487,7 +487,7 @@ PCTWM \cite{pctwm} is a state-of-art weak concurrency tester that expands the id
 	\label{pctwm-configs}
 \end{table}
 
-Figure \ref{pctwm-barrier} to \ref{pctwm-mpmc-queue} show the coverage plots of number of unique executions found by PCTWM, C11Fuzzer and C11Tester. It can be observed that PCTWM's bounded searching scope is usually lower than C11Tester's unbounded random searching scope, which is lower than C11Fuzzer's.
+Figure~\ref{pctwm-barrier} to Figure~\ref{pctwm-mpmc-queue} show the coverage plots of number of unique executions found by PCTWM, C11Fuzzer and C11Tester. It can be observed that PCTWM's bounded searching scope is usually smaller than C11Tester's unbounded random searching scope, which is smaller than C11Fuzzer's.
 
 \begin{figure}[H]
 	\centering
@@ -542,7 +542,7 @@ Figure \ref{pctwm-barrier} to \ref{pctwm-mpmc-queue} show the coverage plots of 
 
 \subsection{\ref*{RQ:bug}: Bug hitting rate}
 
-The design of the fuzzer is not biased on finding bugs, but it is also interested whether covering a wider range of execution graphs will improve the bug hitting rate. Some of the above benchmarks contains injected bugs, i.e. inappropriate using of synchronization primitives, which can introduce either data races or assertion failures. The bug hitting rate is computed by:
+The design of the fuzzer is not biased towards finding bugs, but it is also interested whether covering a wider range of execution graphs will improve the bug hitting rate. Some of the above benchmarks contain injected bugs, such as the inappropriate use of synchronization primitives, which can introduce either data races or assertion failures. The bug hitting rate is computed as:
 \[
 	R_{bug} = \frac{N_{bug}}{N},
 \]
@@ -577,7 +577,6 @@ where $N_{bug}$ is the number of different buggy executions found over $N$ itera
 \end{table}
 
 It can be observed that except for dekker benchmark, which in total has 5 different bugs, C11Fuzzer is able to find more bugs in other benchmarks.
-
 
 
 \subsection{\ref*{RQ:overhead}: Real-world applications}

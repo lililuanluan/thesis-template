@@ -10,7 +10,7 @@ Both the estimation and verification modes share the same set of interfaces, wit
 
 The core component of GenMC is its driver, an instance created according to command line options including the chosen memory model, transformation options, exploration strategies, etc. The driver is responsible for calling the interpreter to transform the target program into LLVM-IR, constructing execution graphs, checking consistency, and reporting errors. The interpreter is derived from LLVM's execution engine and instruction visitor, used to interpret the source code and keep relevant execution information. The interpreter will ask the scheduler of the driver to fetch the next instruction. Normally, the scheduler randomly picks the next thread and fetches the next instruction of that thread, with some special cases such as RMW instructions, prioritized threads, or reads that need to be rescheduled. Then the interpreter handles each instruction following the visitor pattern. Some special instruction-handling functions are overridden by the driver, such as handleLoad, handleStore, handleFence, and handleSpinStart. For instance, the handleLoad function will pick a write value allowed by the memory model for the load instruction and add it to the execution graph, and the handleStore function will add it to the execution graph and insert it into the modification order (coherence) at some proper place, as well as checking consistency and reporting possible data races.
 
-The execution graph is composed of events, each having a label indicating its position in the graph and other information about the event itself. It also maintains a map that records the store events of each memory location. An event can be looked up using its position, which is a pair of thread id and its index in that thread. Additional information is also stored in the label. For example, a read event label also contains its reads-from information and atomic ordering. Both the stamp and the position uniquely identify an event in a single graph; however, the stamp is determined by the order of adding events to the graph and hence will vary across explorations, while the position is determined by the source code of the tested program.
+The execution graph is composed of events, each having a label indicating its position in the graph and other information about the event itself. It also maintains a map that records the store events of each memory location. An event can be looked up using its position, which is a pair of thread ID and its index in that thread. Additional information is also stored in the label. For example, a read event label also contains its reads-from information and atomic ordering. Both the stamp and the position uniquely identify an event in a single graph; however, the stamp is determined by the order of adding events to the graph and hence will vary across explorations, while the position is determined by the source code of the tested program.
 
 The driver has a stack of executions, called execStack. Each execution has an execution graph instance and a workqueue. The workqueue stores the exploration operations, called Revisit, to be conducted, on the corresponding graph. The driver fetches an item each time from the workqueue and "revisit" it. When the workqueue is empty, the driver is informed that no more actions are needed for the current graph, so it pops out the current execution from the execStack and continues with other executions. When the execStack is empty the driver finishes its job and report the statistics. In estimation mode, only one kind of Revisit, RerunForwardRevisit, is used, which indicates the driver to reset the execution graph to its initial state and start over the next iteration.
 
@@ -56,7 +56,7 @@ The above mentioned exploration procedure is listed in Algorithm~\ref{driver::ru
 
 
 
-\section{Customazation points of GenMC}
+\section{Customization points of GenMC}
 
 In the estimation mode, the driver pushes a RerunForwardRevisit and a zero stamp to the workqueue at the end of each execution, so the graph will always be reset to an empty state, which stays at the end of execStack. It is also viable to push other Revisit objects to the workqueue and the driver will cut the graph accordingly. In addition, we could also cut the graph manually and push it together with a latest stamp so the driver will not cut it again. If the manually cut graph is consistent, the interpreter will continue and finish exploration with it. Both pushing other Revisit and manually cutting the graph serve as the mutation part of our fuzzer. The driver has a function, getRfsApproximation, that can provide a list of stores that a read can read from, so the fuzzer can pick a different store from that list.
 
@@ -95,7 +95,7 @@ Firstly the hash function for a single event should be defined, as shown in Algo
 	\end{algorithmic}
 \end{algorithm}
 
-Then the events are iterated by thread id and indices to compute the hash value of the graph, as listed in Algorithm~\ref{alg:hash-executiongraph}.
+Then the events are iterated by thread ID and indices to compute the hash value of the graph, as listed in Algorithm~\ref{alg:hash-executiongraph}.
 
 
 \begin{algorithm}
@@ -194,7 +194,7 @@ We use the following benchmarks to evaluate the fuzzer.
 
 \paragraph{linuxrwlocks} The reader-writer lock implementation of linux kernel, similar to that in the previous chapter but written in C.
 
-\paragraph{long-assert} A test case that has a complicated assertion that is hard to triger. One thread checks the assertion involving two shared variables and the other thread modifies one of them after doing some exponential work.
+\paragraph{long-assert} A test case that has a complicated assertion that is hard to trigger. One thread checks the assertion involving two shared variables and the other thread modifies one of them after doing some exponential work.
 
 \section{Evaluation and discussion}
 
