@@ -332,7 +332,7 @@ It is hypothesized that the performance is related to the number of events that 
 
 
 
-\subsection{\ref*{RQ:GenMCOverhead}: overhead of 3 mutations }
+\subsection{\ref*{RQ:GenMCOverhead}: runtime overhead and efficiency of 3 mutations }
 
 We examine the total time elapsed for exploring 100 thousand iterations, shown in Figure~\ref{genmc:overhead}. The random testing is taken as a baseline for evaluating the overhead. It can be seen that random testing does not always take the shortest time. This is due to the mechanism of GenMC. When adding events to the graph, the GenMC driver first inspects whether there is already an event in that position. If so, it continues without the need to check consistency, pick rf's, or arrange it in the coherence order. Although the maximal cut takes many steps to compute the cut view, it still takes the shortest time in one of the benchmarks since the driver can save effort on those remaining events. Overall, all three mutations have insignificant effects on the runtime performance, with affordable overheads.
 
@@ -392,17 +392,17 @@ Model checkers are also used to verify the correctness of programs and detect bu
 
 Comparing the model checker, the random tester, and the fuzzer with revisit, minimal and maximal cuts, Figure~\ref{long-assert-N5-iter} and Figure~\ref{long-assert-N5-time} show the average number of iterations (for the model checker, this is the number of graphs prior to the buggy one) and the time taken to find the bug, respectively, with 'N' taken from 5 to 9. It can be observed that the random tester and the fuzzer require fewer iterations to find the bug in all cases. When 'N' is small, the model checker is faster, but as 'N' increases, the fuzzer and random tester become faster.
 
-\begin{figure}[htbp]
+\begin{figure}[h!tbp]
 	\centering
-	\includegraphics[scale=0.35]{figure/long-assert/fuzz_assert5_iter.pdf}
+	\includegraphics[scale=0.3]{figure/long-assert/fuzz_assert5_iter.pdf}
 	\caption{Average iterations to detect the bug}
 	\label{long-assert-N5-iter}
 \end{figure}
 
 
-\begin{figure}[htbp]
+\begin{figure}[h!tbp]
 	\centering
-	\includegraphics[scale=0.35]{figure/long-assert/fuzz_assert5_time.pdf}
+	\includegraphics[scale=0.3]{figure/long-assert/fuzz_assert5_time.pdf}
 	\caption{Average time to detect the bug}
 	\label{long-assert-N5-time}
 \end{figure}
@@ -410,17 +410,17 @@ Comparing the model checker, the random tester, and the fuzzer with revisit, min
 If we change the assertion to \texttt{assert(x!=0||y!=1||y!=2||...||y!=N)}, it becomes increasingly difficult to find the bug as 'N' gets larger. As shown in Figure~\ref{long-assert-N-time} and Figure~\ref{long-assert-N-iter}, the fuzzer with different mutations can take less time and iterations than the random tester. The model checker is not the most time consuming strategy this time but still the revisit cut can take less time to find the bug.
 
 
-\begin{figure}[htbp]
+\begin{figure}[h!tbp]
 	\centering
-	\includegraphics[scale=0.35]{figure/long-assert/fuzz_iter.pdf}
+	\includegraphics[scale=0.3]{figure/long-assert/fuzz_iter.pdf}
 	\caption{Average iterations to detect the bug (varying assertion)}
 	\label{long-assert-N-iter}
 \end{figure}
 
 
-\begin{figure}[htbp]
+\begin{figure}[h!tbp]
 	\centering
-	\includegraphics[scale=0.35]{figure/long-assert/fuzz_time.pdf}
+	\includegraphics[scale=0.3]{figure/long-assert/fuzz_time.pdf}
 	\caption{Average time to detect the bug (varying assertion)}
 	\label{long-assert-N-time}
 \end{figure}
