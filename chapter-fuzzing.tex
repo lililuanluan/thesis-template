@@ -4,7 +4,7 @@ In this chapter, we describe the high-level algorithm for fuzzing weak memory pr
 
 \section{Motivation}
 
-As discussed before, the behaviors of programs under weak memory models are modeled by execution graphs. In general, the process of checking such programs is constructing the execution graphs and checking the consistency and validity of the graphs. The search space, is the set of all possible execution graphs. Due to various combinations of the relations, branches of control flows and loops, the size of the search space can sometimes be quite large or even infinite. For the brevity of discussion, assume the model checker is single-threaded, each time taking one step, either adding a node to the graph or forming a relation between two nodes. In addition, the model checker has some mechanism to ensure the steps taken are valid according to the memory model. Consider the SB example, if all atomic operations are relaxed, the following four execution graphs, shown in Figure~\ref{SB4}, are all allowed, among which, as a comparison, only the first execution is allowed under the sc model.
+As discussed before, the behaviors of programs under weak memory models are modeled by execution graphs. In general, the process of checking such programs is constructing the execution graphs and checking the consistency and validity of the graphs. The search space, is the set of all possible execution graphs. Due to various combinations of the relations, branches of control flows and loops, the size of the search space can sometimes be quite large or even infinite. For the brevity of discussion, assume a single-threaded random test generator is used, each time taking one step, either adding a node to the graph or forming a relation between two nodes. In addition, the test generator has some mechanism to ensure the steps taken are valid according to the memory model. Consider the SB example, if all atomic operations are relaxed, the following four execution graphs, shown in Figure~\ref{SB4}, are all allowed, among which, as a comparison, only the first execution is allowed under the sc model.
 
 \begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
     \centering
@@ -37,10 +37,10 @@ void thread2() {
 }
 \end{lstlisting}
 
-Suppose the model checker make random decisions uniformly when adding events. The first events in thread 1 and 2 are: \texttt{x.load()} and \texttt{x++}. \texttt{Thread1} printing 'B' requires that \texttt{x++} is selected first, with the probability of $\frac{1}{2}$. However, printing 'B' requires a sepecific ordering or selecting events, i.e. {a, d, b, e, c}, with the probability of $\frac{1}{2} \times \frac{1}{2}  \times \frac{1}{2}  \times \frac{1}{2} =  \frac{1}{16}$.
+Suppose the test generator make random decisions uniformly when adding events. The first events in thread 1 and 2 are: \texttt{x.load()} and \texttt{x++}. \texttt{Thread1} printing 'B' requires that \texttt{x++} is selected first, with the probability of $\frac{1}{2}$. However, printing 'B' requires a sepecific ordering or selecting events, i.e. {a, d, b, e, c}, with the probability of $\frac{1}{2} \times \frac{1}{2}  \times \frac{1}{2}  \times \frac{1}{2} =  \frac{1}{16}$.
 
 
-Different orders of adding events and forming relations may result in same executions. Take Listing~\ref{P6} for example. The model checker can first select \texttt{r1} first and set its \texttt{rf} as \texttt{s0}, or it can first add \texttt{s1-3} and then set \texttt{r1} reading from \texttt{s0}. Both cases are equivalent.
+Different orders of adding events and forming relations may result in same executions. Take Listing~\ref{P6} for example. The test generator can first select \texttt{r1} first and set its \texttt{rf} as \texttt{s0}, or it can first add \texttt{s1-3} and then set \texttt{r1} reading from \texttt{s0}. Both cases are equivalent.
 
 \begin{lstlisting}[caption={P6}, label={P6}]
     atomic<int> x = {}; // s0
@@ -64,10 +64,10 @@ Here is a summary of several observations of random based testing for weak memor
 \begin{itemize}
     \item The search space of execution graphs are usually large, larger than in the strong memory model.
     \item The probability of finding executions are not uniform. Some infrequent graphs exist.
-    \item Different decisions made by the model check may result in same executions.
+    \item Different decisions made by the test generator may result in same executions.
 \end{itemize}
 
-The process of the random-based model checking procedure is similar to the Galton board experiment. Consider the following $n$ level decision tree, from top to bottom, each step has two choices, either going left or right. Each node represents a state and the edges represent the decisions. There are some states that can be reached from multiple paths. Take the middle state in the second level for example, it can be reached by first choosing left then right, or by first choosing right then left. There are also some other states that have more strict requirements on the decision making. For example, the state circled in red requires always select the left choices to reach, with the probability of $\frac{1}{2^n}$. 
+The process of the random-based random walk test generation procedure is similar to the Galton board experiment. Consider the following $n$ level decision tree, from top to bottom, each step has two choices, either going left or right. Each node represents a state and the edges represent the decisions. There are some states that can be reached from multiple paths. Take the middle state in the second level for example, it can be reached by first choosing left then right, or by first choosing right then left. There are also some other states that have more strict requirements on the decision making. For example, the state circled in red requires always select the left choices to reach, with the probability of $\frac{1}{2^n}$. 
 \begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
     \centering
     \includegraphics[scale=0.5]{figure/tree.pdf} % 图片文件名和路径  
@@ -130,10 +130,13 @@ Suppose during exploration, one execution graph is constructed as shown in Figur
 
 This section provides a high-level overview of the fuzzing algorithm. The implementation details and evaluation results will be presented in later chapters.
 
-The fuzzer aims to improve the performance of randomized testing approaches. There are some model checkers, such as C11Tester or GenMC's estimation mode, that uses random-based testing, and some exhaustive model checkers, such as GenMC, that enumerate all possible executions. Exhaustive checkers are useful when the search space is limited, typically when the program under test is not too large. Random-based checking is frequently used for testing large programs. Such a checker usually constructs one execution graph based on random decisions of threads and reads-from relations during each exploration. For the next iteration, it starts over from the beginning and randomly explores again. A problem with this is because it does not keep states among explorations, some repetitive efforts may be taken. Sometimes different random decisions may result in same executions, or some infrequent execution graphs may not be revealed. 
+The fuzzer aims to improve the performance of randomized testing approaches. There are some random testers, such as C11Tester or GenMC with its estimation mode, that uses random-based testing, and some exhaustive model checkers, such as GenMC, that enumerate all possible executions. Exhaustive checkers are useful when the search space is limited, typically when the program under test is not too large. Random-based checking is frequently used for testing large programs. Such a checker usually constructs one execution graph based on random decisions of threads and reads-from relations during each exploration. For the next iteration, it starts over from the beginning and randomly explores again. A problem with this is because it does not keep states among explorations, some repetitive efforts may be taken. Sometimes different random decisions may result in same executions, or some infrequent execution graphs may not be revealed. 
 
-The fuzzer uses partially constructed graphs, represented by "prefix" in the following context, as guidance for further explorations. 
-The fuzzer maintains a set of prefixes, initialized empty. At the beginning of each exploration, it pickes a prefix from the set. If there are no existing prefix in the set, the exploration will be random. Otherwise, the model checker will start from the prefix and randomly construct the remaining part of the execution graph. When the exploration is finished, an execution graph will be constructed and the fuzzer will determine whether this execution graph is interesting. The conditions for a graph to be interested could be that it is a new execution graph or it contains some new relations or events. The interested graph will be mutated to generate new prefixes. For example, the fuzzer can change a reads-from relation in that graph and cut out the invalid part after that rf in the graph to get a prefix. The fuzzer may dynamically drop some prefixes based on their ability to find new interesting graphs. Below is a simplified diagram of the fuzzing loop.
+
+
+
+The fuzzer uses partially constructed graphs, represented by "prefixes" in the following context, as guidance for further explorations. As shown in Algorithm~\ref{fuzzer}, the fuzzer executes the program $P$ a total of $N$ times (line~\ref{line:input}), generating an execution graph each time after exploring the search space. It maintains a set of prefixes, initially empty (line~\ref{line:init_prefix}). At the beginning of each exploration, it picks a prefix from the prefix set (line~\ref{line:pick_prefix}). If no prefixes are available in the set, the exploration will be entirely random (line~\ref{line:random_explore}). With a selected prefix, the fuzzer replays the execution up to the end of the prefix and randomly constructs the remaining part of the execution graph (line~\ref{line:explore_prefix}). When the exploration is finished, an execution graph is constructed, and the fuzzer determines whether this graph is interesting according to certain metrics (line~\ref{line:is_interesting}). A graph is considered interesting if it is a new execution graph or contains new relations or events. The interesting graph is then mutated to generate new prefixes (line~\ref{line:mutate}). These new prefixes are added to the prefix set for future use (line~\ref{line:add_prefix}). For example, the fuzzer might modify a reads-from relation in the graph and remove the invalid portion following that relation to create a prefix. The fuzzer may also dynamically discard some prefixes based on their effectiveness in finding new interesting graphs. New graphs are added to the graph set (line~\ref{line:add_graph}) and are ultimately outputted at the end (line~\ref{line:output}). The number of unique execution graphs in the outputted graph set is a major metric for evaluating the fuzzer's searching ability.
+
 
 
 
@@ -141,29 +144,32 @@ The fuzzer maintains a set of prefixes, initialized empty. At the beginning of e
     \caption{Fuzzing algorithm}
     \label{fuzzer}
     \begin{algorithmic}[1]
-    \STATE \textbf{Input:} Program $P$ and number of explorations $N$
+    \STATE \textbf{Input:} Program $P$ and number of explorations $N$ \label{line:input}
     \STATE \textbf{Output:} $N$ execution graphs
     
-    \STATE prefix\_set $\leftarrow \emptyset$
-    \STATE graphs $\leftarrow [ ]$
+    \STATE prefix\_set $\leftarrow \emptyset$ \label{line:init_prefix}
+    \STATE graphs $\leftarrow \emptyset$ 
     
     \FOR{$i \leftarrow 1$ \TO $N$}
-        \IF{prefix\_set $\neq \emptyset$}
-            \STATE $p \leftarrow$ get\_prefix(prefix\_set)
-            \STATE $g \leftarrow $ explore\_from\_prefix($p$)
+        \IF{prefix\_set $\neq \emptyset$}   
+            \STATE $p \leftarrow$ get\_prefix(prefix\_set) \label{line:pick_prefix}
+            \STATE $g \leftarrow $ explore\_from\_prefix($p$) \label{line:explore_prefix}
         \ELSE 
-            \STATE $g \leftarrow $ explore\_randomly()
+            \STATE $g \leftarrow $ explore\_randomly() \label{line:random_explore}
         \ENDIF 
-        \IF{is\_interesting(g)}
-            \STATE $p' \leftarrow$ mutate(g)
-            \STATE prefix\_set $\leftarrow$ prefix\_set $\cup p'$        
+        \IF{is\_interesting(g)} \label{line:is_interesting}
+            \STATE $p' \leftarrow$ mutate(g) \label{line:mutate}
+            \STATE prefix\_set $\leftarrow$ prefix\_set $\cup p'$      \label{line:add_prefix}  
         \ENDIF
-        \STATE graphs $\leftarrow$ [graphs, g]
+        \STATE graphs $\leftarrow$ $graphs \cup g$      \label{line:add_graph}
     \ENDFOR
     
-    \RETURN graphs
+    \RETURN graphs      \label{line:output}
     \end{algorithmic}
 \end{algorithm}
+
+
+
 
 
 
