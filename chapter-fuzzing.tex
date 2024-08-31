@@ -1,38 +1,24 @@
-\chapter{\label{cha:fuzz}fuzzing}
+\chapter{\label{cha:fuzz}Fuzzing}
 
-In this chapter, we describe a fuzzing algorithm for concurrent programs under weak memory models.
+In this chapter, we describe the high-level algorithm for fuzzing weak memory programs. (The next two sections will implement mutations for test generation differently.)
 
 \section{Motivation}
 
-As discussed before, the behaviors of programs under weak memory models are modeled by execution graphs, with nodes representing the events and edges representing the relations. In general, the process of checking such programs is constructing the execution graphs and checking the consistency and validity of the graphs. The search space, or state space, is the set of all possible execution graphs. Due to various combinations of the relations, branches of control flows and loops, he size of the search space can sometimes be quite large or even infinite. For the brevity of discussion, assume the model checker is single-threaded, each time taking one step, either adding a node to the graph or forming a relation between two nodes. In addition, the model checker has some mechanism to ensure the steps taken are valid according to the memory model. Consider the SB example, if all atomic operations are relaxed, the following four execution graphs, shown in Figure~\ref{SB4}, are all allowed, among which, as an comparison, only the first execution is allowed under the sc model.
+As discussed before, the behaviors of programs under weak memory models are modeled by execution graphs. In general, the process of checking such programs is constructing the execution graphs and checking the consistency and validity of the graphs. The search space, is the set of all possible execution graphs. Due to various combinations of the relations, branches of control flows and loops, the size of the search space can sometimes be quite large or even infinite. For the brevity of discussion, assume the model checker is single-threaded, each time taking one step, either adding a node to the graph or forming a relation between two nodes. In addition, the model checker has some mechanism to ensure the steps taken are valid according to the memory model. Consider the SB example, if all atomic operations are relaxed, the following four execution graphs, shown in Figure~\ref{SB4}, are all allowed, among which, as a comparison, only the first execution is allowed under the sc model.
 
 \begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
     \centering
     \includegraphics[scale=0.65]{figure/exec-graph/SB4.pdf} % 图片文件名和路径  
-    \caption{allowed execution graphs of SB} % 图片标题
+    \caption{Valid execution graphs of SB} % 图片标题
     \label{SB4} % 图片标签，用于交叉引用
 \end{figure}
 
 
-% \begin{lstlisting}[caption={P1}, label={P1}]
-% atomic<int> x = {}; // s0
 
-% void thread1() {
-%     x.store(1, relaxed);  // s1 
-%     x.store(2, relaxed);  // s2 
-%     x.store(3, relaxed);  // s3 
-% }
-% void thread2() {
-%     int r1 = x.load(relaxed);   // r1
-%     int r2 = x.load(relaxed);   // r2 
-%     int r3 = x.load(relaxed);   // r3 
-%     cout << r1 << r2 << r3 << '\n';
-% }
-% \end{lstlisting}
 
 % Since all loads and stores are relaxed, the loads will have no synchronization constraints. Each load can have 4 possible stores to read from: s0, s1, s2 and s3. Hence the size of the search space is: $4^3 = 64$. Comparing this with the SC model, if all loads and stores are sc, the total number of executions is $\binom{6}{3} = 20$. 
 
-In addition, the probability of finding different executions are not uniform distribution. Some execution graphs are easier to be found, others can have low probability. Consider another example:
+In addition, the probability of encountering different executions is not uniformly distributed. Some execution graphs are easier to find, while others may have a lower probability of being discovered. Consider another example, shown in Listing~\ref{P2}:
 \begin{lstlisting}[caption={P2}, label={P2}]
 atomic<int> x = {};
 
@@ -51,10 +37,28 @@ void thread2() {
 }
 \end{lstlisting}
 
-Suppose the model checker make random decisions uniformly when adding events. The first events in thread 1 and 2 are: x.load() and x++. Thread1 printing 'B' requires that x++ is selected first, with the probability of $\frac{1}{2}$. However, printing 'B' requires a sepecific ordering or selecting events, i.e. {a, d, b, e, c}, with the probability of $\frac{1}{2} \times \frac{1}{2}  \times \frac{1}{2}  \times \frac{1}{2} =  \frac{1}{16}$.
+Suppose the model checker make random decisions uniformly when adding events. The first events in thread 1 and 2 are: \texttt{x.load()} and \texttt{x++}. \texttt{Thread1} printing 'B' requires that \texttt{x++} is selected first, with the probability of $\frac{1}{2}$. However, printing 'B' requires a sepecific ordering or selecting events, i.e. {a, d, b, e, c}, with the probability of $\frac{1}{2} \times \frac{1}{2}  \times \frac{1}{2}  \times \frac{1}{2} =  \frac{1}{16}$.
 
 
-Different orders of adding events and forming relations may result in same executions. Take ~\ref{P1} for example. The model checker can first select r1 first and set its rf as s0, or it can first add s1-3 and then set r1 reading from s0. Both cases are equivalent.
+Different orders of adding events and forming relations may result in same executions. Take Listing~\ref{P6} for example. The model checker can first select \texttt{r1} first and set its \texttt{rf} as \texttt{s0}, or it can first add \texttt{s1-3} and then set \texttt{r1} reading from \texttt{s0}. Both cases are equivalent.
+
+\begin{lstlisting}[caption={P6}, label={P6}]
+    atomic<int> x = {}; // s0
+    
+    void thread1() {
+        x.store(1, relaxed);  // s1 
+        x.store(2, relaxed);  // s2 
+        x.store(3, relaxed);  // s3 
+    }
+    void thread2() {
+        int r1 = x.load(relaxed);   // r1
+        int r2 = x.load(relaxed);   // r2 
+        int r3 = x.load(relaxed);   // r3 
+        cout << r1 << r2 << r3 << '\n';
+    }
+\end{lstlisting}
+
+
 
 Here is a summary of several observations of random based testing for weak memory programs:
 \begin{itemize}
@@ -67,17 +71,17 @@ The process of the random-based model checking procedure is similar to the Galto
 \begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
     \centering
     \includegraphics[scale=0.5]{figure/tree.pdf} % 图片文件名和路径  
-    \caption{random decision tree} % 图片标题
+    \caption{Random decision tree} % 图片标题
     \label{tree} % 图片标签，用于交叉引用
 \end{figure}
 
 
-If each time we start from the top and randomly make decisions, those states in the middle will be reached more frequently than those in the corners. However, if we can start from some middle states, it would be easier to reach some corner states, and hence the states reached in the end will be more diverse. This is where our fuzzer come to help. An intuitive description of the fuzzer is: whenever the fuzzer reaches a new state (i.e. finds an interesting execution graph), it mutates one of the decisions made. For the next iteration, the fuzzer replays the decision making until the mutated point, change the decision as mutated, and continues randomly afterwards. As shown in  \ref{tree3} (a), suppose the red path is the previous exploration and the fuzzer mutates the second decision from going right to left (b). Then for the next exploration, it replays until the mutated choice and the probability of reaching the left corner state becomes $\frac{1}{2^{n-2}}$ (c). 
+If each time we start from the top and randomly make decisions, those states in the middle will be reached more frequently than those in the corners. However, if we can start from some middle states, it would be easier to reach some corner states, and hence the states reached in the end will be more diverse. This is where our fuzzer come to help. An intuitive description of the fuzzer is: whenever the fuzzer reaches a new state (i.e. finds an interesting execution graph), it mutates one of the decisions made. For the next iteration, the fuzzer replays the decision making until the mutated point, change the decision as mutated, and continues randomly afterwards. As shown in Figure~\ref{tree3} (a), suppose the red path is the previous exploration and the fuzzer mutates the second decision from going right to left (b). Then for the next exploration, it replays until the mutated choice and the probability of reaching the left corner state becomes $\frac{1}{2^{n-2}}$ (c). 
 
 \begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
     \centering
     \includegraphics[scale=0.5]{figure/tree3.pdf} % 图片文件名和路径  
-    \caption{mutation} % 图片标题
+    \caption{Mutation} % 图片标题
     \label{tree3} % 图片标签，用于交叉引用
 \end{figure}
 
@@ -87,7 +91,7 @@ If each time we start from the top and randomly make decisions, those states in 
 
 In this section, we present an example of the fuzzing approach on the execution graphs, using the \ref{exp-fuzz} program with release-acquire pairs. 
 
-\begin{lstlisting}[caption={fuzzing example}, label={exp-fuzz}]
+\begin{lstlisting}[caption={Fuzzing example}, label={exp-fuzz}]
     atomic<int> x = {};
     
     void thread1() {
@@ -102,19 +106,19 @@ In this section, we present an example of the fuzzing approach on the execution 
 
 
 
-Suppose during exploration, one execution graph is constructed as shown in Figure \ref{example_construct}, where the labels of events and relations are omitted. The read values in thread2 are both 2. In this execution, r2 has only choice to read from, which is w2, since r1 has already read from w2 and r2 reading from w1 will introduce a cycle in the graph. However, r1 can have two choices: w1 and w2. If the fuzzer consider this execution as interesting and change the rf choice for r1, a new execution can be revealed in the next iteration, as shown in Figure \ref{example_mutate}. 
+Suppose during exploration, one execution graph is constructed as shown in Figure \ref{example_construct}, where the labels of events and relations are omitted. The read values in \texttt{thread2} are both 2. In this execution, \texttt{r2} has only choice to read from, which is \texttt{w2}, since \texttt{r1} has already read from \texttt{w2} and \texttt{r2} reading from w1 will introduce a cycle in the graph. However, \texttt{r1} can have two choices: \texttt{w1} and \texttt{w2}. If the fuzzer consider this execution as interesting and change the rf choice for \texttt{r1}, a new execution can be revealed in the next iteration, as shown in Figure \ref{example_mutate}. 
 
 \begin{figure}[htbp] 
     \centering
     \includegraphics[scale=0.5]{figure/exec-graph/example_construct.pdf} 
-    \caption{construction of an execution graph} 
+    \caption{Construction of an execution graph} 
     \label{example_construct} 
 \end{figure}
 
 \begin{figure}[htbp] 
     \centering
     \includegraphics[scale=0.5]{figure/exec-graph//example_mutate.pdf} 
-    \caption{mutate the previous execution graph and re-explore} 
+    \caption{Mutate the previous execution graph and re-explore} 
     \label{example_mutate} 
 \end{figure}
 

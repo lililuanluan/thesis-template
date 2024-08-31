@@ -46,10 +46,18 @@
 \gdef\@university{please define university}
 \gdef\@studentid{please define studentid}
 
+
+\gdef\@externalcommitteemember{}
+\newif\ifexternalcommitteemember
+\externalcommitteememberfalse
+
+
 \def\chair#1{\gdef\@chair{#1}}
 \def\supervisor#1{\gdef\@supervisor{#1}}
 \def\externalsupervisor#1{\gdef\@externalsupervisor{#1}\external@supervisortrue}
 \def\committeemember#1{\gdef\@committeemember{#1}\committee@membertrue}
+
+\def\externalcommitteemember#1{\gdef\@externalcommitteemember{#1}\externalcommitteemembertrue}
 
 \def\subtitle#1{\gdef\@subtitle{#1}}
 \def\authoremail#1{\gdef\@authoremail{#1}}
@@ -182,10 +190,13 @@ Thesis Committee:\\\\
 Chair: & \@chair\\
 University supervisor: & \@supervisor\\
 \ifexternal@supervisor
-Company supervisor: & \@externalsupervisor\\
+External supervisor: & \@externalsupervisor\\
 \fi
 \ifcommittee@member
 Committee Member: & \@committeemember\\
+\fi
+\ifexternalcommitteemember
+External Committee Member: & \@externalcommitteemember\\
 \fi
 \\\\\\\end{tabular}
 \cleardoublepage\endgroup

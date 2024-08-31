@@ -44,13 +44,13 @@ int main() {
 }
 \end{lstlisting}
 
-In this program, there are two shared variables: a non-atomic variable data and an atomic flag. The librace.h header is provided by C11Tester and contains the instrumented function store\_8 for non-atomic variables. The initialization of flag, which is non-atomic, deliberately uses 1 as the initial value. Since the C++ standard thread library internally calls POSIX APIs, the thread-related function calls will be hooked by C11Tester's dynamic library.
+In this program, there are two shared variables: a non-atomic variable \texttt{data} and an atomic flag. The \texttt{librace.h} header is provided by C11Tester and contains the instrumented function \texttt{store\_8} for non-atomic variables. The initialization of \texttt{flag}, which is non-atomic, deliberately uses 1 as the initial value. Since the C++ standard thread library internally calls POSIX APIs, the thread-related function calls will be hooked by C11Tester's dynamic library.
 
-After compilation, the model checker launches the program. After initializing the global variables, the model checker creates the first thread, which is the main thread, and assigns an tid, 1, to it. The first event is the creation of thrd2. After thrd2 is created and assigned an tid of 2, two threads, main and thrd2, are active. The model checker will randomly pick a thread to continue. Suppose the main thread is selected; the next event of it is the creation of thrd3. After creating thrd3, the next event of main is joining thrd2, making main inactive. Now, the current active threads are: thrd2 and thrd3.
+After compilation, the model checker launches the program. After initializing the global variables, the model checker creates the first thread, which is the \texttt{main} thread, and assigns an tid, 1, to it. The first event is the creation of \texttt{thrd2}. After \texttt{thrd2} is created and assigned an tid of 2, two threads, \texttt{main} and \texttt{thrd2}, are active. The model checker will randomly pick a thread to continue. Suppose the \texttt{main} thread is selected; the next event of it is the creation of \texttt{thrd3}. After creating \texttt{thrd3}, the next event of main is joining \texttt{thrd2}, making \texttt{main} inactive. Now, the current active threads are: \texttt{thrd2} and \texttt{thrd3}.
 
-If the model checker selects thrd2, the two events in it, writing to data and flag, will be consumed, and the thrd2 is finished. Now, thrd2 becomes joinable and the currently active threads are: main and thrd3. Suppose main is selected and after joining thrd2 it becomes inactive again. Then, thrd3 becomes the only active thread so it will be executed without the need to make a choice. The first event in thrd3 is loading the value of flag. Since the store of flag in thrd2 has already been explored, the non-atomic initialization of flag is hidden in the modification order. Hence, only the atomic store is visible to this load, and the rf relation also forms a synchronization-with relation between the two thread. When writing to the non-atomic data, the race detector checks previous access to that location. The store in thrd2 happens before the read in the current thread, which happens before the current store, so all events are totally ordered and no data race will be reported.
+If the model checker selects \texttt{thrd2}, the two events in it, writing to \texttt{data} and \texttt{flag}, will be consumed, and the \texttt{thrd2} is finished. Now, \texttt{thrd2} becomes joinable and the currently active threads are: \texttt{main} and \texttt{thrd3}. Suppose \texttt{main} is selected and after joining \texttt{thrd2} it becomes inactive again. Then, \texttt{thrd3} becomes the only active thread so it will be executed without the need to make a choice. The first event in \texttt{thrd3} is loading the value of \texttt{flag}. Since the store of \texttt{flag} in \texttt{thrd2} has already been explored, the non-atomic initialization of \texttt{flag} is hidden in the modification order. Hence, only the atomic store is visible to this load, and the reads-from relation also forms a synchronization-with relation between the two thread. When writing to the non-atomic \texttt{data}, the race detector checks previous access to that location. The store in \texttt{thrd2} happens before the read in the current thread, which happens before the current store, so all events are totally ordered and no data race will be reported.
 
-Considering another case, suppose the model checker selects thrd3 after  after both threads have been created. The load of flag will be executed and only the initialization of data is visible to it. After reading the initial value, the store of data is consumed. When thrd3 is finished, the stores in thrd2 will be executed. When writing to data, the race detector checks previous actions related to that memory location. The store in thrd3 has already been explored, and it has no happen-before relations with the current store. Therefore, the two stores are concurrent, and a data race is reported.
+Considering another case, suppose the model checker selects \texttt{thrd3} after after both threads have been created. The load of \texttt{flag} will be executed and only the initialization of \texttt{data} is visible to it. After reading the initial value, the store of \texttt{data} is consumed. When \texttt{thrd3} is finished, the stores in \texttt{thrd2} will be executed. When writing to \texttt{data}, the race detector checks previous actions related to that memory location. The store in \texttt{thrd3} has already been explored, and it has no happen-before relations with the current store. Therefore, the two stores are concurrent, and a data race is reported.
 
 One optimization implemented by C11Tester is that it will consume writes with release and relaxed memory orders, only pausing on SC writes. This is because the sc order is part of the C/C++11 memory model, so different sc order will result in different executions. Moreover, consuming weak writes does not prevent covering possible executions. Consider the following example\ref{P4},
 \begin{lstlisting}[caption={P4}, label={P4}]
@@ -64,9 +64,9 @@ One optimization implemented by C11Tester is that it will consume writes with re
         var.store(3, release);      // (w3)
     }
 \end{lstlisting}
-after creating two threads, if t2 is selected first, r1 can only read from the initial value. If t3 is selected, the first event, w1, in this thread will be executed. The next two events are release writes, so the model checker will not re-select threads after executing w1. Instead, it will execute w2 and w3 until t3 is finished. Then, it finds that the only active thread is t2, so it selects t2. Now, the set of available writes for r1 to read from becomes: w1, w2 and w3, and r1 is free to randomly select one of them. Although making thread decisions after each event is also feasible, the optimized version is more efficient and still able to cover all four possible executions.
+after creating two threads, if \texttt{t2} is selected first, \texttt{r1} can only read from the initial value. If \texttt{t3} is selected, the first event, \texttt{w1}, in this thread will be executed. The next two events are release writes, so the model checker will not re-select threads after executing \texttt{w1}. Instead, it will execute \texttt{w2} and \texttt{w3} until \texttt{t3} is finished. Then, it finds that the only active thread is \texttt{t2}, so it selects \texttt{t2}. Now, the set of available writes for \texttt{r1} to read from becomes: \texttt{w1}, \texttt{w2} and \texttt{w3}, and \texttt{r1} is free to randomly select one of them. Although making thread decisions after each event is also feasible, the optimized version is more efficient and still able to cover all four possible executions.
 
-Another optimization performed by C11Tester is that it avoids backtracking during exploration. To achieve this, it performs consistency checking at each step to ensure that it is valid. It makes decisions based on the implications of the memory model and the already explored events. In \ref{P4}, for example, if t3 has been explored, when choosing the rf relation for r1 in t2, the rf-set only contains w1, w2 and w3, where w0 is excluded. If r1 had selected w0 and the model checker continued until some point where the execution graph is found to be infeasible under the memory model, it would have to perform backtracking to make a different choice for r1. Consider another example \ref{P5},
+Another optimization performed by C11Tester is that it avoids backtracking during exploration. To achieve this, it performs consistency checking at each step to ensure that it is valid. It makes decisions based on the implications of the memory model and the already explored events. In \ref{P4}, for example, if \texttt{t3} has been explored, when choosing the rf relation for \texttt{r1} in \texttt{t2}, the rf-set only contains \texttt{w1}, \texttt{w2} and \texttt{w3}, where \texttt{w0} is excluded. If \texttt{r1} had selected \texttt{w0} and the model checker continued until some point where the execution graph is found to be infeasible under the memory model, it would have to perform backtracking to make a different choice for \texttt{r1}. Consider another example \ref{P5},
 \begin{lstlisting}[caption={P5}, label={P5}]
     std::atomic<int> var = {};      // (w0)
     void t2() {
@@ -79,10 +79,9 @@ Another optimization performed by C11Tester is that it avoids backtracking durin
         var.store(3, release);      // (w3)
     }
 \end{lstlisting}
-if r1 has already selected w3 to read from, only w3 will be included in the rf-set for r2, because w3 $\xrightarrow{\text{rf}}$ r2 implies that w0-2 are modification-ordered before w3 and thus should not be visible to r2, which is sequence ordered after r1. Otherwise, the RR coherence will be violated. Excluding infeasible writes from the rf-set ensures the rf's to be valid, which in turn avoids the backtracking efforts.
+if \texttt{r1} has already selected \texttt{w3} to read from, only \texttt{w3} will be included in the rf-set for \texttt{r2}, because \texttt{w3} $\xrightarrow{\text{rf}}$ \texttt{r2} implies that \texttt{w0-2} are modification-ordered before \texttt{w3} and thus should not be visible to \texttt{r2}, which is sequence ordered after \texttt{r1}. Otherwise, the RR coherence will be violated. Excluding infeasible writes from the rf-set ensures the rf's to be valid, which in turn avoids the backtracking efforts.
 
 To summarize, C11Tester will execute the program from beginning to end, randomly picking threads and writes, with the optimizations of consuming weak writes and constraining rf-sets.
-
 
 \section{Customization points of C11Tester}
 
@@ -339,7 +338,7 @@ where $N_{c11Fuzzer}$ and $N_{c11Tester}$ are the number of unique execution gra
 		Improvement & 11.1\%  & 36.2\%          & 52.3\%     & 24.9\%       & 3.0\%    \\
 		\hline
 	\end{tabular}
-	\caption{benchmarks (1)}
+	\caption{Benchmarks (1)}
 	\label{c11fuzzer-bench1}
 
 \end{table}
@@ -355,7 +354,7 @@ where $N_{c11Fuzzer}$ and $N_{c11Tester}$ are the number of unique execution gra
 		Improvement & 25.1\% & -0.0\%      & 29.7\%       & 14.5\%        & 24.2\%     & 75.6\%   \\
 		\hline
 	\end{tabular}
-	\caption{benchmarks (2)}
+	\caption{Benchmarks (2)}
 	\label{c11fuzzer-bench2}
 \end{table}
 
@@ -558,7 +557,7 @@ where $N_{bug}$ is the number of different buggy executions found over $N$ itera
 		C11Fuzzer  & 6993    & 5858            & 5858       & 1220         & 9418     \\
 		\hline
 	\end{tabular}
-	\caption{bug hitting rate (1)}
+	\caption{Bug hitting rate (1)}
 	\label{buggy1}
 
 \end{table}
@@ -572,7 +571,7 @@ where $N_{bug}$ is the number of different buggy executions found over $N$ itera
 		C11Fuzzer  & 5      & 4736        & 5009         & 340           & 1488       & 576      \\
 		\hline
 	\end{tabular}
-	\caption{bug hitting rate (2)}
+	\caption{Bug hitting rate (2)}
 	\label{buggy2}
 \end{table}
 
@@ -600,7 +599,7 @@ We test our fuzzer using a real-world application, iris, which is an asynchronou
 		C11Fuzzer & 8.9s   & 40.5s  & 7.4s     & 2.9s        \\
 		\hline
 	\end{tabular}
-	\caption{overhead (per execution)}
+	\caption{Overhead (per execution)}
 	\label{overhead}
 \end{table}
 
