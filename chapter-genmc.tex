@@ -71,7 +71,7 @@ Similar to what is discussed in section~\ref{c11fuzzer:implementation}, several 
 \end{itemize}
 
 
-\subsection{hash function for execution graphs}\label{sec:hashf}
+\subsection{Hash function for execution graphs}\label{sec:hashf}
 Firstly the hash function for a single event should be defined, as shown in Algorithm~\ref{alg:hash-eventlabel}
 
 \begin{algorithm}
@@ -115,7 +115,7 @@ Then the events are iterated by thread ID and indices to compute the hash value 
 	\end{algorithmic}
 \end{algorithm}
 
-\subsection{mutation methods}
+\subsection{Mutation methods}
 
 The mutation process is composed of two steps: changing an rf relation and cutting the graph. The driver has provided a function, getRfsApproximation, that calculates a list of possible stores given a read event. It first collects a list of coherent stores restricted by the memory model. In RC11, it selects all concurrent stores and the latest store in mo before the provided read. The fuzzer first picks out all read events that have multiple store choices and pairs each read with each of its alternative stores. Then the fuzzer randomly selects one of these pairs for mutation. Here we denote the selected read event as $R$, its original store as $S_{old}$, and the newly selected store as $S$. In accordance to GenMC's terminology, the word "view" is used to represent a subset of events in an execution graph. Here a "cut view" represents the view of the current graph to be kept in the following cutting strategies, which serves as a prefix defined in Algorithm~\ref{fuzzer}. The fuzzer implements three different cutting strategies, described as follows:
 
@@ -164,14 +164,14 @@ For maximal cut, only the porf successors of the read, $\text{R}^7(x)$, will be 
 \end{figure}
 
 
-\subsection{the is\_interesting function}
+\subsection{The is\_interesting function}
 The is\_interesting function is defined as follows: we first compute the relative frequency for a graph:
 \[f_{rel}(g) = f_g^2 / \frac{\sum_{g_i \in G} f_{g_i}^2}{N}\], where $f_{g_i}$ is the number of occurrence of the execution graph $g_i$ for all graphs in the set of explored graphs $G$. For example, if the fuzzer explores $g_1$, $g_2$ and $g_3$ for 1, 2, and 7 times in a total number of 10 explorations, the relative frequency of $g_1$ defined here is $\frac{7^2}{(1^2 + 2^2 + 7^2) / 10} \approx 0.19 $, and for $g_3$ it is $\frac{1^2}{(1^2 + 2^2 + 7^2) / 10} \approx 9.07 $. If the value is lower than a certain threshold, the corresponding execution graph is considered to be interesting.
 
 
 % \frac{f_g}{\sum_{g_i \in G} f_{g_i}^2 / N_G}
 
-\section{benchmarks}
+\section{Benchmarks}
 
 We use the following benchmarks to evaluate the fuzzer.
 
@@ -207,7 +207,7 @@ We use the following benchmarks to evaluate the fuzzer.
 	\item Is the fuzzer able to find bugs faster than the model checker?\label{RQ:GenMC_vs_fuzzer}
 \end{enumerate}
 
-\subsection{\ref*{RQ:CutVSRandom}: fuzzer vs random tester }
+\subsection{\ref*{RQ:CutVSRandom}: Fuzzer vs random tester }
 
 To address this question, we run both the fuzzer and the GenMC in its estimation mode for 10 thousand iterations. Using the hash function defined in section~\ref{sec:hashf}, we count the number of distinct execution graphs they found. Table~\ref{genmc:num-of-exe} shows the results of each benchmark. The improvements are computed by:
 \[
@@ -238,7 +238,7 @@ It can be observed that for all of the above benchmarks, the fuzzer is able to e
 \]
 is 181.62\%.
 
-\subsection{\ref*{RQ:CutComparison}: revisit cut vs minimal cut vs maximal cut }
+\subsection{\ref*{RQ:CutComparison}: Revisit cut vs minimal cut vs maximal cut }
 
 Figure~\ref{genmc:buf_ring} to \ref{genmc:ttaslock} show the execution graph coverage plots of random testing and fuzzing with three mutation strategies. It can be seen that in 5 of these benchmarks, the maximal cut finds the greatest number of execution graphs. The revisit cut performs the best in 2 benchmarks.
 
@@ -332,7 +332,7 @@ It is hypothesized that the performance is related to the number of events that 
 
 
 
-\subsection{\ref*{RQ:GenMCOverhead}: runtime overhead and efficiency of 3 mutations }
+\subsection{\ref*{RQ:GenMCOverhead}: Runtime overhead and efficiency of 3 mutations }
 
 We examine the total time elapsed for exploring 100 thousand iterations, shown in Figure~\ref{genmc:overhead}. The random testing is taken as a baseline for evaluating the overhead. It can be seen that random testing does not always take the shortest time. This is due to the mechanism of GenMC. When adding events to the graph, the GenMC driver first inspects whether there is already an event in that position. If so, it continues without the need to check consistency, pick rf's, or arrange it in the coherence order. Although the maximal cut takes many steps to compute the cut view, it still takes the shortest time in one of the benchmarks since the driver can save effort on those remaining events. Overall, all three mutations have insignificant effects on the runtime performance, with affordable overheads.
 
@@ -402,7 +402,7 @@ In addition, it is possible that one strategy may find more execution graphs in 
 
 
 
-\subsection{\ref*{RQ:GenMC_vs_fuzzer}: fuzzer vs model checker }
+\subsection{\ref*{RQ:GenMC_vs_fuzzer}: Fuzzer vs model checker }
 
 Model checkers are also used to verify the correctness of programs and detect bugs. The GenMC model checker implements an optimal algorithm that ensures no duplication while enumerating execution graphs. However, we would like to demonstrate that in some cases, introducing randomness can be more efficient in terms of the number of iterations taken and the time elapsed for detecting a bug. Take the long-assert benchmark for example, as shown in Listing~\ref{long-assert}. In order to violate the assertion, \texttt{x} should read from its initial value while \texttt{y} reads the values 1, 2, 3, 4, and 5, sequentially. In the GenMC's verification process of this program, when the read of \texttt{x} event is added, the driver picks a value for it and pushes other alternative choices to the workqueue, which will be revisited later. Suppose the driver picks a non-zero value, the zero value will be tried again only after the drivers finish exploring graphs with the non-zero choice.
 

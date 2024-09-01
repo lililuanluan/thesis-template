@@ -1,3 +1,5 @@
+
+
 \chapter{\label{cha:background}Background}
 
 % Short chapter intro \ldots
@@ -115,6 +117,29 @@ void receiver() {
 
 There are a variety of other weak memory models, such as the ARMv8 \cite{ARMv8} memory model, supporting out-of-order executions and speculative executions, and language-level  memory models, including the Java memory model\cite{java} and C++ memory model. The rest of this paper mainly discusses the C/C++ memory model\cite{c++model}.
 
+\section{Execution graph}
+
+
+Execution graphs are directed graph representations of program executions. Under the SC model, program executions can alway be represented by a single sequence of events, as SC enforces that operations execute as if they occur sequentially by definition. While under weak memory models, programs can exhibit more complicated behaviors, where execution graphs are helpful in capturing a wider range of possible executions.
+
+The nodes in an execution graph represent events, or actions, within a program, while the edges connecting them depict their relationships as defined by the memory model. In this thesis, the terms "event" and "action" are used interchangeably. An event is a basic unit that denotes an operation related to the memory. For example, this line of code \texttt{y = x + 1} involves two events: a read event for the variable \texttt{x} and a write event for the variable \texttt{y}. Note that typically not all variables are included in the graph, as some may be irrelevant to understanding the program's behavior. For instance, thread creation typically involves initializing several state variables or interacting with the operating system, but these operations are often abstracted into a single thread-creation event in the graph. Some reads and writes to local variables that do not affect other threads are also omitted from the graph. For example, if \texttt{a = x} reads the value of a shared variable \texttt{x} and assigns it to a local variable \texttt{a}, it is often represented in the graph as a single event, which is the read of \texttt{x}. The edges in the execution graph encode the event relations specified by the memory model. For example, if two events, $e_1$ and $e_2$, have a sequenced-before (sb) relation, i.e. $e_1$ is sequenced before $e_2$, an arrow will be drawn in the graph from $e_1$ to $e_2$. Similar to events, not all relations are always depicted in the graph. For instance, when two events have multiple relations in the same direction, some less important relations may be omitted for simplicity or clarity. More details about these relations are discussed in the next section.
+
+
+Your explanation is clear and informative, but it can be refined for better flow and precision. Here's a revised version:
+
+We use an example to introduce the notations used in execution graphs in this thesis. In Figure~\ref{graph-example}, the five nodes represent five different events in the program. The directed edges are annotated with the names of the relations between these events. For instance, consider the node \texttt{W($x$, 1)}: \texttt{W} stands for a write operation, and \texttt{W($x$, 1)} represents writing the value 1 to the variable \texttt{$x$}. In the case of \texttt{R($x$)}, \texttt{R} stands for a read operation. This node represents a read event for \texttt{$x$}, with the value being omitted because it can be obtained from the node from which the \textit{read-from} (rf) edge originates.
+
+\begin{figure}[h!tbp]
+	\centering
+	\includegraphics[scale=1]{figure/exec-graph/example.pdf} 
+	\caption{Execution graph example} 
+	\label{graph-example} 
+\end{figure}
+
+
+
+
+
 
 
 \section{C/C++ Memory Model}
@@ -123,7 +148,7 @@ The first C/C++ memory model was described in a proposal\cite{c++model-proposal}
 
 The memory model can be defined as a function, taking a set of candidate executions $X$ as input. These executions must be allowed by the operational semantics and are consistent, denoted as pre-executions. The function returns "NONE" if any executions have undefined behaviors; otherwise, it returns "SOME" pre-executions.
 
-A candidate execution X contains two components, $X = (X_{opsem}, X_{witness})$, where $X_{opsem}$ is determined by the operational semantics and $X_{witness}$ is an existential witness of some further data. Both components are composed of memory actions (or actions for short) and relations. An execution can be represented as a graph, with its actions as nodes and relations as edges. An action can be a non-atomic read or write, atomic operations, mutex operations and fences, represented by <aid, tid, type, location, value>. The $X_{opsem}$ contains three types of relations:
+A candidate execution X contains two components, $X = (X_{opsem}, X_{witness})$, where $X_{opsem}$ is determined by the operational semantics and $X_{witness}$ is an existential witness of some further data. Both components are composed of memory actions (or actions for short) and relations. An action can be a non-atomic read or write, atomic operations, mutex operations and fences, represented by <aid, tid, type, location, value>. The $X_{opsem}$ contains three types of relations:
 
 \begin{itemize}
 	\item \textit{sequenced-before} (sb): A relation between intra-thread actions given by C/C++ language specifications, usually analogous to program order. When two separate actions are written in two separate statements, the former is sequenced-before the latter. Arguments of functions or operands of some operators like '==' do not have specified evaluation order, thus do not have sequenced-before relations.
@@ -131,7 +156,7 @@ A candidate execution X contains two components, $X = (X_{opsem}, X_{witness})$,
 	\item \textit{data-dependency} (dd):  The dd is provided by the operational semantics, primarily used for release/consume atomics. For example, a store to a pointer and the use of the pointed data have a dd relation.
 \end{itemize}
 
-In the SB example,  assuming that x and y are atomic variables, the $X_{opsem}$ of a candidate execution can be drawn as in Figure~\ref{XopsemSB}
+In the SB example,  assuming that x and y are atomic variables, the $X_{opsem}$ of a candidate execution can be drawn as in Figure~\ref{XopsemSB}.
 %   x = 0
 %     | sb
 %   y = 0
@@ -148,6 +173,8 @@ In the SB example,  assuming that x and y are atomic variables, the $X_{opsem}$ 
 \end{figure}
 
 The $X_{witness}$ part contains three additional relations. These relations are not uniquely determined by the operational semantics. Therefore, given a program p, the candidate execution X can have only one $X_{opsem}$, but multiple possible $X_{witness}$ configurations.
+
+% $\wlab{1}{x, 0}$
 
 
 \begin{itemize}
@@ -219,6 +246,3 @@ Consider the SB example. If the reads and writes are SC atomic operations, the e
 The C/C++ memory model described above is an axiomatic model that specifies which executions are allowed and which are not. However, this model has some flaws. Firstly, the data-dependency relation and those associated with consume-release atomics are specified but are not implemented on most platforms, where they are typically treated as acquire-release atomic operations. Furthermore, there are some executions that are allowed by the model but should be ruled out in principle. For instance, consider a load buffer (LB) program where two threads load from different locations and store the loaded values to the other location. If all the atomic operations have a relaxed memory order, any loaded value is allowed by the model. This issue is known as the \textit{out-of-thin-air} (OOTA) problem. Since the model was proposed, numerous efforts have been made to revise it, which will be summarized in Section~\ref{cha:related}.
 
 
-% execution graph
-
-% is rf sufficient for execution
