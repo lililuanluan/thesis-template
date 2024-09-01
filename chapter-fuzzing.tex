@@ -4,9 +4,25 @@ In this chapter, we describe the high-level algorithm for fuzzing weak memory pr
 
 \section{Motivation}
 
-As discussed before, the behaviors of programs under weak memory models are modeled by execution graphs. In general, the process of checking such programs is constructing the execution graphs and checking the consistency and validity of the graphs. The search space, is the set of all possible execution graphs. Due to various combinations of the relations, branches of control flows and loops, the size of the search space can sometimes be quite large or even infinite. For the brevity of discussion, assume a single-threaded random test generator is used, each time taking one step, either adding a node to the graph or forming a relation between two nodes. In addition, the test generator has some mechanism to ensure the steps taken are valid according to the memory model. Consider the SB example, if all atomic operations are relaxed, the following four execution graphs, shown in Figure~\ref{SB4}, are all allowed, among which, as a comparison, only the first execution is allowed under the sc model.
+As discussed before, the behaviors of programs under weak memory models are modeled by execution graphs. In general, the process of checking such programs is constructing the execution graphs and checking the consistency and validity of the graphs. 
 
-\begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
+
+Here is a summary of several characteristics associated with random-based testing for weak memory programs, which we will illustrate with examples:
+\begin{itemize}
+    \item The search space of execution graphs is typically large, often larger than in strong memory models.
+    \item The probability of finding specific executions is not uniform, with some execution graphs being infrequent.
+    \item Different decisions made by the test generator can lead to the same executions.
+\end{itemize}
+
+
+
+
+
+Firstly, the search space, which is the set of all possible execution graphs, can become very large or even infinite due to various combinations of relations, control flow branches, and loops. For simplicity, assume a single-threaded random test generator is used, which takes one step at a time—either adding a node to the graph or forming a relation between two nodes. Additionally, the test generator has a mechanism to ensure that the steps taken are valid according to the memory model. For example, consider the SB example: if all atomic operations are relaxed, the four execution graphs shown in Figure~\ref{SB4} are all allowed. In contrast, under the SC model, only the first execution is permitted.
+
+
+
+\begin{figure}[h!tbp] % htbp 表示优先放置位置：here, top, bottom, page
     \centering
     \includegraphics[scale=0.65]{figure/exec-graph/SB4.pdf} % 图片文件名和路径  
     \caption{Valid execution graphs of SB} % 图片标题
@@ -18,7 +34,10 @@ As discussed before, the behaviors of programs under weak memory models are mode
 
 % Since all loads and stores are relaxed, the loads will have no synchronization constraints. Each load can have 4 possible stores to read from: s0, s1, s2 and s3. Hence the size of the search space is: $4^3 = 64$. Comparing this with the SC model, if all loads and stores are sc, the total number of executions is $\binom{6}{3} = 20$. 
 
-In addition, the probability of encountering different executions is not uniformly distributed. Some execution graphs are easier to find, while others may have a lower probability of being discovered. Consider another example, shown in Listing~\ref{P2}:
+
+
+
+Secondly, the probability of encountering different executions is not uniformly distributed. Some execution graphs are more likely to be found, while others may have a lower probability of being discovered. Consider the example shown in Listing~\ref{P2}. Suppose the test generator makes random decisions uniformly when adding events. The first events in threads 1 and 2 are \texttt{x.load()} and \texttt{x++}. For \texttt{thread1} to print 'B', \texttt{x++} must be selected first, which has a probability of $\frac{1}{2}$. However, to print 'A', a specific ordering of events is required, namely {a, d, b, e, c}, with a probability of $\frac{1}{2} \times \frac{1}{2} \times \frac{1}{2} \times \frac{1}{2} = \frac{1}{16}$.
 \begin{lstlisting}[caption={P2}, label={P2}]
 atomic<int> x = {};
 
@@ -37,10 +56,8 @@ void thread2() {
 }
 \end{lstlisting}
 
-Suppose the test generator make random decisions uniformly when adding events. The first events in thread 1 and 2 are: \texttt{x.load()} and \texttt{x++}. \texttt{Thread1} printing 'B' requires that \texttt{x++} is selected first, with the probability of $\frac{1}{2}$. However, printing 'B' requires a sepecific ordering or selecting events, i.e. {a, d, b, e, c}, with the probability of $\frac{1}{2} \times \frac{1}{2}  \times \frac{1}{2}  \times \frac{1}{2} =  \frac{1}{16}$.
 
-
-Different orders of adding events and forming relations may result in same executions. Take Listing~\ref{P6} for example. The test generator can first select \texttt{r1} first and set its \texttt{rf} as \texttt{s0}, or it can first add \texttt{s1-3} and then set \texttt{r1} reading from \texttt{s0}. Both cases are equivalent.
+Thirdly, different orders of adding events and forming relations may result in the same executions. For example, consider Listing~\ref{P6}. The test generator could first select \texttt{r1} and set its write to read from as \texttt{s0}, or it could first add \texttt{s1-3} and then set \texttt{r1} to read from \texttt{s0}. Both cases result in equivalent executions.
 
 \begin{lstlisting}[caption={P6}, label={P6}]
     atomic<int> x = {}; // s0
@@ -60,12 +77,6 @@ Different orders of adding events and forming relations may result in same execu
 
 
 
-Here is a summary of several observations of random based testing for weak memory programs:
-\begin{itemize}
-    \item The search space of execution graphs are usually large, larger than in the strong memory model.
-    \item The probability of finding executions are not uniform. Some infrequent graphs exist.
-    \item Different decisions made by the test generator may result in same executions.
-\end{itemize}
 
 The process of the random-based random walk test generation procedure is similar to the Galton board experiment. Consider the following $n$ level decision tree, from top to bottom, each step has two choices, either going left or right. Each node represents a state and the edges represent the decisions. There are some states that can be reached from multiple paths. Take the middle state in the second level for example, it can be reached by first choosing left then right, or by first choosing right then left. There are also some other states that have more strict requirements on the decision making. For example, the state circled in red requires always select the left choices to reach, with the probability of $\frac{1}{2^n}$. 
 \begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
@@ -78,7 +89,7 @@ The process of the random-based random walk test generation procedure is similar
 
 If each time we start from the top and randomly make decisions, those states in the middle will be reached more frequently than those in the corners. However, if we can start from some middle states, it would be easier to reach some corner states, and hence the states reached in the end will be more diverse. This is where our fuzzer come to help. An intuitive description of the fuzzer is: whenever the fuzzer reaches a new state (i.e. finds an interesting execution graph), it mutates one of the decisions made. For the next iteration, the fuzzer replays the decision making until the mutated point, change the decision as mutated, and continues randomly afterwards. As shown in Figure~\ref{tree3} (a), suppose the red path is the previous exploration and the fuzzer mutates the second decision from going right to left (b). Then for the next exploration, it replays until the mutated choice and the probability of reaching the left corner state becomes $\frac{1}{2^{n-2}}$ (c). 
 
-\begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
+\begin{figure}[h!tbp] % htbp 表示优先放置位置：here, top, bottom, page
     \centering
     \includegraphics[scale=0.5]{figure/tree3.pdf} % 图片文件名和路径  
     \caption{Mutation} % 图片标题
@@ -86,6 +97,8 @@ If each time we start from the top and randomly make decisions, those states in 
 \end{figure}
 
 
+
+The fuzzer aims to improve the performance of randomized testing approaches. Some random testers, such as C11Tester or GenMC in its estimation mode, use random walk testing. In contrast, exhaustive model checkers, like GenMC, explore all possible executions. Exhaustive checkers are useful when the search space is limited, typically when the program under test is not too large. Randomized testers are usually employed for testing larger programs. These testers construct one execution graph based on random decisions of threads and reads-from relations during each exploration. For each new iteration, they start over and randomly explore again. The drawback of this approach is that it does not retain state information between explorations, leading to redundant efforts. Different random decisions can result in the same executions, and some infrequent execution graphs may remain undiscovered.
 
 \section{Example}
 
@@ -130,7 +143,6 @@ Suppose during exploration, one execution graph is constructed as shown in Figur
 
 This section provides a high-level overview of the fuzzing algorithm. The implementation details and evaluation results will be presented in later chapters.
 
-The fuzzer aims to improve the performance of randomized testing approaches. There are some random testers, such as C11Tester or GenMC with its estimation mode, that uses random-based testing, and some exhaustive model checkers, such as GenMC, that enumerate all possible executions. Exhaustive checkers are useful when the search space is limited, typically when the program under test is not too large. Random-based checking is frequently used for testing large programs. Such a checker usually constructs one execution graph based on random decisions of threads and reads-from relations during each exploration. For the next iteration, it starts over from the beginning and randomly explores again. A problem with this is because it does not keep states among explorations, some repetitive efforts may be taken. Sometimes different random decisions may result in same executions, or some infrequent execution graphs may not be revealed. 
 
 
 
