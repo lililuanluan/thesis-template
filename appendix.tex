@@ -1,10 +1,29 @@
-% \chapter{\label{cha:glossary}Glossary}
+\chapter{\label{cha:source-code}Source code}
 
 % In this appendix we give an overview of frequently used terms and
 % abbreviations.
 
-% \begin{description}
-% \item[foo:] \ldots
-% \item [bar:] \ldots
-% \end{description}
+In this appendix we provide the source code repositories used in this thesis and instructions on how to use them.
 
+\section{Fuzzer implementation in C11Tester}
+
+The source code is available at GitHub: \href{https://github.com/lililuanluan/c11tester-fuzz.git}{https://github.com/lililuanluan/c11tester-fuzz.git}.
+
+
+\begin{itemize}
+    \item Download and install the vagrantBox\cite{vagrantBox} and VirtualBox\cite{virtualbox}. 
+	\item Download the C11Tester artifact following the instructions of the C11Tester\cite{c11tester} paper.
+	\item Download the fuzzer implementation from the GitHub link: \href{https://github.com/lililuanluan/c11tester-fuzz.git}{https://github.com/lililuanluan/c11tester-fuzz.git} and place the files in the \texttt{c11tester/} folder. Go to the \texttt{c11tester/benchmarks/} folder and run the \texttt{afuzzer.py} script. 
+\end{itemize}
+
+
+\section{Fuzzer implementation in GenMC}
+
+The source code is available at GitHub: \href{https://github.com/lililuanluan/genmc-fuzz.git}{https://github.com/lililuanluan/genmc-fuzz.git}.
+
+\begin{itemize}
+    \item Download and install Docker\cite{docker}. 
+	\item Download the GenMC artifact from paper \cite{genmc-enhance} following the instructions in its artifact\cite{genmc-enhance-artifact}.
+	\item Download the \texttt{src/} and \texttt{debug-luan} folders and place them in the \texttt{~/genmc-tool/} directory. 
+    \item Go to \texttt{debug-luan/} and run the \texttt{test.sh} script. 
+\end{itemize}
