@@ -166,7 +166,7 @@ For maximal cut, only the porf successors of the read, $\text{R}^7(x)$, will be 
 
 \subsection{The is\_interesting function}
 The is\_interesting function is defined as follows: we first compute the relative frequency for a graph:
-\[f_{rel}(g) = f_g^2 / \frac{\sum_{g_i \in G} f_{g_i}^2}{N}\], where $f_{g_i}$ is the number of occurrence of the execution graph $g_i$ for all graphs in the set of explored graphs $G$. For example, if the fuzzer explores $g_1$, $g_2$ and $g_3$ for 1, 2, and 7 times in a total number of 10 explorations, the relative frequency of $g_1$ defined here is $\frac{7^2}{(1^2 + 2^2 + 7^2) / 10} \approx 0.19 $, and for $g_3$ it is $\frac{1^2}{(1^2 + 2^2 + 7^2) / 10} \approx 9.07 $. If the value is lower than a certain threshold, the corresponding execution graph is considered to be interesting.
+\[f_{rel}(g) = f_g^2 / \frac{\sum_{g_i \in G} f_{g_i}^2}{N}\] where $f_{g_i}$ is the number of occurrence of the execution graph $g_i$ for all graphs in the set of explored graphs $G$. For example, if the fuzzer explores $g_1$, $g_2$ and $g_3$ for 1, 2, and 7 times in a total number of 10 explorations, the relative frequency of $g_1$ defined here is $\frac{7^2}{(1^2 + 2^2 + 7^2) / 10} \approx 0.19 $, and for $g_3$ it is $\frac{1^2}{(1^2 + 2^2 + 7^2) / 10} \approx 9.07 $. If the value is lower than a certain threshold, the corresponding execution graph is considered to be interesting.
 
 
 % \frac{f_g}{\sum_{g_i \in G} f_{g_i}^2 / N_G}
