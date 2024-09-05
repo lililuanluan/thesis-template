@@ -176,7 +176,7 @@ The \texttt{is\_interesting} function is defined as follows: we first compute th
 \[
 f_{\text{rel}}(g) = \frac{f_g^2}{\sum_{g_i \in G} {g_i}^2 / |G| },
 \]
-where \( f_{g_i} \) is the number of occurrences of the execution graph \( g_i \) in the set of explored graphs \( G \). For example, if the fuzzer explores graphs \( g_1 \), \( g_2 \), and \( g_3 \) 2, 3, and 5 times respectively in 10 total explorations, the relative frequency of \( g_1 \) is:
+where \( f_{g_i} \) is the frequency of occurrences of the execution graph \( g_i \) in the set of explored graphs \( G \). For example, if the fuzzer explores graphs \( g_1 \), \( g_2 \), and \( g_3 \) 2, 3, and 5 times respectively in 10 total explorations, the relative frequency of \( g_1 \) is:
 \[
 \frac{2^2}{\left(2^2 + 3^2 + 5^2\right) / 3} \approx 0.32,
 \]
