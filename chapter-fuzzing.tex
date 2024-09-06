@@ -1,6 +1,6 @@
 \chapter{\label{cha:fuzz}Fuzzing}
 
-In this chapter, we describe the high-level algorithm for fuzzing weak memory programs. (The next two sections will implement mutations for test generation differently.)
+In this chapter, we describe our high-level algorithm for fuzzing weak memory programs. The next two sections will implement mutations for test generation differently.
 
 \section{Motivation}
 
@@ -18,8 +18,8 @@ Here is a summary of several characteristics associated with random-based testin
 
 
 
-Firstly, the search space, which is the set of all possible execution graphs, can become very large or even infinite due to various combinations of relations, control flow branches, and loops. For simplicity, assume a single-threaded random test generator is used, which takes one step at a time—either adding a node to the graph or forming a relation between two nodes. Additionally, the test generator has a mechanism to ensure that the steps taken are valid according to the memory model. For example, consider the SB example: if all atomic operations are relaxed, the four execution graphs shown in Figure~\ref{SB4} are all allowed. In contrast, under the SC model, only the first execution is permitted.
-
+Firstly, the search space, which is the set of all possible execution graphs, can become very large or even infinite due to various combinations of relations, control flow branches, and loops. For simplicity, assume a single-threaded random test generator is used, which takes one step at a time—either adding a node to the graph or forming a relation between two nodes. Additionally, the test generator has a mechanism to ensure that the steps taken are valid according to the memory model. For example, consider the SB example: if all atomic operations are relaxed, the four execution graphs shown in Figure~\ref{SB4} are all allowed. In thecontrast, under the SC model, only the first execution is permitted.
+\michalis{This is wrong; 3 graphs are allowed under SC.}
 
 
 \begin{figure}[h!tbp] % htbp 表示优先放置位置：here, top, bottom, page
@@ -58,6 +58,7 @@ void thread2() {
 
 
 Thirdly, different orders of adding events and forming relations may result in the same executions. For example, consider Listing~\ref{P6}. The test generator could first select \texttt{r1} and set its write to read from as \texttt{s0}, or it could first add \texttt{s1-3} and then set \texttt{r1} to read from \texttt{s0}. Both cases result in equivalent executions.
+\michalis{Do you need a different example to explain this?}
 
 \begin{lstlisting}[caption={P6}, label={P6}]
     atomic<int> x = {}; // s0
@@ -85,7 +86,7 @@ The process of the random-based random walk test generation procedure is similar
     \caption{Random decision tree} % 图片标题
     \label{tree} % 图片标签，用于交叉引用
 \end{figure}
-
+\michalis{Maybe the example above requires some more explanation. Assuming that a node in your tree is not an execution graph (but rather the rf choices within a graph), can it be the case that two paths yield the same graph? If so, why? If not, why does fuzzing help?}
 
 If each time we start from the top and randomly make decisions, those states in the middle will be reached more frequently than those in the corners. However, if we can start from some middle states, it would be easier to reach some corner states, and hence the states reached in the end will be more diverse. This is where our fuzzer come to help. An intuitive description of the fuzzer is: whenever the fuzzer reaches a new state (i.e. finds an interesting execution graph), it mutates one of the decisions made. For the next iteration, the fuzzer replays the decision making until the mutated point, change the decision as mutated, and continues randomly afterwards. As shown in Figure~\ref{tree3} (a), suppose the red path is the previous exploration and the fuzzer mutates the second decision from going right to left (b). Then for the next exploration, it replays until the mutated choice and the probability of reaching the left corner state becomes $\frac{1}{2^{n-2}}$ (c). 
 
@@ -135,6 +136,7 @@ Suppose during exploration, one execution graph is constructed as shown in Figur
     \label{example_mutate} 
 \end{figure}
 
+\michalis{Why can't you get r1 = 1 with testing? A different motivation is required.}
 %\burcu{Could you provide an example of the fuzzing approach on the execution graphs? E.g., Give an example program and a random execution graph of the program. Then, show another execution graph that is obtained by some mutation (e.g., mutates the prev. graph after some prefix) and exposes another behavior of the program.}
 
 \section{Overview}
@@ -150,7 +152,7 @@ This section provides a high-level overview of the fuzzing algorithm. The implem
 The fuzzer uses partially constructed graphs, represented by "prefixes" in the following context, as guidance for further explorations. As shown in Algorithm~\ref{fuzzer}, the fuzzer executes the program $P$ a total of $N$ times (line~\ref{line:input}), generating an execution graph each time after exploring the search space. It maintains a set of prefixes, initially empty (line~\ref{line:init_prefix}). At the beginning of each exploration, it picks a prefix from the prefix set (line~\ref{line:pick_prefix}). If no prefixes are available in the set, the exploration will be entirely random (line~\ref{line:random_explore}). With a selected prefix, the fuzzer replays the execution up to the end of the prefix and randomly constructs the remaining part of the execution graph (line~\ref{line:explore_prefix}). When the exploration is finished, an execution graph is constructed, and the fuzzer determines whether this graph is interesting according to certain metrics (line~\ref{line:is_interesting}). A graph is considered interesting if it is a new execution graph or contains new relations or events. The interesting graph is then mutated to generate new prefixes (line~\ref{line:mutate}). These new prefixes are added to the prefix set for future use (line~\ref{line:add_prefix}). For example, the fuzzer might modify a reads-from relation in the graph and remove the invalid portion following that relation to create a prefix. The fuzzer may also dynamically discard some prefixes based on their effectiveness in finding new interesting graphs. New graphs are added to the graph set (line~\ref{line:add_graph}) and are ultimately outputted at the end (line~\ref{line:output}). The number of unique execution graphs in the outputted graph set is a major metric for evaluating the fuzzer's searching ability.
 
 
-
+\michalis{Why execute only up to N times? Could you do this with a time budget too? If so, mention this.}
 
 \begin{algorithm}
     \caption{Fuzzing algorithm}
@@ -179,7 +181,7 @@ The fuzzer uses partially constructed graphs, represented by "prefixes" in the f
     \RETURN graphs      \label{line:output}
     \end{algorithmic}
 \end{algorithm}
-
+\michalis{Why does it matter whether g is interesting? Isn't it more important that the mutated graph is interesting?}
 
 
 
