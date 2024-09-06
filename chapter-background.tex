@@ -113,16 +113,22 @@ void receiver() {
     use(*p);
 }
 \end{lstlisting}
+\michalis{This is MP not SB}
 
+There are a variety of other weak memory models, such as the ARMv8 \cite{ARMv8} memory model, supporting out-of-order executions and speculative executions, and language-level  memory models, including the Java memory model\cite{java} and C++ memory model. 
+The rest of this paper mainly discusses the C/C++ memory model\cite{c++model}.
+\michalis{Use C/C++11; briefly mention that weakly-ordered atomics (relaxed accesses) need to be used in order to get the weak behaviors.} 
 
-There are a variety of other weak memory models, such as the ARMv8 \cite{ARMv8} memory model, supporting out-of-order executions and speculative executions, and language-level  memory models, including the Java memory model\cite{java} and C++ memory model. The rest of this paper mainly discusses the C/C++ memory model\cite{c++model}.
-
-\section{Execution graph}
+\section{Execution graphs}
 
 
 Execution graphs are directed graph representations of program executions. Under the SC model, program executions can alway be represented by a single sequence of events, as SC enforces that operations execute as if they occur sequentially by definition. While under weak memory models, programs can exhibit more complicated behaviors, where execution graphs are helpful in capturing a wider range of possible executions.
 
+\michalis{Cite some paper (e.g., Alglave'14 - herding cats) about execution graphs.
+}
+
 The nodes in an execution graph represent events, or actions, within a program, while the edges connecting them depict their relationships as defined by the memory model. In this thesis, the terms "event" and "action" are used interchangeably. An event is a basic unit that denotes an operation related to the memory. For example, this line of code \texttt{y = x + 1} involves two events: a read event for the variable \texttt{x} and a write event for the variable \texttt{y}. Note that typically not all variables are included in the graph, as some may be irrelevant to understanding the program's behavior. For instance, thread creation typically involves initializing several state variables or interacting with the operating system, but these operations are often abstracted into a single thread-creation event in the graph. Some reads and writes to local variables that do not affect other threads are also omitted from the graph. For example, if \texttt{a = x} reads the value of a shared variable \texttt{x} and assigns it to a local variable \texttt{a}, it is often represented in the graph as a single event, which is the read of \texttt{x}. The edges in the execution graph encode the event relations specified by the memory model. For example, if two events, $e_1$ and $e_2$, have a \textit{sequenced-before} (sb) relation, i.e. $e_1$ is sequenced before $e_2$, an arrow will be drawn in the graph from $e_1$ to $e_2$. Similar to events, not all relations are always depicted in the graph. For instance, when two events have multiple relations in the same direction, some less important relations may be omitted for simplicity or clarity. More details about these relations are discussed in the next section.
+\michalis{You can avoid talking about thread creation. Events correspond to memory accesses (shared reads+writes).}
 
 
 
@@ -135,9 +141,9 @@ We use an example to introduce the notations used in execution graphs in this th
 	\caption{Execution graph example} 
 	\label{graph-example} 
 \end{figure}
+\michalis{Have a graph where both reads read 0 instead, and connect back to you SB example. You can also use the SB example (and the respective lines of code) in your explanation of events and relations.}
 
-
-
+\michalis{You also need to say something about consistency: the semantics of a program is a set of consistent graphs. Consistency is MM-specific: the SB where both reads read 0 is consistent under SC, but not under TSO. Below you will introduce consistency under C/C++11.}
 
 
 
@@ -155,6 +161,7 @@ A candidate execution X contains two components, $X = (X_{opsem}, X_{witness})$,
 	\item \textit{additional-synchronized-with} (asw): The thread-creation action introduces an asw relation from the sequenced-before-maximal actions of the parent thread to the sequenced-before-minimal actions of the child thread.
 	\item \textit{data-dependency} (dd):  The dd is provided by the operational semantics, primarily used for release/consume atomics. For example, a store to a pointer and the use of the pointed data have a dd relation.
 \end{itemize}
+\michalis{You don't have to talk about asw, or evaluation order}
 
 In the SB example,  assuming that x and y are atomic variables, the $X_{opsem}$ of a candidate execution can be drawn as in Figure~\ref{XopsemSB}.
 %   x = 0
@@ -209,7 +216,7 @@ There are some derived relations defined based on the above six relations. These
 	When \texttt{p==nullptr} reads from \texttt{p=\&data}, a \textit{dependency-ordered-before} relation is formed.	As a result, \texttt{*p}, having a cad with \texttt{p==nullptr}, also has a dob from \texttt{p=\&data}.
 	\item \textit{happens-before} (hb): If the execution has no consume operations, hence no dob relations, the hb relation is a transitive closure of $sb \cup sw$. More generally, hb is defined as the union of sb and \textit{inter-thread-happens-before}, which combines the sw and dob relations.
 \end{itemize}
-
+\michalis{You don't have to talk about dob. If you want, you could even skip the model definition and just show a bunch of programs along with allowed/forbidden behaviors. That way you will also introduce various access modes, without being too formal. (A full consistency definition is now missing anyway.)}
 
 The three relations in $X_{witness}$ (rf, mo and sc) cannot be arbitrarily composed to make an execution. Instead, they have to satisfy some constraints, called \textit{coherence}. The coherence constraints have the form "A-B Coherence", or CoAB, where both A and B are either reads or writes, and $A \xrightarrow{\text{hb}} B$. As illustrated previously, the hb is derived from sb, sw and dob, where sw is derived from sc and rf and dob is derived from rf. The constraints on hb, mo and rf will ultimately constrain the combinations of rf, mo and sc. The coherence constraints are listed below:
 

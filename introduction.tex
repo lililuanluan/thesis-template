@@ -1,14 +1,24 @@
 \chapter{\label{cha:intro}Introduction}
 
+\listoftodos{}
+
 % testing
 
 To address the threat posed by bugs or vulnerability of programs, researchers have investigated a variety of bug detection techniques. Formal verification techniques, such as axiomatic approaches, use mathematical deduction to prove whether a safety property is guaranteed. Such approaches heavily rely on the expertise of developers and normally require huge amount of time and effort\cite{sel4}.
 Automated testing, on the other hand, has for long been of great importance for its scalability and efficiency. Testing techniques aimed at discovering bugs and safety vulnerabilities have been developed over the years, primarily including static analysis and dynamic testing. Static analysis tools\cite{infer, RacerD} typically perform bug detection at compile time, relying on some abstraction of the semantics of the source code. 
 Due to the complexity of the programming language and the logic of the tested program, such static analysis tools sometimes do not ensure reporting bugs comprehensively and correctly. The other way is dynamic testing, which explores reachable states at runtime. Unit testing, for example, plays a fundamental role in software development. Some influential tools have been developed, including AddressSanitizer\cite{ASAN}, detecting addressability issues, and ThreadSanitizer\cite{TSAN}, which detects data races and deadlocks. However, even though high quality test cases can cover large ranges of program behaviors, there can still be some corner cases that are not exposed. In addition, such test cases require a deep understanding of the program under test and consume a considerable amount of time and effort to complete. 
 
-
+\michalis{The paragraph above is all over the place, and doesn't motivate fuzzing well IMO. I would suggest a structure like: \\
+ - bugs can be catastrophic, bug detection is important\\
+ - two ways to detect bugs: (1) formal methods establish their absence, but either don't scale or have false positives (2) testing cannot prove full correctness, but is very effective in finding real bugs\\
+ - testing, however, can be inadequate (why?)\\
+~\\
+ In the next paragraph you can introduce fuzzing by explaining how it overcomes certain shortcomings of testing. In principle, you could even avoid talking about formal verification and focus on bug detection.
+}
 
 Fuzz testing has become increasingly popular in recent years. It repeatedly executes the tested program by generating random inputs and monitors whether any buggy behaviors are observed. These approaches are usually easy to apply and have good scalability. One of the most popular fuzzing tool is AFL\cite{afl}, a coverage-guided mutation-based grey-box fuzzer. AFL performs compile-time instrumentation and uses the coverage of the control flow edges as the feedback information for generating new seeds, thus achieving superior efficiency than previous black-box fuzzers. Researchers have developed various techniques to improve the code coverage and accelerate the bug detection. 
+
+\michalis{The different fuzzing approaches (blackbox, greybox etc) are not explained. Similarly for coverage-guided fuzzing. After motivating it, maybe introduce it by explaining how it works on a high level (you do explain some things below, but not the terms above).}
 
 A fuzzer typically has a feedback loop. It maintains a set of seeds as program inputs to execute the program. The information about the execution is collected to determine whether a seed is interesting, which means the seed has triggered new interested behaviors. The interesting seeds will be used for generating new seeds during repeated executions. A mutation-based fuzzer can mutate (such as bit flipping, hashing, shifting, etc) the interesting seeds to generate new seeds. 
 
@@ -18,10 +28,16 @@ Entering the multi-core era, concurrent programming has gained increasing signif
 One commonly used method for testing concurrent programs is controlled concurrency testing (CCT). CCT repeatedly executes the program with probabilistic guarantees or proactively controls thread interleavings based on specific schedules. For example, PCT\cite{pct} limits the number of thread switches, characterized by bug depth, and assigns random change points to create different schedules. However, CCT does not use program feedback to generate test cases and sometimes relies on prior knowledge of the program under test, such as PCT.
 On the other hand, fuzzing for concurrent programs also attracts interest from researchers. Traditional coverage-guided approaches can face challenges when detecting concurrency bugs, since the code coverage information does not reflect the thread interleavings, some of which may result in concurrency bugs. Therefore, thread-relevant instrumentation is needed to provide concurrency feedback information in the fuzzing loop. Another problem is that, assuming sequential consistency, both the program input and the thread interleavings (or schedules) determine the program's behavior. Given a seed, bugs that only occur with infrequent thread interleavings may not be easily revealed during repeated execution. Hence existing concurrency fuzzers can be classified into two types: fuzzers aiming for generating seeds\cite{muzz} and thread interleavings\cite{rff, conzzer}, with some fuzzers combining the two goals. The latter kind usually incorporate the techniques of CCT.  Based on CCT's schedule controlling techniques, fuzzers can treat the schedules as another kind of input and mutate interesting schedules like the conventional procedure. 
 
+\michalis{Is CCT relevant to the discussion, or would it suffice to say that fuzzing does not work for concurrency and explain why?
+}
 
 Most concurrency fuzzers mainly focus on testing for programs under sequential consistency memory model. However, modern computer architectures often allow for weak memory behaviors. On the one hand, although SC is easy to understand by programmers, achieving SC is very expensive. On the other hand, by relaxing the memory order and allowing for weak memory behaviors, the efficiency of execution can be significantly improved. However, both developing and testing programs under weak memory has been notoriously hard. Given the success that fuzzing has achieved on sequential programs and multi-threading programs under SC memory, it is reasonable to believe fuzzing can also be helpful for weak memory testing. 
 
+\michalis{If the main point of the introduction is that we now support weak memory, you can center the introduction around that (and not only mention it at the very end). E.g.,: (1) bugs are bad; there is testing+fuzzing (2) testing does not work for concurrency, and even if it does it just for SC (3) most platforms employ weak memory (explain what this means) and there is no testing technique for weak memory. You don't have to go into details of different techniques (sanitizers, AFL, CCTs etc), even citations would suffice (you can do that in the related work section)}
+
 In this thesis, we propose a novel fuzzing approach designed to support weak memory models. Unlike existing fuzzers that rely on random seeds or thread schedules, our approach mutates execution graphs to generate test cases. Due to the generality of execution graphs, our fuzzer also supports programs under the sequential consistency memory model. We then present two implementations in both C11Tester and GenMC, which are state-of-the-art platforms for testing weak memory programs.
+
+\michalis{What are execution graphs?}
 
 The rest of this thesis is structured as follows: Chapter~\ref{cha:background} provides the background information on fuzzers, weak memory models and the C/C++ memory model. Chapter~\ref{cha:fuzz} presents the intuition and a high level overview of the fuzzing algorithm. Chapter~\ref{cha:c11tester} describes the implementation on C11Tester, with the evaluation results and discussion. Chapter~\ref{cha:genmc} describes the implementation on GenMC and the evaluation of three mutation strategies. Chapter~\ref{cha:related} briefly summarizes some other related work on fuzzing, memory models and model checking, etc. Chapter~\ref{cha:conclusion} concludes this thesis and discusses possible future work. 
 
