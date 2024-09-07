@@ -4,60 +4,22 @@ In this chapter, we describe our high-level algorithm for fuzzing weak memory pr
 
 \section{Motivation}
 
-As discussed before, the behaviors of programs under weak memory models are modeled by execution graphs. 
-
-
+As discussed before, weak memory programs can produce nontrivial set of possible executions and testing the program behavior under weak memory models is challenging.
 Here is a summary of several characteristics associated with random-based testing for weak memory programs, which we will illustrate with examples:
 \begin{itemize}
+    \item The program behavior depends not only on scheduling decisions but also weak memory behaviors.
+    \item Different scheduling decisions made by the test generator can lead to the same executions. 
     \item The search space of execution graphs is typically large, often larger than in strong memory models.
     \item The probability of finding specific executions is not uniform, with some execution graphs being infrequent.
-    \item Different decisions made by the test generator can lead to the same executions.
+    
 \end{itemize}
 
 
+Firstly, weak memory models usually allow more behaviors which are not permitted in the SC model. For example, under a certain schedule, a read event may have more than one write events to read from. This presents challenges for testing weak memory programs, as their behaviors are not uniquely determined by scheduling decisions. Take SB for example, assuming all operations are relaxed, suppose a tester's scheduler adds events to an execution graph in the following order: \texttt{[$init$]} $\rightarrow$ \texttt{W($x$, 1)} $\rightarrow$ \texttt{W($y$, 1)} $\rightarrow$ \texttt{R($y$)}. When \texttt{R($y$)} is added, it has two reads-from options: \texttt{[$init$]} and \texttt{W($y$, 1)}. This is not possible in the SC model, because under this schedule, \texttt{[$init$]} happens before \texttt{W($y$, 1)}, which in turn happens before \texttt{R($y$)}. Hence, \texttt{R($y$)} can only read from the most recent write in this happen-before order. In the weak memory model, however, since both \texttt{W($y$, 1)} and \texttt{[$init$]} are relaxed, there is no happen-before relationship between them to constrain the read options for \texttt{R($y$)}.
 
 
 
-Firstly, the search space, which is the set of all possible execution graphs, can become very large or even infinite due to various combinations of relations, control flow branches, and loops. For simplicity, assume a single-threaded random test generator is used, which takes one step at a time—either adding a node to the graph or forming a relation between two nodes. Additionally, the test generator has a mechanism to ensure that the steps taken are valid according to the memory model. For example, consider the SB example: if all atomic operations are relaxed, the four execution graphs shown in Figure~\ref{SB4} are all allowed. In thecontrast, under the SC model, only the first execution is permitted.
-\michalis{This is wrong; 3 graphs are allowed under SC.}
-
-
-\begin{figure}[h!tbp] % htbp 表示优先放置位置：here, top, bottom, page
-    \centering
-    \includegraphics[scale=0.85]{figure/exec-graph/SB4.pdf} % 图片文件名和路径  
-    \caption{Valid execution graphs of SB} % 图片标题
-    \label{SB4} % 图片标签，用于交叉引用
-\end{figure}
-
-
-
-
-% Since all loads and stores are relaxed, the loads will have no synchronization constraints. Each load can have 4 possible stores to read from: s0, s1, s2 and s3. Hence the size of the search space is: $4^3 = 64$. Comparing this with the SC model, if all loads and stores are sc, the total number of executions is $\binom{6}{3} = 20$. 
-
-
-
-
-Secondly, the probability of encountering different executions is not uniformly distributed. Some execution graphs are more likely to be found, while others may have a lower probability of being discovered. Consider the example shown in Listing~\ref{P2}. Suppose the test generator makes random decisions uniformly when adding events. The first events in threads 1 and 2 are \texttt{x.load()} and \texttt{x++}. For \texttt{thread1} to print 'B', \texttt{x++} must be selected first, which has a probability of $\frac{1}{2}$. However, to print 'A', a specific ordering of events is required, namely {a, d, b, e, c}, with a probability of $\frac{1}{2} \times \frac{1}{2} \times \frac{1}{2} \times \frac{1}{2} = \frac{1}{16}$.
-\begin{lstlisting}[caption={P2}, label={P2}]
-atomic<int> x = {};
-
-void thread1() {
-    if(x == 0) {            // a
-        if(x == 1)          // b
-            if(x == 2) {    // c 
-                cout << 'A';
-            }
-    }
-    cout << 'B';
-}
-void thread2() {
-    x++;    // d
-    x++;    // e
-}
-\end{lstlisting}
-
-
-Thirdly, different orders of adding events and forming relations may result in the same executions. For example, consider Listing~\ref{P6}. The test generator could first select \texttt{r1} and set its write to read from as \texttt{s0}, or it could first add \texttt{s1-3} and then set \texttt{r1} to read from \texttt{s0}. Both cases result in equivalent executions.
+Secondly, different orders of adding events and forming relations may result in the same executions. For example, consider Listing~\ref{P6}. The test generator could first select \texttt{r1} and set its write to read from as \texttt{s0}, or it could first add \texttt{s1-3} and then set \texttt{r1} to read from \texttt{s0}. Both cases can result in equivalent executions.
 \michalis{Do you need a different example to explain this?}
 
 \begin{lstlisting}[caption={P6}, label={P6}]
@@ -75,6 +37,69 @@ Thirdly, different orders of adding events and forming relations may result in t
         cout << r1 << r2 << r3 << '\n';
     }
 \end{lstlisting}
+
+
+Thirdly, the search space, which is the set of all possible execution graphs, can become very large or even infinite due to various combinations of relations, control flow branches, and loops. For simplicity, assume a single-threaded random test generator is used, which takes one step at a time—either adding a node to the graph or forming a relation between two nodes. Additionally, the test generator has a mechanism to ensure that the steps taken are valid according to the memory model. For example, consider the SB example: if all atomic operations are relaxed, the four execution graphs shown in Figure~\ref{SB4} are all allowed. In thecontrast, under the SC model, only the first three executions are permitted.
+\michalis{This is wrong; 3 graphs are allowed under SC.}
+
+
+\begin{figure}[h!tbp] % htbp 表示优先放置位置：here, top, bottom, page
+    \centering
+    \includegraphics[scale=0.8]{figure/exec-graph/SB4.pdf} % 图片文件名和路径  
+    \caption{Valid execution graphs of SB} % 图片标题
+    \label{SB4} % 图片标签，用于交叉引用
+\end{figure}
+
+
+
+
+% Since all loads and stores are relaxed, the loads will have no synchronization constraints. Each load can have 4 possible stores to read from: s0, s1, s2 and s3. Hence the size of the search space is: $4^3 = 64$. Comparing this with the SC model, if all loads and stores are sc, the total number of executions is $\binom{6}{3} = 20$. 
+
+
+
+
+Lastly, the probability of encountering different executions is not uniformly distributed. Some execution graphs are more likely to be found, while others may have a lower probability of being discovered. Consider the example shown in Listing~\ref{P2}, where two threads update their corresponding flags \texttt{x1} and \texttt{x2}, and a third thread reads them. Suppose the test generator makes random decisions uniformly when adding events. The program printing 'A' requires one of the following orders shown in Table~\ref{tab:order-prob}, with a total probability of $\frac{7}{18}$, while printing 'B' has a probability of $\frac{11}{18}$.
+
+
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.5} % 调整行高
+    \begin{tabular}{|p{0.3\linewidth}|p{0.3\linewidth}|}    
+        \hline
+        order & probability  \\ \hline
+        \texttt{w1} $\rightarrow$ \texttt{w2} $\rightarrow$ \texttt{r1} $\rightarrow$ \texttt{r2}  & $\frac{1}{3} \times \frac{1}{2} = \frac{1}{6}$ \\  
+        \texttt{w2} $\rightarrow$ \texttt{w1} $\rightarrow$ \texttt{r1} $\rightarrow$ \texttt{r2} & $\frac{1}{3} \times \frac{1}{2} = \frac{1}{6}$ \\  
+        \texttt{w1} $\rightarrow$ \texttt{r1} $\rightarrow$ \texttt{w2} $\rightarrow$ \texttt{r2} & $\frac{1}{3} \times \frac{1}{3} \times \frac{1}{2} = \frac{1}{18}$    \\ 
+        \hline
+    \end{tabular}
+    \caption{Probabilities of each order}
+    \label{tab:order-prob}
+\end{table}
+
+\begin{lstlisting}[caption={P2}, label={P2}]
+atomic<int> x1 = {};
+atomic<int> x2 = {};
+
+void thread1() {
+    x1 = 1;     // w1 
+}
+void thread2() {
+    x2 = 1;     // w2
+}
+
+void thread3() {
+    if(x1 == 1 /* r1 */ && x2 == 1 /* r2 */) {    
+        print("A");
+        assert(false);
+    }
+    else {
+        print("B");        
+    }
+}
+\end{lstlisting}
+
+
 
 
 
@@ -142,7 +167,6 @@ Suppose during exploration, one execution graph is constructed as shown in Figur
 \section{Overview}
 
 
-
 This section provides a high-level overview of the fuzzing algorithm. The implementation details and evaluation results will be presented in later chapters.
 
 
@@ -181,6 +205,11 @@ The fuzzer uses partially constructed graphs, represented by "prefixes" in the f
     \RETURN graphs      \label{line:output}
     \end{algorithmic}
 \end{algorithm}
+
+
+In the following chapters, we present two fuzzers based on C11Tester and GenMC, both of which implement the fuzzing algorithm, with different implementations for functions such as is\_interesting, mutate, and explore\_from\_prefix`.
+
+
 \michalis{Why does it matter whether g is interesting? Isn't it more important that the mutated graph is interesting?}
 
 

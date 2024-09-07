@@ -99,7 +99,7 @@ In the SB example, if the memory model is TSO, it is possible that after executi
 
 Some weak memory behaviors can be forbidden by one weak memory model but allowed by another. In the following message passing (MP) \ref{MP} example, after \texttt{data} is set to 1, the sender thread initializes the pointer, \texttt{p}, with the address of \texttt{data}, hoping that the receiver thread uses the data only after the pointer is initialized (indicating that \texttt{data} is set). Under TSO, due to the FIFO property of store buffers, the shared variable \texttt{p} is initialized only after the data update is complete. However, this is not guaranteed under the PSO (Partial Store Order) model \cite{PSO}. In PSO, each memory location has a separate FIFO store buffer in a thread. In this case, the ordering of moving the values of \texttt{data} and \texttt{p} from their buffers to the shared memory is not restricted. The receiver thread may read \texttt{y=1} when \texttt{data} has not been updated yet.
 
-\begin{lstlisting}[caption={Store Buffer (SB) program}, label={MP}]
+\begin{lstlisting}[caption={Message Passing (MP) program}, label={MP}]
 p = nullptr;
 data = 1;
 // sender thread
@@ -113,10 +113,10 @@ void receiver() {
     use(*p);
 }
 \end{lstlisting}
-\michalis{This is MP not SB}
+% \michalis{This is MP not SB}
 
 There are a variety of other weak memory models, such as the ARMv8 \cite{ARMv8} memory model, supporting out-of-order executions and speculative executions, and language-level  memory models, including the Java memory model\cite{java} and C++ memory model. 
-The rest of this paper mainly discusses the C/C++ memory model\cite{c++model}.
+The rest of this paper mainly discusses the C/C++11 memory model\cite{c++model}.
 \michalis{Use C/C++11; briefly mention that weakly-ordered atomics (relaxed accesses) need to be used in order to get the weak behaviors.} 
 
 \section{Execution graphs}
