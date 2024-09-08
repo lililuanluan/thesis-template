@@ -131,7 +131,7 @@ The is\_interesting function returns true if the hash of the current execution g
 
 The mutate function uniformly picks a fixed number of decisions, including threads and rf's, from multiple choices in the provided set. For each of them, it mutates the selected decision and discards the rest decisions to produce a prefix. Since the only two places where randomness is used are selectWrite and selectThread, the choices of threads and writes will be uniquely mapped to an execution graph. Hence, the prefix of a decision trace also defines a prefix of an execution graph.
 
-% 画图
+
 
 The mutated prefixes will be added to a prefix set. The replaying function chooses a prefix from the set and enforces C11Tester to make the same decisions in that prefix. After enforcing the prefix, C11Tester switches to random mode and continues random exploration until the graph is completed.
 \michalis{You don't have to describe c11tester internals like selectThread and selectWrite, Action, etc. You could just say "In C11Tester the scheduler only controls where reads can read from, and which thread to run next." }
@@ -248,37 +248,29 @@ Take the long-race benchmark for example. This benchmark is taken from the rff's
 
 Hitting the bug requires two workers to alternately modify the shared variable in a very strict order (we also tested the long-race benchmark with rff, and it took 15 thousand iterations to detect it). There are a total of 9 different possible  executions of this program. Figure~\ref{graph-freq} shows how many times each execution graph (represented by their hashes on the x-axis) are explored in $N$ iterations. It can be observed that the random tester is heavily biased towards the first and second executions, which together take up 96.5\% of $N$. In contrast, the fuzzer exhibits a more "flattened" frequency plot on executions and covers all 9 execution graphs. This more even distribution is due to mutations that target those infrequent executions during exploration.
 
-Figure~\ref{hard:reorder-10} to \ref{header:P1} show the number of unique executions and bugs found in first 1000 iterations. It can be observed that the fuzzer detects the bug ealier than C11Tester and also covers a higher range of executions.
+Figure~\ref{c11tester:bug-plot} shows the number of unique executions and bugs found in first 1000 iterations. It can be observed that the fuzzer detects the bug ealier than C11Tester and also covers a higher range of executions.
+
+
 
 \begin{figure}[htbp] 
     \centering
     \includegraphics[scale=0.35]{figure/hardbug/long-race_freq.pdf}  
     \caption{Frequencies of execution graphs } 
-    \label{graph-freq} % 图片标签，用于交叉引用
+    \label{graph-freq} 
 \end{figure}
 \michalis{Is there a better way to visualize this?}
 
 \begin{figure}[H]
 
 	\centering
-	% \begin{minipage}{0.45\textwidth}
-	% 	\centering
-	% 	\includegraphics[width=\textwidth]{figure/hardbug/bipartite_buf_hard_bug.pdf}
-	% 	\caption{bipartite-buf-hard}
-	% 	\label{hardbug:bipartite-buf-hard}
-	% \end{minipage}
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/hardbug/reorder_10_bug.pdf}
-		\caption{reorder-10}
-		\label{hard:reorder-10}
 	\end{minipage}
 	\hfill
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/hardbug/long-race_bug.pdf}
-		\caption{long-race}
-		\label{hardbug:long-race}
 	\end{minipage}
 
 	\vspace{0.5cm}
@@ -286,32 +278,14 @@ Figure~\ref{hard:reorder-10} to \ref{header:P1} show the number of unique execut
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/hardbug/mp_bug.pdf}
-		\caption{mp}
-		\label{hardbug:mp}
 	\end{minipage}
 	\hfill
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/hardbug/P1_bug.pdf}
-		\caption{P1}
-		\label{header:P1}
 	\end{minipage}
-
-	% \vspace{0.5cm}
-
-	% \begin{minipage}{0.45\textwidth}
-	% 	\centering
-	% 	\includegraphics[width=\textwidth]{figure/hardbug/reorder_10_bug.pdf}
-	% 	\caption{reorder-10}
-	% 	\label{hard:reorder-10}
-	% \end{minipage}
-	% \hfill
-	% \begin{minipage}{0.45\textwidth}
-	% 	\centering
-	% 	% This empty minipage will help the last image to be aligned to the left
-	% \end{minipage}
-
-
+	\caption{Buf finding plots}
+	\label{c11tester:bug-plot}
 
 \end{figure}
 
@@ -364,110 +338,96 @@ where $N_{c11Fuzzer}$ and $N_{c11Tester}$ are the number of unique execution gra
 \end{table}
 
 
-In addition, Figure~\ref{cover-plot1-barrier} to Figure~\ref{cover-plot1-ring-buf} draws the coverage plots for each benchmark, with orange lines representing the fuzzer and blue lines representing the random tester. It can be observed that in all of these cases, the fuzzer is able to find more unique executions. In addition, in some benchmarks, such as Figure~\ref{cover-plot1-chase-lev-deque} or Figure~\ref{cover-plot1-mpmc-queue}, the fuzzer's speed of finding executions (the slop of coverage plost) does not significantly slow down as the number of found executions grows. Some coverage plots of the fuzzer, such as those in Figure~\ref{cover-plot1-bipartite-buf} and Figure~\ref{cover-plot1-ring-buf}, also have some "bumps" which the random tester do not have. Such bumps are caused by some prefixes that guide to a group of new interesting executions.
+Figure~\ref{c11tester:cov-plts2} and Figure~\ref{c11tester:cov-plts2} draw the coverage plots for each benchmark, with orange lines representing the fuzzer and blue lines representing the random tester. It can be observed that in all of these cases, the fuzzer is able to find more unique executions. In addition, in some benchmarks, such as chase-lev-deque or mpmc-queue, the fuzzer's speed of finding executions (the slop of coverage plost) does not significantly slow down as the number of found executions grows. Some coverage plots of the fuzzer, such as those in bipartite-buf and ring-buf, also have some "bumps" which the random tester do not have. Such bumps are caused by some prefixes that guide to a group of new interesting executions.
 
 \begin{figure}[H]
+    \centering
 
-	\centering
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/barrier.pdf}
-		\caption{barrier}
-		\label{cover-plot1-barrier}
-	\end{minipage}
-	\hfill
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/chase-lev-deque.pdf}
-		\caption{chase-lev-deque}
-		\label{cover-plot1-chase-lev-deque}
-	\end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/barrier.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/chase-lev-deque.pdf}
+    \end{minipage}
 
-	\vspace{0.5cm}
+    \vspace{0.5cm}
 
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/mpmc-queue.pdf}
-		\caption{mpmc-queue}
-		\label{cover-plot1-mpmc-queue}
-	\end{minipage}
-	\hfill
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/linuxrwlocks.pdf}
-		\caption{linuxrwlocks}
-		\label{cover-plot1-linuxrwlocks}
-	\end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/mpmc-queue.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/linuxrwlocks.pdf}
+    \end{minipage}
 
-	\vspace{0.5cm}
+    \vspace{0.5cm}
 
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/mcs-lock.pdf}
-		\caption{mcs-lock}
-		\label{cover-plot1-mcs-lock}
-	\end{minipage}
-	\hfill
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		% This empty minipage will help the last image to be aligned to the left
-	\end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/mcs-lock.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        % This empty minipage will help the last image to be aligned to the left
+    \end{minipage}
 
-
-
+    \caption{Coverage plots (1)}
+    \label{c11tester:cov-plts1}
 \end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/dekker-change.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/rwlock-test.pdf}
+    \end{minipage}
+
+    \vspace{0.5cm}
+
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/seqlock-test.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/bipartite_buf.pdf}
+    \end{minipage}
+
+    \vspace{0.5cm}
+
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/left_right.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/ring_buf.pdf}
+    \end{minipage}
+
+    \caption{Coverage plots (2)}
+    \label{c11tester:cov-plts2}
+\end{figure}
+
+
+
+
 \michalis{Why are there so many small figures and not a big one with many plots? (also below)}
 
 
-\begin{figure}[H]
-	\centering
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/dekker-change.pdf}
-		\caption{dekker-change}
-		\label{cover-plot1-dekker-change}
-	\end{minipage}
-	\hfill
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/rwlock-test.pdf}
-		\caption{rwlock-test}
-		\label{cover-plot1-rwlock-test}
-	\end{minipage}
-
-	\vspace{0.5cm}
-
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/seqlock-test.pdf}
-		\caption{seqlock-test}
-		\label{cover-plot1-seqlock-test}
-	\end{minipage}
-	\hfill
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/bipartite_buf.pdf}
-		\caption{bipartite-buf}
-		\label{cover-plot1-bipartite-buf}
-	\end{minipage}
-
-	\vspace{0.5cm}
-
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/left_right.pdf}
-		\caption{left-right}
-		\label{cover-plot1-left-right}
-	\end{minipage}
-	\hfill
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/ring_buf.pdf}
-		\caption{ring-buf}
-		\label{cover-plot1-ring-buf}
-	\end{minipage}
-
-\end{figure}
 
 \subsection{\ref*{RQ:coverage}: C11Fuzzer vs PCTWM}
 
@@ -491,57 +451,49 @@ PCTWM \cite{pctwm} is a state-of-the-art weak concurrency tester that expands th
 	\label{pctwm-configs}
 \end{table}
 
-Figure~\ref{pctwm-barrier} to Figure~\ref{pctwm-mpmc-queue} show the coverage plots of number of unique executions found by PCTWM, C11Fuzzer and C11Tester. It can be observed that PCTWM's bounded searching scope is usually smaller than C11Tester's unbounded random searching scope, which is smaller than C11Fuzzer's.
+Figure~\ref{fig:fuzz-vs-pctwm} shows the coverage plots of number of unique executions found by PCTWM, C11Fuzzer and C11Tester. It can be observed that PCTWM's bounded searching scope is usually smaller than C11Tester's unbounded random searching scope, which is smaller than C11Fuzzer's.
+
 
 \begin{figure}[H]
-	\centering
+    \centering
 
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/pctwm/barrier.pdf}
-		\caption{barrier}
-		\label{pctwm-barrier}
-	\end{minipage}
-	\hfill
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/pctwm/chase-lev-deque.pdf}
-		\caption{chase-lev-deque}
-		\label{pctwm-chase-lev-deque}
-	\end{minipage}
-	\vspace{0.5cm}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/pctwm/barrier.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/pctwm/chase-lev-deque.pdf}
+    \end{minipage}
+    \vspace{0.5cm}
 
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/pctwm/mcs-lock.pdf}
-		\caption{mcs-lock}
-		\label{pctwm-mcs-lock}
-	\end{minipage}
-	\hfill
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/pctwm/seqlock-test.pdf}
-		\caption{seqlock-test}
-		\label{pctwm-seqlock-test}
-	\end{minipage}
-	\vspace{0.5cm}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/pctwm/mcs-lock.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/pctwm/seqlock-test.pdf}
+    \end{minipage}
+    \vspace{0.5cm}
 
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/pctwm/linuxrwlocks.pdf}
-		\caption{linuxrwlocks}
-		\label{pctwm-linuxrwlocks}
-	\end{minipage}
-	\hfill
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figure/pctwm/mpmc-queue.pdf}
-		\caption{mpmc-queue}
-		\label{pctwm-mpmc-queue}
-	\end{minipage}
-	\vspace{0.5cm}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/pctwm/linuxrwlocks.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figure/pctwm/mpmc-queue.pdf}
+    \end{minipage}
+    \vspace{0.5cm}
 
+    \caption{C11Fuzzer vs PCTWM}
+    \label{fig:fuzz-vs-pctwm}
 \end{figure}
+
 
 
 \subsection{\ref*{RQ:bug}: Bug hitting rate}

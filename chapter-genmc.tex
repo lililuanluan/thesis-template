@@ -1,6 +1,6 @@
 \chapter{\label{cha:genmc}Fuzzing with GenMC}
 
-\michalis{For more GenMC benchmarks, take a look at Section 6.1 of this paper: https://people.mpi-sws.org/~viktor/papers/tacas2023-buster.pdf . You can take the respective benchmarks from the artifact [22], and see if the fuzzer finds them faster than GenMC. Let me know if you need help w/ running them.}
+% \michalis{For more GenMC benchmarks, take a look at Section 6.1 of this paper: https://people.mpi-sws.org/~viktor/papers/tacas2023-buster.pdf . You can take the respective benchmarks from the artifact [22], and see if the fuzzer finds them faster than GenMC. Let me know if you need help w/ running them.}
 
 In this chapter we first present an overview of GenMC. Then we present three different mutation strategies and show their effectiveness in the end.
 
@@ -286,7 +286,7 @@ is 181.62\%.
 
 \subsection{\ref*{RQ:CutComparison}: Revisit cut vs minimal cut vs maximal cut }
 
-Figure~\ref{genmc:buf_ring} to \ref{genmc:ttaslock} show the execution graph coverage plots of random testing and fuzzing with three mutation strategies. It can be seen that in 5 of these benchmarks, the maximal cut finds the greatest number of execution graphs. The revisit cut performs the best in 2 benchmarks.
+Figure~\ref{genmc:coverage} shows the execution graph coverage plots of random testing and fuzzing with three mutation strategies. It can be seen that in 5 of these benchmarks, the maximal cut finds the greatest number of execution graphs. The revisit cut performs the best in 2 benchmarks.
 
 \begin{figure}[h!]
 
@@ -294,15 +294,11 @@ Figure~\ref{genmc:buf_ring} to \ref{genmc:ttaslock} show the execution graph cov
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc/buf_ring.pdf}
-		\caption{ring-buffer (search space size: 547177)}
-		\label{genmc:buf_ring}
 	\end{minipage}
 	\hfill
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc/linuxrwlocks.pdf}
-		\caption{linuxrwlocks (search space size: 244756)}
-		\label{genmc:linuxrwlocks}
 	\end{minipage}
 
 	\vspace{0.5cm}
@@ -310,15 +306,11 @@ Figure~\ref{genmc:buf_ring} to \ref{genmc:ttaslock} show the execution graph cov
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc/mpmc-queue.pdf}
-		\caption{mpmc-queue (search space size: 417468)}
-		\label{genmc:mpmc-queue}
 	\end{minipage}
 	\hfill
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc/ms_queue.pdf}
-		\caption{ms-queue (search space size: 97604)}
-		\label{genmc:ms-queue}
 	\end{minipage}
 
 	\vspace{0.5cm}
@@ -326,29 +318,15 @@ Figure~\ref{genmc:buf_ring} to \ref{genmc:ttaslock} show the execution graph cov
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc/treiber_stack.pdf}
-		\caption{treiber-stack (search space size: 961851)}
-		\label{genmc:treiber_stack}
 	\end{minipage}
 	\hfill
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc/ttaslock.pdf}
-		\caption{ttaslock (search space size: 49678)}
-		\label{genmc:ttaslock}
 	\end{minipage}
 
-	% \vspace{0.5cm}
-	% \begin{minipage}{0.45\textwidth}
-	% 	\centering
-	% 	\includegraphics[width=\textwidth]{figure/genmc/ttaslock.pdf}
-	% 	\caption{ttaslock}
-	% 	\label{genmc:ttaslock}
-	% \end{minipage}
-	% \hfill
-	% \begin{minipage}{0.45\textwidth}
-	% 	\centering
-	% 	% This empty minipage will help the last image to be aligned to the left
-	% \end{minipage}
+	\caption{Coverage plots}
+	\label{genmc:coverage}
 \end{figure}
 
 
@@ -392,7 +370,7 @@ We examine the total time elapsed for exploring 100 thousand iterations, shown i
 	\label{genmc:overhead}
 \end{figure}
 
-In addition, it is possible that one strategy may find more execution graphs in a fixed number of iterations than another but takes more time to complete. Therefore another concern is the efficiency of various mutations, defined as $\sigma_T = \frac{N_{graph}}{T}$, where $N_{graph}$ is the number of distinct execution graphs, and $t$ is a fixed time. Note that this ratio is not a constant value over time, as it becomes increasingly difficult to explore new execution graphs as time progresses. Here we set $T$ to be 1 minute and count the number of different execution graphs explored. The results are shown in Figure~\ref{genmc:buf_ring-time} to Figure~\ref{genmc:ttaslock-time}. Our results indicate that the maximal cut has the highest efficiency in a majority of benchmarks, while the random tester generally has the lowest efficiency.
+In addition, it is possible that one strategy may find more execution graphs in a fixed number of iterations than another but takes more time to complete. Therefore another concern is the efficiency of various mutations, defined as $\sigma_T = \frac{N_{graph}}{T}$, where $N_{graph}$ is the number of distinct execution graphs, and $t$ is a fixed time. Note that this ratio is not a constant value over time, as it becomes increasingly difficult to explore new execution graphs as time progresses. Here we set $T$ to be 1 minute and count the number of different execution graphs explored. The results are shown in Figure~\ref{genmc:fixed-time}. Our results indicate that the maximal cut has the highest efficiency in a majority of benchmarks, while the random tester generally has the lowest efficiency.
 
 
 
@@ -402,15 +380,11 @@ In addition, it is possible that one strategy may find more execution graphs in 
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc-time/buf_ring.pdf}
-		\caption{ring-buffer}
-		\label{genmc:buf_ring-time}
 	\end{minipage}
 	\hfill
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc-time/linuxrwlocks.pdf}
-		\caption{linuxrwlocks}
-		\label{genmc:linuxrwlocks-time}
 	\end{minipage}
 
 	\vspace{0.5cm}
@@ -418,15 +392,11 @@ In addition, it is possible that one strategy may find more execution graphs in 
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc-time/mpmc-queue.pdf}
-		\caption{mpmc-queue}
-		\label{genmc:mpmc-queue-time}
 	\end{minipage}
 	\hfill
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc-time/ms_queue.pdf}
-		\caption{ms-queue}
-		\label{genmc:ms-queue-time}
 	\end{minipage}
 
 	\vspace{0.5cm}
@@ -434,16 +404,14 @@ In addition, it is possible that one strategy may find more execution graphs in 
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc-time/treiber_stack.pdf}
-		\caption{treiber-stack}
-		\label{genmc:treiber_stack-time}
 	\end{minipage}
 	\hfill
 	\begin{minipage}{0.45\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{figure/genmc-time/ttaslock.pdf}
-		\caption{ttaslock}
-		\label{genmc:ttaslock-time}
 	\end{minipage}
+	\caption{Number of executions found in 1 minute}
+	\label{genmc:fixed-time}
 \end{figure}
 
 \subsection{\ref*{RQ:GenmcBug}: Fuzzer vs random tester on bug detection}

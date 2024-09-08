@@ -10,8 +10,7 @@ Here is a summary of several characteristics associated with random-based testin
     \item The program behavior depends not only on scheduling decisions but also weak memory behaviors.
     \item Different scheduling decisions made by the test generator can lead to the same executions. 
     \item The search space of execution graphs is typically large, often larger than in strong memory models.
-    \item The probability of finding specific executions is not uniform, with some execution graphs being infrequent.
-    
+    \item The probability of finding specific executions is not uniform, with some execution graphs being infrequent.    
 \end{itemize}
 
 
@@ -98,16 +97,14 @@ void thread3() {
 
 
 
-
-
-
-The process of the random-based random walk test generation procedure is similar to the Galton board experiment. Consider the following $n$ level decision tree, from top to bottom, each step has two choices, either going left or right. Each node represents a state and the edges represent the decisions. There are some states that can be reached from multiple paths. Take the middle state in the second level for example, it can be reached by first choosing left then right, or by first choosing right then left. There are also some other states that have more strict requirements on the decision making. For example, the state circled in red requires always select the left choices to reach, with the probability of $\frac{1}{2^n}$. 
+The process of the random walk test generation procedure is similar to the Galton board experiment. Consider the following $n$ level decision tree, from top to bottom, each step has two choices, either going left or right. Each node represents a state and the edges represent the decisions. There are some states that can be reached from multiple paths. Take the middle state in the second level for example, it can be reached by first choosing left then right, or by first choosing right then left. There are also some other states that have more strict requirements on the decision making. For example, the state circled in red requires always select the left choices to reach, with the probability of $\frac{1}{2^n}$. 
 \begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
     \centering
     \includegraphics[scale=0.5]{figure/tree.pdf} % 图片文件名和路径  
     \caption{Random decision tree} % 图片标题
     \label{tree} % 图片标签，用于交叉引用
 \end{figure}
+
 \michalis{Maybe the example above requires some more explanation. Assuming that a node in your tree is not an execution graph (but rather the rf choices within a graph), can it be the case that two paths yield the same graph? If so, why? If not, why does fuzzing help?}
 
 If each time we start from the top and randomly make decisions, those states in the middle will be reached more frequently than those in the corners. However, if we can start from some middle states, it would be easier to reach some corner states, and hence the states reached in the end will be more diverse. This is where our fuzzer come to help. An intuitive description of the fuzzer is: whenever the fuzzer reaches a new state (i.e. finds an interesting execution graph), it mutates one of the decisions made. For the next iteration, the fuzzer replays the decision making until the mutated point, change the decision as mutated, and continues randomly afterwards. As shown in Figure~\ref{tree3} (a), suppose the red path is the previous exploration and the fuzzer mutates the second decision from going right to left (b). Then for the next exploration, it replays until the mutated choice and the probability of reaching the left corner state becomes $\frac{1}{2^{n-2}}$ (c). 
@@ -120,8 +117,17 @@ If each time we start from the top and randomly make decisions, those states in 
 \end{figure}
 
 
+Relating this to the randomized testing procedure, each parent node in the decision tree represents an intermediate state in the process of constructing a graph, while the leaf nodes represent completed graphs. The edges correspond to the scheduling or rf decisions made during exploration. Each time, the random walk tester restarts from the begining (top of the tree) and randomly generates execution graphs independently. However, due to the previously listed challenges, it often tends to generate a subset of frequently occurring execution graphs, sometimes repeatedly, leaving hard-to-find executions unexplored. We consider this approach inefficient and utilize fuzzing techniques to improve this. Ideally, the fuzzer should explore graphs with a more uniform frequency and broader coverage compared to  the random walk tester, as shown in Figure~\ref{tree-freq}.
 
-The fuzzer aims to improve the performance of randomized testing approaches. Some random testers, such as C11Tester or GenMC in its estimation mode, use random walk testing. In contrast, exhaustive model checkers, like GenMC, explore all possible executions. Exhaustive checkers are useful when the search space is limited, typically when the program under test is not too large. Randomized testers are usually employed for testing larger programs. These testers construct one execution graph based on random decisions of threads and reads-from relations during each exploration. For each new iteration, they start over and randomly explore again. The drawback of this approach is that it does not retain state information between explorations, leading to redundant efforts. Different random decisions can result in the same executions, and some infrequent execution graphs may remain undiscovered.
+\begin{figure}[h!tbp] 
+    \centering
+    \includegraphics[scale=0.28]{figure/tree_freq.pdf} 
+    \caption{Improvement of fuzzing} % 图片标题
+    \label{tree-freq} % 图片标签，用于交叉引用
+\end{figure}
+
+
+The fuzzer aims to improve the performance of randomized testing approaches. Some random testers, such as C11Tester or GenMC in its estimation mode, use random walk testing. In contrast, exhaustive model checkers like GenMC explore all possible executions. Exhaustive checkers are useful when the search space is limited, typically when the program under test is not too large. Randomized testers are usually employed for testing larger programs. However, the drawback of this approach is that it does not retain state information between explorations, leading to redundant efforts. In our fuzzing algorithm, we track the explored execution graphs and mutate infrequent ones to guide the tester in covering a larger fraction of the graph search space.
 
 \section{Example}
 

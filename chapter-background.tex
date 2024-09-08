@@ -162,20 +162,14 @@ The memory model can be defined as a function, taking a set of candidate executi
 A candidate execution X contains two components, $X = (X_{opsem}, X_{witness})$, where $X_{opsem}$ is determined by the operational semantics and $X_{witness}$ is an existential witness of some further data. Both components are composed of memory actions (or actions for short) and relations. An action can be a non-atomic read or write, atomic operations, mutex operations and fences, represented by <aid, tid, type, location, value>. The $X_{opsem}$ contains three types of relations:
 
 \begin{itemize}
-	\item \textit{sequenced-before} (sb): A relation between intra-thread actions given by C/C++ language specifications, usually analogous to program order. When two separate actions are written in two separate statements, the former is sequenced before the latter. Arguments of functions or operands of some operators like '==' do not have specified evaluation order, thus do not have sequenced-before relations.
-	\item \textit{additional-synchronized-with} (asw): The thread-creation action introduces an asw relation from the sequenced-before-maximal actions of the parent thread to the sequenced-before-minimal actions of the child thread.
+	\item \textit{sequenced-before} (sb): A relation between intra-thread actions given by C/C++ language specifications, also referred to as program order. When two separate actions are written in two separate statements, the former is sequenced before the latter. 
+	% \item \textit{additional-synchronized-with} (asw): The thread-creation action introduces an asw relation from the sequenced-before-maximal actions of the parent thread to the sequenced-before-minimal actions of the child thread.
 	\item \textit{data-dependency} (dd):  The dd is provided by the operational semantics, primarily used for release/consume atomics. For example, a store to a pointer and the use of the pointed data have a dd relation.
 \end{itemize}
 \michalis{You don't have to talk about asw, or evaluation order}
 
 In the SB example,  assuming that x and y are atomic variables, the $X_{opsem}$ of a candidate execution can be drawn as in Figure~\ref{XopsemSB}.
-%   x = 0
-%     | sb
-%   y = 0
-%   /asw    \asw
-% x = 1     y = 1
-%   |sb       |sb
-% read y    read x
+
 
 \begin{figure}[h!tbp] % htbp 表示优先放置位置：here, top, bottom, page
 	\centering
@@ -209,7 +203,7 @@ In the SB example, assuming the initializations are non-atomic and other writes 
 There are some derived relations defined based on the above six relations. These derived relations will help to define the memory model and rule out illegal executions.
 
 \begin{itemize}
-	\item \textit{synchronizes-with} (sw): Every unlock action of a mutex has an sw edge pointing to the lock ordered after it in the sc order mentioned above. All asw relations are also sw relations. A read-acquire (read with \texttt{memory\_order\_acquire}) reading from a write-release gives rise to a sw relation. More generally, when the read-acquire R reads from a write W, it also synchronizes-with other write-release that is ordered before W in the modification order. However, not all write-releases preceding W can have sw relations with W, only those contained by the \textit{release sequence} of W. The definition of \textit{release sequence} is omitted here.
+	\item \textit{synchronizes-with} (sw): Every unlock action of a mutex has an sw edge pointing to the lock ordered after it in the sc order mentioned above. A read-acquire (read with \texttt{memory\_order\_acquire}) reading from a write-release gives rise to a sw relation. More generally, when the read-acquire R reads from a write W, it also synchronizes-with other write-release that is ordered before W in the modification order. However, not all write-releases preceding W can have sw relations with W, only those contained by the \textit{release sequence} of W. The definition of \textit{release sequence} is omitted here.
 	\item \textit{happens-before} (hb): If the execution has no consume operations, the hb relation is a transitive closure of $sb \cup sw$. More generally, hb is defined as the union of sb and \textit{inter-thread-happens-before}, which includes the sw relation.
 \end{itemize}
 
