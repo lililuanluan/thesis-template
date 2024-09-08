@@ -39,11 +39,11 @@ Thirdly, the search space, which is the set of all possible execution graphs, ca
 % \michalis{This is wrong; 3 graphs are allowed under SC.}
 
 
-\begin{figure}[h!tbp] % htbp 表示优先放置位置：here, top, bottom, page
+\begin{figure}[h!tbp]  
     \centering
-    \includegraphics[scale=0.8]{figure/exec-graph/SB4.pdf} % 图片文件名和路径  
-    \caption{Valid execution graphs of SB} % 图片标题
-    \label{SB4} % 图片标签，用于交叉引用
+    \includegraphics[scale=0.8]{figure/exec-graph/SB4.pdf}   
+    \caption{Valid execution graphs of SB}  
+    \label{SB4}  
 \end{figure}
 
 
@@ -98,22 +98,22 @@ void thread3() {
 
 
 The process of the random walk test generation procedure is similar to the Galton board experiment. Consider the following $n$ level decision tree, from top to bottom, each step has two choices, either going left or right. Each node represents a state and the edges represent the decisions. There are some states that can be reached from multiple paths. Take the middle state in the second level for example, it can be reached by first choosing left then right, or by first choosing right then left. There are also some other states that have more strict requirements on the decision making. For example, the state circled in red requires always select the left choices to reach, with the probability of $\frac{1}{2^n}$. 
-\begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
+\begin{figure}[htbp]  
     \centering
-    \includegraphics[scale=0.5]{figure/tree.pdf} % 图片文件名和路径  
-    \caption{Random decision tree} % 图片标题
-    \label{tree} % 图片标签，用于交叉引用
+    \includegraphics[scale=0.5]{figure/tree.pdf}   
+    \caption{Random decision tree}  
+    \label{tree}  
 \end{figure}
 
 \michalis{Maybe the example above requires some more explanation. Assuming that a node in your tree is not an execution graph (but rather the rf choices within a graph), can it be the case that two paths yield the same graph? If so, why? If not, why does fuzzing help?}
 
 If each time we start from the top and randomly make decisions, those states in the middle will be reached more frequently than those in the corners. However, if we can start from some middle states, it would be easier to reach some corner states, and hence the states reached in the end will be more diverse. This is where our fuzzer come to help. An intuitive description of the fuzzer is: whenever the fuzzer reaches a new state (i.e. finds an interesting execution graph), it mutates one of the decisions made. For the next iteration, the fuzzer replays the decision making until the mutated point, change the decision as mutated, and continues randomly afterwards. As shown in Figure~\ref{tree3} (a), suppose the red path is the previous exploration and the fuzzer mutates the second decision from going right to left (b). Then for the next exploration, it replays until the mutated choice and the probability of reaching the left corner state becomes $\frac{1}{2^{n-2}}$ (c). 
 
-\begin{figure}[h!tbp] % htbp 表示优先放置位置：here, top, bottom, page
+\begin{figure}[h!tbp]  
     \centering
-    \includegraphics[scale=0.5]{figure/tree3.pdf} % 图片文件名和路径  
-    \caption{Mutation} % 图片标题
-    \label{tree3} % 图片标签，用于交叉引用
+    \includegraphics[scale=0.5]{figure/tree3.pdf}   
+    \caption{Mutation}  
+    \label{tree3}  
 \end{figure}
 
 
@@ -122,8 +122,8 @@ Relating this to the randomized testing procedure, each parent node in the decis
 \begin{figure}[h!tbp] 
     \centering
     \includegraphics[scale=0.28]{figure/tree_freq.pdf} 
-    \caption{Improvement of fuzzing} % 图片标题
-    \label{tree-freq} % 图片标签，用于交叉引用
+    \caption{Improvement of fuzzing}  
+    \label{tree-freq}  
 \end{figure}
 
 
