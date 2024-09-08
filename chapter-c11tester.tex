@@ -185,12 +185,12 @@ One important metric for a fuzzer is whether it is able to detect the bug effect
 
 \begin{table}[h!]
 	\centering
-	\begin{tabular}{ |c|ccccc| }
+	\begin{tabular}{ |c|cccc| }
 		\hline
-		Benchmarks & bipartite-hard & long-race & mp & P1  & reorder\_10 \\
+		Benchmarks  & long-race & mp & P1  & reorder\_10 \\
 		\hline
-		C11Tester  & 1170           & -         & 2335  & 489 & 9           \\
-		C11Fuzzer  & 754            & 717       & 30 & 74  & 9           \\
+		C11Tester             & -         & 2335  & 489 & 9           \\
+		C11Fuzzer              & 717       & 30 & 74  & 9           \\
 		\hline
 	\end{tabular}
 	\caption{Iterations taken to detect the first bug}
