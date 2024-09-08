@@ -17,30 +17,27 @@ Here is a summary of several characteristics associated with random-based testin
 
 Firstly, weak memory models usually allow more behaviors which are not permitted in the SC model. For example, under a certain schedule, a read event may have more than one write events to read from. This presents challenges for testing weak memory programs, as their behaviors are not uniquely determined by scheduling decisions. Take SB for example, assuming all operations are relaxed, suppose a tester's scheduler adds events to an execution graph in the following order: \texttt{[$init$]} $\rightarrow$ \texttt{W($x$, 1)} $\rightarrow$ \texttt{W($y$, 1)} $\rightarrow$ \texttt{R($y$)}. When \texttt{R($y$)} is added, it has two reads-from options: \texttt{[$init$]} and \texttt{W($y$, 1)}. This is not possible in the SC model, because under this schedule, \texttt{[$init$]} happens before \texttt{W($y$, 1)}, which in turn happens before \texttt{R($y$)}. Hence, \texttt{R($y$)} can only read from the most recent write in this happen-before order. In the weak memory model, however, since both \texttt{W($y$, 1)} and \texttt{[$init$]} are relaxed, there is no happen-before relationship between them to constrain the read options for \texttt{R($y$)}.
 
+Secondly, different orders of adding events and forming relations can result in the same executions. For example, consider Listing~\ref{P6}, where two groups of threads are incrementing their counters. The test generator might first add events from threads in \texttt{group 1} and then from those in \texttt{group 2}, or it might choose to add events from \texttt{group 2} first. Since the threads in the two groups do not interact with each other, both cases can result in same execution graphs.
 
-
-Secondly, different orders of adding events and forming relations may result in the same executions. For example, consider Listing~\ref{P6}. The test generator could first select \texttt{r1} and set its write to read from as \texttt{s0}, or it could first add \texttt{s1-3} and then set \texttt{r1} to read from \texttt{s0}. Both cases can result in equivalent executions.
-\michalis{Do you need a different example to explain this?}
+% \michalis{Do you need a different example to explain this?}
 
 \begin{lstlisting}[caption={P6}, label={P6}]
-    atomic<int> x = {}; // s0
+    atomic<int> cnt1 = {}; // s0
+    atomic<int> cnt2 = {}; // s0
     
-    void thread1() {
-        x.store(1, relaxed);  // s1 
-        x.store(2, relaxed);  // s2 
-        x.store(3, relaxed);  // s3 
-    }
-    void thread2() {
-        int r1 = x.load(relaxed);   // r1
-        int r2 = x.load(relaxed);   // r2 
-        int r3 = x.load(relaxed);   // r3 
-        cout << r1 << r2 << r3 << '\n';
-    }
+    // group 1
+    void thread1() { cnt1++; }
+    void thread2() { cnt1++; }
+
+    // group 2
+    void thread3() { cnt2++; }
+    void thread4() { cnt2++; }
+
 \end{lstlisting}
 
 
 Thirdly, the search space, which is the set of all possible execution graphs, can become very large or even infinite due to various combinations of relations, control flow branches, and loops. For simplicity, assume a single-threaded random test generator is used, which takes one step at a time—either adding a node to the graph or forming a relation between two nodes. Additionally, the test generator has a mechanism to ensure that the steps taken are valid according to the memory model. For example, consider the SB example: if all atomic operations are relaxed, the four execution graphs shown in Figure~\ref{SB4} are all allowed. In thecontrast, under the SC model, only the first three executions are permitted.
-\michalis{This is wrong; 3 graphs are allowed under SC.}
+% \michalis{This is wrong; 3 graphs are allowed under SC.}
 
 
 \begin{figure}[h!tbp] % htbp 表示优先放置位置：here, top, bottom, page
@@ -173,10 +170,12 @@ This section provides a high-level overview of the fuzzing algorithm. The implem
 
 
 
-The fuzzer uses partially constructed graphs, represented by "prefixes" in the following context, as guidance for further explorations. As shown in Algorithm~\ref{fuzzer}, the fuzzer executes the program $P$ a total of $N$ times (line~\ref{line:input}), generating an execution graph each time after exploring the search space. It maintains a set of prefixes, initially empty (line~\ref{line:init_prefix}). At the beginning of each exploration, it picks a prefix from the prefix set (line~\ref{line:pick_prefix}). If no prefixes are available in the set, the exploration will be entirely random (line~\ref{line:random_explore}). With a selected prefix, the fuzzer replays the execution up to the end of the prefix and randomly constructs the remaining part of the execution graph (line~\ref{line:explore_prefix}). When the exploration is finished, an execution graph is constructed, and the fuzzer determines whether this graph is interesting according to certain metrics (line~\ref{line:is_interesting}). A graph is considered interesting if it is a new execution graph or contains new relations or events. The interesting graph is then mutated to generate new prefixes (line~\ref{line:mutate}). These new prefixes are added to the prefix set for future use (line~\ref{line:add_prefix}). For example, the fuzzer might modify a reads-from relation in the graph and remove the invalid portion following that relation to create a prefix. The fuzzer may also dynamically discard some prefixes based on their effectiveness in finding new interesting graphs. New graphs are added to the graph set (line~\ref{line:add_graph}) and are ultimately outputted at the end (line~\ref{line:output}). The number of unique execution graphs in the outputted graph set is a major metric for evaluating the fuzzer's searching ability.
+The fuzzer uses partially constructed graphs, represented by "prefixes" in the following context, as guidance for further explorations. As shown in Algorithm~\ref{fuzzer}, the fuzzer executes the program $P$ a total of $N$ times (line~\ref{line:input}), generating an execution graph each time after exploring the search space. It maintains a set of prefixes, initially empty (line~\ref{line:init_prefix}). At the beginning of each exploration, it picks a prefix from the prefix set (line~\ref{line:pick_prefix}). If no prefixes are available in the set, the exploration will be entirely random (line~\ref{line:random_explore}). With a selected prefix, the fuzzer replays the execution up to the end of the prefix and randomly constructs the remaining part of the execution graph (line~\ref{line:explore_prefix}). When the exploration is finished, an execution graph is constructed, and the fuzzer determines whether this graph is interesting according to certain metrics (line~\ref{line:is_interesting}). A graph is considered interesting if it is a new execution graph or contains new relations or events. The interesting graph is then mutated to generate new prefixes (line~\ref{line:mutate}). These new prefixes are added to the prefix set for future use (line~\ref{line:add_prefix}). For example, the fuzzer might modify a reads-from relation in the graph and remove the invalid portion following that relation to create a prefix. The fuzzer may also dynamically discard some prefixes based on their effectiveness in finding new interesting graphs. New graphs are added to the graph set (line~\ref{line:add_graph}) and are ultimately outputted at the end (line~\ref{line:output}). 
+
+The number of unique execution graphs in the outputted graph set is a major metric for evaluating the fuzzer's searching ability. In our fuzzer implemented with GenMC, described in Chapter~\ref{cha:genmc}, we also evaluate the fuzzer by running it for a fixed time budget and count the number of unique executions found.
 
 
-\michalis{Why execute only up to N times? Could you do this with a time budget too? If so, mention this.}
+% \michalis{Why execute only up to N times? Could you do this with a time budget too? If so, mention this.}
 
 \begin{algorithm}
     \caption{Fuzzing algorithm}

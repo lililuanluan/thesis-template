@@ -74,6 +74,7 @@ Consider the store buffer (SB) \ref{SB} example, where \texttt{x}, \texttt{y} ar
 	stringstyle=\color{red},    % string literal style
 	xleftmargin=40pt,           % left margin for the whole code block
 	xrightmargin=40pt           % right margin for the whole code block
+	% numbers=left,               % enable line numbers on the left
 }
 
 \begin{lstlisting}[caption={Store Buffer (SB) program}, label={SB}]
@@ -116,41 +117,45 @@ void receiver() {
 % \michalis{This is MP not SB}
 
 There are a variety of other weak memory models, such as the ARMv8 \cite{ARMv8} memory model, supporting out-of-order executions and speculative executions, and language-level  memory models, including the Java memory model\cite{java} and C++ memory model. 
-The rest of this paper mainly discusses the C/C++11 memory model\cite{c++model}.
-\michalis{Use C/C++11; briefly mention that weakly-ordered atomics (relaxed accesses) need to be used in order to get the weak behaviors.} 
+The rest of this paper primarily discusses the C/C++11 memory model\cite{c++model}, which provides weakly-ordered atomic operations to support weak memory behaviors. 
+
+
+% \michalis{Use C/C++11; briefly mention that weakly-ordered atomics (relaxed accesses) need to be used in order to get the weak behaviors.} 
 
 \section{Execution graphs}
 
 
-Execution graphs are directed graph representations of program executions. Under the SC model, program executions can alway be represented by a single sequence of events, as SC enforces that operations execute as if they occur sequentially by definition. While under weak memory models, programs can exhibit more complicated behaviors, where execution graphs are helpful in capturing a wider range of possible executions.
+Execution graphs\cite{herdingcats-exec-graph, exec-graph2, exec-graph3} are directed graph representations of program executions. Under the SC model, program executions can alway be represented by a single sequence of events, as SC enforces that operations execute as if they occur sequentially by definition. While under weak memory models, programs can exhibit more complicated behaviors, where execution graphs are helpful in capturing a wider range of possible executions. 
 
-\michalis{Cite some paper (e.g., Alglave'14 - herding cats) about execution graphs.
-}
+% \michalis{Cite some paper (e.g., Alglave'14 - herding cats) about execution graphs.}
+The nodes in an execution graph represent events or actions within a program, while the edges connecting them depict relationships as defined by the memory model. In this thesis, the terms "event" and "action" are used interchangeably. An event refers to a basic operation related to memory. For example, the line of code \texttt{y = x + 1} involves two events: a read event for the variable \texttt{x} and a write event for the variable \texttt{y}. Typically, not all variables are included in the graph—only those related to shared memory accesses, such as reads and writes to shared variables, since others may be irrelevant to understanding the program's behavior. Reads and writes to local variables that do not affect other threads are usually omitted from the graph. For instance, if \texttt{a = x} reads the value of a shared variable \texttt{x} and assigns it to a local variable \texttt{a}, this is often represented in the graph as a single event: the read of \texttt{x}.
 
-The nodes in an execution graph represent events, or actions, within a program, while the edges connecting them depict their relationships as defined by the memory model. In this thesis, the terms "event" and "action" are used interchangeably. An event is a basic unit that denotes an operation related to the memory. For example, this line of code \texttt{y = x + 1} involves two events: a read event for the variable \texttt{x} and a write event for the variable \texttt{y}. Note that typically not all variables are included in the graph, as some may be irrelevant to understanding the program's behavior. For instance, thread creation typically involves initializing several state variables or interacting with the operating system, but these operations are often abstracted into a single thread-creation event in the graph. Some reads and writes to local variables that do not affect other threads are also omitted from the graph. For example, if \texttt{a = x} reads the value of a shared variable \texttt{x} and assigns it to a local variable \texttt{a}, it is often represented in the graph as a single event, which is the read of \texttt{x}. The edges in the execution graph encode the event relations specified by the memory model. For example, if two events, $e_1$ and $e_2$, have a \textit{sequenced-before} (sb) relation, i.e. $e_1$ is sequenced before $e_2$, an arrow will be drawn in the graph from $e_1$ to $e_2$. Similar to events, not all relations are always depicted in the graph. For instance, when two events have multiple relations in the same direction, some less important relations may be omitted for simplicity or clarity. More details about these relations are discussed in the next section.
-\michalis{You can avoid talking about thread creation. Events correspond to memory accesses (shared reads+writes).}
+The edges in the execution graph encode the event relations specified by the memory model. For example, if two events, $e_1$ and $e_2$, have a \textit{sequenced-before} (sb) relation, i.e. $e_1$ is sequenced before $e_2$, an arrow will be drawn in the graph from $e_1$ to $e_2$. As with events, not all relations are always depicted in the graph. For instance, if two events have multiple relations in the same direction, some less important ones may be omitted for simplicity or clarity. In the execution graphs presented in this thesis, edges of the same color represent the same type of relation when their names are omitted. Further details about these relations are discussed in the next section.
+
+% \michalis{You can avoid talking about thread creation. Events correspond to memory accesses (shared reads+writes).}
 
 
 
 
-We use an example to introduce the notations used in execution graphs in this thesis. In Figure~\ref{graph-example}, the five nodes represent five different events in the program. The directed edges are annotated with the names of the relations between these events. For instance, consider the node \texttt{W($x$, 1)}: \texttt{W} stands for a write operation, and \texttt{W($x$, 1)} represents writing the value 1 to the variable \texttt{$x$}. In the case of \texttt{R($x$)}, \texttt{R} stands for a read operation. This node represents a read event for \texttt{$x$}, with the value being omitted because it can be obtained from the node from which the \textit{read-from} (rf) edge originates.
+We use an example to introduce the notations used in execution graphs in this thesis. Figure~\ref{graph-example} shows a possible execution graph of the SB program\ref{SB}. The five nodes represent five different events in the program. The directed edges are annotated with the names of the relations between these events. For instance, consider the node \texttt{W($x$, 1)}: \texttt{W} stands for a write operation, and \texttt{W($x$, 1)} represents writing the value 1 to the variable \texttt{$x$} (a). In the case of \texttt{R($x$)}, \texttt{R} stands for a read operation. This node represents a read event for \texttt{$x$} (d), with the value being omitted because it can be obtained from the node from which the \textit{read-from} (rf) edge originates.
 
 \begin{figure}[h!tbp]
 	\centering
-	\includegraphics[scale=1.3]{figure/exec-graph/example.pdf} 
+	\includegraphics[scale=1.3]{figure/exec-graph/example0.pdf} 
 	\caption{Execution graph example} 
 	\label{graph-example} 
 \end{figure}
-\michalis{Have a graph where both reads read 0 instead, and connect back to you SB example. You can also use the SB example (and the respective lines of code) in your explanation of events and relations.}
+% \michalis{Have a graph where both reads read 0 instead, and connect back to you SB example. You can also use the SB example (and the respective lines of code) in your explanation of events and relations.}
 
-\michalis{You also need to say something about consistency: the semantics of a program is a set of consistent graphs. Consistency is MM-specific: the SB where both reads read 0 is consistent under SC, but not under TSO. Below you will introduce consistency under C/C++11.}
+% \michalis{You also need to say something about consistency: the semantics of a program is a set of consistent graphs. Consistency is MM-specific: the SB where both reads read 0 is consistent under SC, but not under TSO. Below you will introduce consistency under C/C++11.}
+
+The semantics of a program is a set of consistent graphs.  Events within a graph cannot be connected arbitrarily by relations. Instead, the graphs should be consistent to the memory model. Consistency is specific to each memory model. An execution graph that is consistent to one memory model may not be consistent to another. In the SB example, the execution graph shown in Figure~\ref{graph-example} is consistent under the SC model, but not under TSO. The next section will introduce the consistency specifications under the C/C++11 memory model.
 
 
 
-
-\section{C/C++ Memory Model}
-C/C++ provides additional concurrency primitives, including atomics, mutex, threads and fences, along with an extensive specification of its memory model.
-The first C/C++ memory model was described in a proposal\cite{c++model-proposal} in 2008, which was refined and formalized by \cite{c++model}. The following contents use the notations and definitions in \cite{c++model}, unless otherwise specified.
+\section{C/C++11 Memory Model}
+C/C++11 provides additional concurrency primitives, including atomics, mutex, threads and fences, along with an extensive specification of its memory model.
+The first C/C++11 memory model was described in a proposal\cite{c++model-proposal} in 2008, which was refined and formalized by \cite{c++model}. The following contents use the notations and definitions in \cite{c++model}, unless otherwise specified.
 
 The memory model can be defined as a function, taking a set of candidate executions $X$ as input. These executions must be allowed by the operational semantics and are consistent, denoted as pre-executions. The function returns "NONE" if any executions have undefined behaviors; otherwise, it returns "SOME" pre-executions.
 
@@ -192,14 +197,7 @@ The $X_{witness}$ part contains three additional relations. These relations are 
 
 
 In the SB example, assuming the initializations are non-atomic and other writes and reads are \texttt{mo\_seq\_cst}, a possible $X_{witness}$ for the SB example can be shown in Figure~\ref{XwitnessSB}
-% rf
-% x=1 -rf-> read x in thread2
-% y=1 -rf-> read y in thread1
-% sc
-% x=1 -sc-> y=1 -sc-> read y -sc-> read x
-% mo
-% y=0 -mo-> y=1
-% x=0 -mo-> x=1
+
 
 \begin{figure}[htbp] % htbp 表示优先放置位置：here, top, bottom, page
 	\centering
@@ -214,6 +212,7 @@ There are some derived relations defined based on the above six relations. These
 	\item \textit{synchronizes-with} (sw): Every unlock action of a mutex has an sw edge pointing to the lock ordered after it in the sc order mentioned above. All asw relations are also sw relations. A read-acquire (read with \texttt{memory\_order\_acquire}) reading from a write-release gives rise to a sw relation. More generally, when the read-acquire R reads from a write W, it also synchronizes-with other write-release that is ordered before W in the modification order. However, not all write-releases preceding W can have sw relations with W, only those contained by the \textit{release sequence} of W. The definition of \textit{release sequence} is omitted here.
 	\item \textit{happens-before} (hb): If the execution has no consume operations, the hb relation is a transitive closure of $sb \cup sw$. More generally, hb is defined as the union of sb and \textit{inter-thread-happens-before}, which includes the sw relation.
 \end{itemize}
+
 \michalis{You don't have to talk about dob. If you want, you could even skip the model definition and just show a bunch of programs along with allowed/forbidden behaviors. That way you will also introduce various access modes, without being too formal. (A full consistency definition is now missing anyway.)}
 
 The three relations in $X_{witness}$ (rf, mo and sc) cannot be arbitrarily composed to make an execution. Instead, they have to satisfy some constraints, called \textit{coherence}. The coherence constraints have the form "A-B Coherence", or CoAB, where both A and B are either reads or writes, and $A \xrightarrow{\text{hb}} B$. As illustrated previously, the hb is derived from sb and sw, where sw is derived from sc and rf. The constraints on hb, mo and rf will ultimately constrain the combinations of rf, mo and sc. The coherence constraints are listed below:
@@ -236,18 +235,9 @@ Consider the SB example. If the reads and writes are SC atomic operations, the e
 	\caption{Not-allowed of SB} % 图片标题
 	\label{NotAllowedSB} % 图片标签，用于交叉引用
 \end{figure}
-% rf
-% x=0 -rf-> read x in thread2
-% y=0 -rf-> read y in thread1
-% sc
-% x=1 -sc-> y=1 -sc-> read y -sc-> read x
-% mo
-% y=0 -mo-> y=1
-% x=0 -mo-> x=1
-% \input{figure/graph1}
 
 
 
-The C/C++ memory model described above is an axiomatic model that specifies which executions are allowed and which are not. However, this model has some flaws. Firstly, the data-dependency relation and those associated with consume-release atomics are specified but are not implemented on most platforms, where they are typically treated as acquire-release atomic operations. Furthermore, there are some executions that are allowed by the model but should be ruled out in principle. For instance, consider a load buffer (LB) program where two threads load from different locations and store the loaded values to the other location. If all the atomic operations have a relaxed memory order, any loaded value is allowed by the model. This issue is known as the \textit{out-of-thin-air} (OOTA) problem. Since the model was proposed, numerous efforts have been made to revise it, which will be summarized in Section~\ref{cha:related}.
+The C/C++11 memory model described above is an axiomatic model that specifies which executions are allowed and which are not. However, this model has some flaws. Firstly, the data-dependency relation and those associated with consume-release atomics are specified but are not implemented on most platforms, where they are typically treated as acquire-release atomic operations. Furthermore, there are some executions that are allowed by the model but should be ruled out in principle. For instance, consider a load buffer (LB) program where two threads load from different locations and store the loaded values to the other location. If all the atomic operations have a relaxed memory order, any loaded value is allowed by the model. This issue is known as the \textit{out-of-thin-air} (OOTA) problem. Since the model was proposed, numerous efforts have been made to revise it, which will be summarized in Section~\ref{cha:related}.
 
 
