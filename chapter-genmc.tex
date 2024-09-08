@@ -6,15 +6,21 @@ In this chapter we first present an overview of GenMC. Then we present three dif
 
 \section{Overview of GenMC}
 
-GenMC is an model checker for C programs, supporting a variaty of memory models, including RC11\cite{RC11}, IMM\cite{IMM} and LKMM\cite{LKMM} memory models. It uses Kater\cite{Kater} to automatically generate axiomatic memory models that provides the specified interfaces. The memory models to be checked can be selected by the user via command line arguments, with RC11 being the default model. It incorporates an LLVM-based interpreter that compiles the target program into LLVM-IR (intermediate representation) and generates execution graphs in accordance with the specified memory model. Data races, assertion failures and other errors will be reported when detected. GenMC has two modes: estimation mode and verification mode. In estimation mode, the GenMC driver randomly collects a sample of execution graphs, independantly, to get an estimation of the size of the search space and time to finish verification. After estimation, the driver performs an exhaustive enumeration of execution graphs in the verification mode and halts when errors are encountered. The estimation mode can be disabled by command line options, too.
+GenMC is an model checker for C programs, supporting a variaty of memory models, including RC11\cite{RC11}, IMM\cite{IMM} and LKMM\cite{LKMM} memory models. It uses Kater\cite{Kater} to automatically generate axiomatic memory models that provides the specified interfaces. The memory models to be checked can be selected by the user via command line arguments, with RC11 being the default model. It incorporates an LLVM-based interpreter that compiles the target program into LLVM-IR (intermediate representation) and generates execution graphs in accordance with the specified memory model. Data races, assertion failures and other errors will be reported when detected. GenMC has two modes: estimation mode and verification mode. In estimation mode, the GenMC driver randomly collects a sample of execution graphs, independently, to get an estimation of the size of the search space and time to finish verification. After estimation, the driver performs an exhaustive enumeration of execution graphs in the verification mode and halts when errors are encountered. The estimation mode can be disabled by command line options, too.
 
-Both the estimation and verification modes share the same set of interfaces, with some functionality turned off during estimation. Since the fuzzer aims to improve randomized testing, here we mainly describes GenMC's estimation mode and show its customization points for our fuzzer.
+Both the estimation and verification modes share the same set of interfaces, with some functionality turned off during estimation. Since the fuzzer aims to improve randomized testing, here we mainly describe GenMC's estimation mode and show its customization points for our fuzzer.
 
 The core component of GenMC is its driver, an instance created according to command line options including the chosen memory model, transformation options, exploration strategies, etc. The driver is responsible for calling the interpreter to transform the target program into LLVM-IR, constructing execution graphs, checking consistency, and reporting errors. The interpreter is derived from LLVM's execution engine and instruction visitor, used to interpret the source code and keep relevant execution information. The interpreter will ask the scheduler of the driver to fetch the next instruction. Normally, the scheduler randomly picks the next thread and fetches the next instruction of that thread, with some special cases such as RMW instructions, prioritized threads, or reads that need to be rescheduled. Then the interpreter handles each instruction following the visitor pattern. Some special instruction-handling functions are overridden by the driver, such as handleLoad, handleStore, handleFence, and handleSpinStart. For instance, the handleLoad function will pick a write value allowed by the memory model for the load instruction and add it to the execution graph, and the handleStore function will add it to the execution graph and insert it into the modification order (coherence) at some proper place, as well as checking consistency and reporting possible data races.
 
+\michalis{Are all of these technical details necessary?}
+
 The execution graph is composed of events, each having a label indicating its position in the graph and other information about the event itself. It also maintains a map that records the store events of each memory location. An event can be looked up using its position, which is a pair of thread ID and its index in that thread. Additional information is also stored in the label. For example, a read event label also contains its reads-from information and atomic ordering. Both the stamp and the position uniquely identify an event in a single graph; however, the stamp is determined by the order of adding events to the graph and hence will vary across explorations, while the position is determined by the source code of the tested program.
 
+\michalis{Are these graphs different than C11Tester's?}
+
 The driver has a stack of executions, called execStack. Each execution has an execution graph instance and a workqueue. The workqueue stores the exploration operations, called Revisit, to be conducted, on the corresponding graph. The driver fetches an item each time from the workqueue and "revisit" it. When the workqueue is empty, the driver is informed that no more actions are needed for the current graph, so it pops out the current execution from the execStack and continues with other executions. When the execStack is empty the driver finishes its job and report the statistics. In estimation mode, only one kind of Revisit, RerunForwardRevisit, is used, which indicates the driver to reset the execution graph to its initial state and start over the next iteration.
+
+\michalis{Are all of these details necessary?}
 
 The above mentioned exploration procedure is listed in Algorithm~\ref{driver::run}.
 
@@ -98,7 +104,7 @@ Firstly the hash function for a single event should be defined, as shown in Algo
 \end{algorithm}
 
 Then the events are iterated by thread ID and indices to compute the hash value of the graph, as listed in Algorithm~\ref{alg:hash-executiongraph}.
-
+\michalis{Why is this hash function different than C11Tester's?}
 
 \begin{algorithm}
 	\caption{Hashing an ExecutionGraph}
@@ -123,6 +129,8 @@ The mutation process is composed of two steps: changing an rf relation and cutti
 
 \paragraph{Revisit cut} It constructs the ReadForwardRevisit and BackwardRevisit objects and pushes them to the workqueue directly. These two kinds of Revisit's are defined in GenMC, used in its verification mode. We first compare the timestamps of $R$ and $S$. If $R$ has a greater stamp, a ReadForwardRevisit will be constructed. When the driver retrieves a ReadForwardRevisit from the workqueue, it removes all events whose stamps are greater than $R$. Since $S$'s stamp is smaller, it will be kept. Additionally, the read becomes the latest event added to the graph, hence the events that may no longer be valid due to the change in $R$'s rf will not be retained. This cut view can be denoted as $preds_{R}$. On the other hand, if $S$ has a greater stamp, a BackwardRevisit will be constructed. The driver first collects all events that has smaller stamps than $R$, i.e. $preds_{R}$, similar as did in ReadForwardRevisit. Since $S$ has a greater stamp this time, it will not be included in $preds_{R}$. Then the driver computes all events that are porf predecessors of $S$, denoted as $pporf_{S}$. The cut view is the union of the two sets of events, $preds_{R} \cup pporf_{S}$ and the rest of the graph will be cut.
 
+\michalis{preds and pporf are never defined.}
+
 \paragraph{Minimal cut} This cut strategy aims to retain as little events as possible. It only keeps those events that are both porf predecessors of $R$ and $S$. The events in unrelated threads (concurrent events) will be dropped. The minimal cut view can be written as $pporf_{R} \cup pporf_{S}$
 
 \paragraph{Maximal cut} This cut strategy aims to retain as many events as possible. In maximal cut, the unrelated events, which are removed in minimal cut, will be kept. It only removes the events that are porf successors of the read. To get this set of events, the fuzzer iterates through all events in the graph. For each event, if the $R$ is not a porf predecessor of it, it will be added into the set. Because the maximal cut will include more events into the cut view, some special attention needs to be paid to the "pair relations". For example, if a thread-join event is to be added into the view, both itself and its corresponding thread's thread-finish event should not be porf successors of $R$. The maximal cut view can be represented by $\{e \in G \mid R \notin pporf_e, \  R \notin pporf_{e's pair}\} \cup {R}$, where $G$ is the current graph to be mutated.
@@ -137,6 +145,7 @@ The mutation process is composed of two steps: changing an rf relation and cutti
 	\caption{The execution graph to be cut}
 	\label{cut:to-be-cut}
 \end{figure}
+\michalis{rf is usually drawn from writes to reads.}
 
 For revisit cut, since the read event has the greater stamp, the graph will be simply cut up until stamp = 7, shown in Figure~\ref{cut:revisit}.
 
@@ -250,7 +259,7 @@ To address this question, we run both the fuzzer and the GenMC in its estimation
 	\caption{Number of unique execution graphs of each exploration strategy}
 \end{table}
 
-It can be observed that for all of the above benchmarks, the fuzzer is able to explore higher number of execution graphs than the random tester does. The everage improvement, computed by
+It can be observed that for all of the above benchmarks, the fuzzer is able to explore higher number of execution graphs than the random tester does. The average improvement, computed by
 
 
 \[
