@@ -221,7 +221,21 @@ We use the following benchmarks to evaluate the fuzzer.
 
 \paragraph{linuxrwlocks} The reader-writer lock implementation of linux kernel, similar to that in the previous chapter but written in C.
 
+\paragraph{P1} One thread continues to modify a shared variable and the other thread checks whether it is equal to a certain value once.
 
+\paragraph{stack\_bug} A treiber stack with an injected bug. 
+
+\paragraph{long\_race} The same benchmark to that used in the previous chapter, in C.
+
+\paragraph{mp} A message passing program where multiple threads update a shared flag variable. The bug is triggered when the flag ends up with a certain value. 
+
+\paragraph{stack\_oddeven} A concurrent stack benchmark with threads pushing odd and even numbers, injected with a bug by using store operation to replace a cas loop.
+
+\paragraph{stack\_oddeven2} The same stack used in stack\_oddeven but injected with a different bug, by using exchange operation to replace the cas loop. 
+
+\paragraph{buggy\_queue}  An ms\_queue benchmark injected with a bug while pushing items to the queue. 
+
+\paragraph{buf\_ring\_bug} A concurrent ring buffer benchmark injected a bug by disabling the memory barrier during enqueuing.
 
 \paragraph{long-assert} A test case that has a complicated assertion that is hard to trigger. One thread checks the assertion involving two shared variables and the other thread modifies one of them after doing some exponential work.
 
@@ -233,10 +247,13 @@ We use the following benchmarks to evaluate the fuzzer.
 	\item Is the fuzzer able to explore more distinct execution graphs in a fixed number of iterations than the random tester? \label{RQ:CutVSRandom}
 	\item Among the three mutation strategies, which performs best? Why? \label{RQ:CutComparison}
 	\item What's the runtime performance of the fuzzer with different mutations, comparing with random testing? \label{RQ:GenMCOverhead}
+	\item Can the fuzzer detect bugs faster compared to the random walk tester? \label{RQ:GenmcBug}
 	\item Is the fuzzer able to find bugs faster than the model checker?\label{RQ:GenMC_vs_fuzzer}
 \end{enumerate}
 
-\subsection{\ref*{RQ:CutVSRandom}: Fuzzer vs random tester }
+
+
+\subsection{\ref*{RQ:CutVSRandom}: Fuzzer vs random tester on search space coverage}
 
 To address this question, we run both the fuzzer and the GenMC in its estimation mode for 10 thousand iterations. Using the hash function defined in section~\ref{sec:hashf}, we count the number of distinct execution graphs they found. Table~\ref{genmc:num-of-exe} shows the results of each benchmark. The improvements are computed by:
 \[
@@ -429,6 +446,23 @@ In addition, it is possible that one strategy may find more execution graphs in 
 	\end{minipage}
 \end{figure}
 
+\subsection{\ref*{RQ:GenmcBug}: Fuzzer vs random tester on bug detection}
+
+We use several buggy benchmarks to test the bug detection capabilities of both our fuzzer and the random tester. For each benchmark, we run the fuzzer and the random tester for a fixed number of iterations, $N$. When a bug is detected for the first time, we stop the testers and record the current iteration number and the elapsed time. For ease of comparison, if the bug is not detected within $N$ iterations, we assign a placeholder iteration number equal to $N$. Each technique is run 20 times on each benchmark, and we calculate the averages of iterations and time, as shown in Figure~\ref{genmc-bug-iter} and Figure~\ref{genmc-bug-time}. The results indicate that the fuzzer detects bugs faster and requires fewer iterations in the majority of benchmarks.
+
+\begin{figure}[h!tbp]
+	\centering
+	\includegraphics[scale=0.3]{figure/genmc-bug/first_bug_iter.pdf}
+	\caption{Average iterations to detect the bugs}
+	\label{genmc-bug-iter}
+\end{figure}
+
+\begin{figure}[h!tbp]
+	\centering
+	\includegraphics[scale=0.3]{figure/genmc-bug/time_elapsed.pdf}
+	\caption{Average time to detect the bugs}
+	\label{genmc-bug-time}
+\end{figure}
 
 
 \subsection{\ref*{RQ:GenMC_vs_fuzzer}: Fuzzer vs model checker }
