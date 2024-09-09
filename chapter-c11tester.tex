@@ -89,7 +89,7 @@ To summarize, C11Tester will execute the program from beginning to end, randomly
 
 \section{Customization points of C11Tester}
 
-C11Tester provides two interfaces: selectWrite and selectThread that randomly selects a thread or write from a provided set. These two functions can be overwritten to implement new fuzzers. The provided set already excludes invalid choices, so it is safe to select from the remaining choices in the set. Thus, we can define two types of mutations: changing the next thread to be added or changing the write from which a read event reads.
+In C11Tester the scheduler only controls where reads can read from, and which thread to run next. These two functions can be overwritten to implement new fuzzers. The provided set already excludes invalid choices, so it is safe to select from the remaining choices in the set. Thus, we can define two types of mutations: changing the next thread to be added or changing the write from which a read event reads.
 
 \section{Fuzzer implementation}\label{c11fuzzer:implementation}
 
@@ -129,12 +129,12 @@ The hash function for execution graph encodes: event types, memory orders, and r
 
 The is\_interesting function returns true if the hash of the current execution graph is not covered in previous explorations. This is the least restrictive metric, alternatively, it can be defined as returning true if new rf relations has been covered. Another possible definition is to check whether the execution graph reveals a new bug, which is biased toward searching for bugs. In our definition, we aim to find more new executions, with more new buggy executions being a by-product.
 
-The mutate function uniformly picks a fixed number of decisions, including threads and rf's, from multiple choices in the provided set. For each of them, it mutates the selected decision and discards the rest decisions to produce a prefix. Since the only two places where randomness is used are selectWrite and selectThread, the choices of threads and writes will be uniquely mapped to an execution graph. Hence, the prefix of a decision trace also defines a prefix of an execution graph.
+The mutate function uniformly picks a fixed number of decisions, including threads and rf's, from multiple choices in the provided set. For each of them, it mutates the selected decision and discards the rest decisions to produce a prefix. Since randomness is used only in the functions for controlling rf and selecting the next thread, the choices of threads and writes will be uniquely mapped to an execution graph. Hence, the prefix of a decision trace also defines a prefix of an execution graph.
 
 
 
 The mutated prefixes will be added to a prefix set. The replaying function chooses a prefix from the set and enforces C11Tester to make the same decisions in that prefix. After enforcing the prefix, C11Tester switches to random mode and continues random exploration until the graph is completed.
-\michalis{You don't have to describe c11tester internals like selectThread and selectWrite, Action, etc. You could just say "In C11Tester the scheduler only controls where reads can read from, and which thread to run next." }
+% \michalis{You don't have to describe c11tester internals like selectThread and selectWrite, Action, etc. You could just say "In C11Tester the scheduler only controls where reads can read from, and which thread to run next." }
 
 \section{Benchmarks}
 
@@ -246,7 +246,7 @@ Take the long-race benchmark for example. This benchmark is taken from the rff's
 	}
 \end{lstlisting}
 
-Hitting the bug requires two workers to alternately modify the shared variable in a very strict order (we also tested the long-race benchmark with rff, and it took 15 thousand iterations to detect it). There are a total of 9 different possible  executions of this program. Figure~\ref{graph-freq} shows how many times each execution graph (represented by their hashes on the x-axis) are explored in $N$ iterations. It can be observed that the random tester is heavily biased towards the first and second executions, which together take up 96.5\% of $N$. In contrast, the fuzzer exhibits a more "flattened" frequency plot on executions and covers all 9 execution graphs. This more even distribution is due to mutations that target those infrequent executions during exploration.
+Hitting the bug requires two workers to alternately modify the shared variable in a very strict order (we also tested the long-race benchmark with rff, and it took 15 thousand iterations to detect it). There are a total of 9 different possible executions of this program. Figure~\ref{graph-freq} shows how many times each execution graph are explored in $N$ iterations. It can be observed that the random tester is heavily biased towards the first and second executions, which together take up 96.5\% of $N$. In contrast, the fuzzer exhibits a more "flattened" frequency plot on executions and covers all 9 execution graphs. This more even distribution is due to mutations that target those infrequent executions during exploration.
 
 Figure~\ref{c11tester:bug-plot} shows the number of unique executions and bugs found in first 1000 iterations. It can be observed that the fuzzer detects the bug ealier than C11Tester and also covers a higher range of executions.
 
@@ -544,7 +544,7 @@ The fuzzer is composed of a python script that performs mutation and file IO's a
 	\item The time used for the binary to execute.
 \end{itemize}
 
-We test our fuzzer using a real-world application, iris, which is an asynchronous logging library that makes extensive use of atomic operations. Both C11Tester and C11Fuzzer are tested $N=100$ times and an average of the overhead per execution is taken. Table \ref{overhead} shows the measurement results. It can be seen that the mutation takes up most of the overhead. A future improvement could be writing the fuzzer in a compiled language and transfer the heavy file IO into memory.
+We test our fuzzer using a real-world application, iris, which is an asynchronous logging library that makes extensive use of atomic operations. Both C11Tester and C11Fuzzer are tested $N=100$ times and an average of the overhead per execution is taken. Table \ref{overhead} shows the measurement results. It can be seen that the mutation takes up most of the overhead, 7.4 seconds for each execution. A future improvement could be writing the fuzzer in a compiled language and transfer the heavy file IO into memory.
 
 \begin{table}[h!]
 	\centering
