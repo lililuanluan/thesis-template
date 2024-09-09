@@ -16,21 +16,21 @@ Here is a summary of several characteristics associated with random-based testin
 
 Firstly, weak memory models usually allow more behaviors which are not permitted in the SC model. For example, under a certain schedule, a read event may have more than one write events to read from. This presents challenges for testing weak memory programs, as their behaviors are not uniquely determined by scheduling decisions. Take SB for example, assuming all operations are relaxed, suppose a tester's scheduler adds events to an execution graph in the following order: \texttt{[$init$]} $\rightarrow$ \texttt{W($x$, 1)} $\rightarrow$ \texttt{W($y$, 1)} $\rightarrow$ \texttt{R($y$)}. When \texttt{R($y$)} is added, it has two reads-from options: \texttt{[$init$]} and \texttt{W($y$, 1)}. This is not possible in the SC model, because under this schedule, \texttt{[$init$]} happens before \texttt{W($y$, 1)}, which in turn happens before \texttt{R($y$)}. Hence, \texttt{R($y$)} can only read from the most recent write in this happen-before order. In the weak memory model, however, since both \texttt{W($y$, 1)} and \texttt{[$init$]} are relaxed, there is no happen-before relationship between them to constrain the read options for \texttt{R($y$)}.
 
-Secondly, different orders of adding events and forming relations can result in the same executions. For example, consider Listing~\ref{P6}, where two groups of threads are incrementing their counters. The test generator might first add events from threads in \texttt{group 1} and then from those in \texttt{group 2}, or it might choose to add events from \texttt{group 2} first. Since the threads in the two groups do not interact with each other, both cases can result in same execution graphs.
+Secondly, different orders of adding events and forming relations can result in the same executions. For example, consider Listing~\ref{P6}, where two groups of threads are updating their flags. The test generator might first add events from threads in \texttt{group 1} and then from those in \texttt{group 2}, or it might choose to add events from \texttt{group 2} first. Since the threads in the two groups do not interact with each other, both cases can result in same execution graphs.
 
 % \michalis{Do you need a different example to explain this?}
 
 \begin{lstlisting}[caption={P6}, label={P6}]
-    atomic<int> cnt1 = {}; // s0
-    atomic<int> cnt2 = {}; // s0
+    atomic<int> x = {}; 
+    atomic<int> y = {}; 
     
     // group 1
-    void thread1() { cnt1++; }
-    void thread2() { cnt1++; }
+    void thread1() { x = 1; }
+    void thread2() { while(!x) {;} }
 
     // group 2
-    void thread3() { cnt2++; }
-    void thread4() { cnt2++; }
+    void thread3() { y = 1; }
+    void thread4() { while(!y) {;} }
 
 \end{lstlisting}
 
@@ -45,12 +45,6 @@ Thirdly, the search space, which is the set of all possible execution graphs, ca
     \caption{Valid execution graphs of SB}  
     \label{SB4}  
 \end{figure}
-
-
-
-
-% Since all loads and stores are relaxed, the loads will have no synchronization constraints. Each load can have 4 possible stores to read from: s0, s1, s2 and s3. Hence the size of the search space is: $4^3 = 64$. Comparing this with the SC model, if all loads and stores are sc, the total number of executions is $\binom{6}{3} = 20$. 
-
 
 
 
@@ -214,11 +208,22 @@ The following are a few notes regarding this algorithm.
 % hash 
 \paragraph*{Counting the number of unique graphs} In order to count the number of execution graphs, we will also need a hash function that maps the set of graphs, $G$, to a subset of integers, $H$. This hash function, $h: G \to H$ should be a bijection. That is, it should satisfy the following properties:
 \begin{itemize}
-    \item $h$ is surjective: The same execution graphs should always have the same hash values. This requires the hash function to exclude irrelevant information, such as the timestamps of events. 
-	\item $h$ is injective: Different execution graphs should have different hash values. This requires the hash function to include enough information from the graphs. Ideally, there should be no hash collisions, but as this is a low-probability event, it can be ignored within the scope of our work.
+    \item $h$ is surjective: The same execution graphs should always have the same hash values. This requires the hash function to exclude irrelevant information, such as the timestamps of events, which is related to specific explorations. 
+	\item $h$ is injective: Different execution graphs should have different hash values. This requires the hash function to include enough information from the graphs, such as the rf relations. Ideally, there should be no hash collisions, but as this is a low-probability event, it can be ignored within the scope of our work.
 \end{itemize}
 
-If $h$ is bijective, the cardinality of the set of hashes, $|H|$, equals that of execution graphs, and can thus be used to count the number of distinct graphs. In our implementations, we use different hash functions due to the differing internals of the C11Tester and GenMC, but both are considered bijective functions.
+If $h$ is bijective, the size of the set of hashes, $|H|$, equals that of execution graphs (i.e. they are equinumerous), and can thus be used to count the number of distinct graphs. In our implementations, we use different hash functions due to the differing internals of the C11Tester and GenMC, but both are considered bijective functions.
+
+% \paragraph*{The is\_interesting function} This function operates on execution graphs as a feedback metric in the fuzzing loop. Conceptually, it serves as a connecting point of the beginning and end of an exploration procedure. Telling whether an execution graph is interesting helps the fuzzer to decide whether to mutate it and can also indicate the ability of finding interesting graphs of the mutated prefixes. If a prefix can find more interesting graphs, it should be prioritized in use. 
+
+\paragraph*{The is\_interesting Function} 
+This function evaluates execution graphs as a feedback metric in the fuzzing loop. Conceptually, it serves as a connecting point between the beginning and end of the exploration procedure in two folds:
+\begin{itemize}
+    \item Backwards: It assesses the performance of mutated prefixes based on their ability to find interesting graphs. Prefixes that lead to more interesting graphs should be prioritized for use.
+    \item Forwards: It determines whether an execution graph is interesting, which helps the fuzzer decide whether to mutate it. An interesting execution graph indicates the potential for discovering other interesting graphs through mutation.
+\end{itemize}
+
+ 
 
 
 
@@ -226,7 +231,7 @@ If $h$ is bijective, the cardinality of the set of hashes, $|H|$, equals that of
 In the following chapters, we present two fuzzers based on C11Tester and GenMC, both of which implement the fuzzing algorithm, with different implementations for functions such as is\_interesting, mutate,  explore\_from\_prefix and the hash function.
 
 
-\michalis{Why does it matter whether g is interesting? Isn't it more important that the mutated graph is interesting?}
+% \michalis{Why does it matter whether g is interesting? Isn't it more important that the mutated graph is interesting?}
 
 
 
