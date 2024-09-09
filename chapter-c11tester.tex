@@ -14,7 +14,7 @@ Although C/C++ programs under weak memory models do not use scheduling semantics
 
 Memory locations are divided into two types: atomic locations and non-atomic locations. Non-atomic access to shared memory locations is the source of data races. C11Tester implements a race detector to check data races. The race detector allocates a chunk of shadow memory for each of the non-atomic memory locations. Loading from or writing to non-atomic shared variables is instrumented with specific functions, which will register the current thread's state to the shadow memory. When multiple concurrent accesses to some shared non-atomic memory with at least one of them being a write is detected, a data race will be reported.
 
-Here, we use an example to demonstrate the process of C11Tester's random testing procedure.
+Here, we use an example to demonstrate the process of C11Tester's random testing procedure. In the following content, we use the word 'consume' to mean that the tester executes an action without pausing to make scheduling and rf decisions.
 
 \begin{lstlisting}[caption={P3}, label={P3}]
 #include "librace.h"
@@ -48,11 +48,11 @@ In this program, there are two shared variables: a non-atomic variable \texttt{d
 
 After compilation, the random tester launches the program. After initializing the global variables, the checker creates the first thread, which is the \texttt{main} thread, and assigns an tid, 1, to it. The first event is the creation of \texttt{thrd2}. After \texttt{thrd2} is created and assigned an tid of 2, two threads, \texttt{main} and \texttt{thrd2}, are active. The tester will randomly pick a thread to continue. Suppose the \texttt{main} thread is selected; the next event of it is the creation of \texttt{thrd3}. After creating \texttt{thrd3}, the next event of main is joining \texttt{thrd2}, making \texttt{main} inactive. Now, the current active threads are: \texttt{thrd2} and \texttt{thrd3}.
 
-If the tester selects \texttt{thrd2}, the two events in it, writing to \texttt{data} and \texttt{flag}, will be consumed, and the \texttt{thrd2} is finished. Now, \texttt{thrd2} becomes joinable and the currently active threads are: \texttt{main} and \texttt{thrd3}. Suppose \texttt{main} is selected and after joining \texttt{thrd2} it becomes inactive again. Then, \texttt{thrd3} becomes the only active thread so it will be executed without the need to make a choice. The first event in \texttt{thrd3} is loading the value of \texttt{flag}. Since the store of \texttt{flag} in \texttt{thrd2} has already been explored, the non-atomic initialization of \texttt{flag} is hidden in the modification order. Hence, only the atomic store is visible to this load, and the reads-from relation also forms a synchronization-with relation between the two thread. When writing to the non-atomic \texttt{data}, the race detector checks previous access to that location. The store in \texttt{thrd2} happens before the read in the current thread, which happens before the current store, so all events are totally ordered and no data race will be reported.
-\michalis{Have you explained what a modification order is and what "hidden" means?}
+If the tester selects \texttt{thrd2}, the two events in it, writing to \texttt{data} and \texttt{flag}, will be consumed, and the \texttt{thrd2} is finished. Now, \texttt{thrd2} becomes joinable and the currently active threads are: \texttt{main} and \texttt{thrd3}. Suppose \texttt{main} is selected and after joining \texttt{thrd2} it becomes inactive again. Then, \texttt{thrd3} becomes the only active thread so it will be executed without the need to make a choice. The first event in \texttt{thrd3} is loading the value of \texttt{flag}. Since the store of \texttt{flag} in \texttt{thrd2} has already been explored, the non-atomic initialization of \texttt{flag} is not the latest in the modification order. Hence, only the atomic store is visible to this load, and the reads-from relation also forms a synchronization-with relation between the two thread. When writing to the non-atomic \texttt{data}, the race detector checks previous access to that location. The store in \texttt{thrd2} happens before the read in the current thread, which happens before the current store, so all events are totally ordered and no data race will be reported.
+% \michalis{Have you explained what a modification order is and what "hidden" means?} mo was in chapter background
 
-Considering another case, suppose the tester selects \texttt{thrd3} after after both threads have been created. The load of \texttt{flag} will be executed and only the initialization of \texttt{data} is visible to it. After reading the initial value, the store of \texttt{data} is consumed. When \texttt{thrd3} is finished, the stores in \texttt{thrd2} will be executed. When writing to \texttt{data}, the race detector checks previous actions related to that memory location. The store in \texttt{thrd3} has already been explored, and it has no happen-before relations with the current store. Therefore, the two stores are concurrent, and a data race is reported.
-\michalis{Happens-before comes out of nowhere here. Before you're talking about modification order and now about hb.}
+Considering another case, suppose the tester selects \texttt{thrd3} after after both threads have been created. The load of \texttt{flag} will be executed and only the initialization of \texttt{data} is visible to it. After reading the initial value, the store of \texttt{data} is consumed. When \texttt{thrd3} is finished, the stores in \texttt{thrd2} will be executed. When writing to \texttt{data}, the race detector checks previous actions related to that memory location. The store in \texttt{thrd3} has already been explored, and it has no synchronization with the current store. Therefore, the two stores are concurrent, and a data race is reported.
+% \michalis{Happens-before comes out of nowhere here. Before you're talking about modification order and now about hb.}
 
 One optimization implemented by C11Tester is that it will consume writes with release and relaxed memory orders, only pausing on SC writes. This is because the sc order is part of the C/C++11 memory model, so different sc order will result in different executions. Moreover, consuming weak writes does not prevent covering possible executions. Consider the following example\ref{P4},
 \begin{lstlisting}[caption={P4}, label={P4}]
@@ -67,7 +67,7 @@ One optimization implemented by C11Tester is that it will consume writes with re
     }
 \end{lstlisting}
 after creating two threads, if \texttt{t2} is selected first, \texttt{r1} can only read from the initial value. If \texttt{t3} is selected, the first event, \texttt{w1}, in this thread will be executed. The next two events are release writes, so the tester will not re-select threads after executing \texttt{w1}. Instead, it will execute \texttt{w2} and \texttt{w3} until \texttt{t3} is finished. Then, it finds that the only active thread is \texttt{t2}, so it selects \texttt{t2}. Now, the set of available writes for \texttt{r1} to read from becomes: \texttt{w1}, \texttt{w2} and \texttt{w3}, and \texttt{r1} is free to randomly select one of them. Although making thread decisions after each event is also feasible, the optimized version is more efficient and still able to cover all four possible executions.
-\michalis{What does consuming writes mean?}
+% \michalis{What does consuming writes mean?} added at the top
 
 Another optimization performed by C11Tester is that it avoids backtracking during exploration. To achieve this, it performs consistency checking at each step to ensure that it is valid. It makes decisions based on the implications of the memory model and the already explored events. In \ref{P4}, for example, if \texttt{t3} has been explored, when choosing the rf relation for \texttt{r1} in \texttt{t2}, the rf-set only contains \texttt{w1}, \texttt{w2} and \texttt{w3}, where \texttt{w0} is excluded. If \texttt{r1} had selected \texttt{w0} and the random tester continued until some point where the execution graph is found to be infeasible under the memory model, it would have to perform backtracking to make a different choice for \texttt{r1}. Consider another example \ref{P5},
 \begin{lstlisting}[caption={P5}, label={P5}]
@@ -186,16 +186,16 @@ To address the research questions, we use the benchmarks to test our fuzzer and 
 
 \subsection{\ref*{RQ:hardbug}: Fuzzer vs C11Tester}
 
-One important metric for a fuzzer is whether it is able to detect the bug effectively. In this section, we use several programs with some hard-to-find bugs and examine the iterations taken to find a bug for the first time, denoted as $N_{bug1}$. The smaller $N_{bug1}$ is, the more effective the fuzzer or the tester is. Table \ref{c11fuzzer-hardbug} shows $N_{bug1}$ for the fuzzer and the random tester, where a dash indicates that the bug was not detected.
-\michalis{Do you average iterations? }
+One important metric for a fuzzer is whether it is able to detect the bug effectively. In this section, we use several programs with some hard-to-find bugs and examine the iterations taken to find a bug for the first time, denoted as $N_{bug1}$. The smaller $N_{bug1}$ is, the more effective the fuzzer or the tester is. We run both the fuzzer and the random tester for 20 times and record their average iterations taken to find the bugs. Table \ref{c11fuzzer-hardbug} shows $N_{bug1}$ for the fuzzer and the random tester, where the dash indicates that the bug was not detected in all tests.
+% \michalis{Do you average iterations? }
 \begin{table}[h!]
 	\centering
 	\begin{tabular}{ |c|cccc| }
 		\hline
 		Benchmarks  & long-race & mp & P1  & reorder\_10 \\
 		\hline
-		C11Tester             & -         & 2335  & 489 & 9           \\
-		C11Fuzzer              & 717       & 30 & 74  & 9           \\
+		C11Tester & -          & 686  & 678 & 176          \\
+		C11Fuzzer & 453       & 210   & 48  & 81           \\
 		\hline
 	\end{tabular}
 	\caption{Iterations taken to detect the first bug}

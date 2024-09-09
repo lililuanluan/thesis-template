@@ -11,13 +11,13 @@ Automated testing, on the other hand, has for long been of great importance for 
 % Testing techniques aimed at discovering bugs and safety vulnerabilities have been developed over the years, primarily including static analysis and dynamic testing. Static analysis tools\cite{infer, RacerD} typically perform bug detection at compile time, relying on some abstraction of the semantics of the source code. 
 % Due to the complexity of the programming language and the logic of the tested program, such static analysis tools sometimes do not ensure reporting bugs comprehensively and correctly. The other way is dynamic testing, which explores reachable states at runtime. Unit testing, for example, plays a fundamental role in software development. Some influential tools have been developed, including AddressSanitizer\cite{ASAN}, detecting addressability issues, and ThreadSanitizer\cite{TSAN}, which detects data races and deadlocks. However, even though high quality test cases can cover large ranges of program behaviors, there can still be some corner cases that are not exposed. In addition, such test cases require a deep understanding of the program under test and consume a considerable amount of time and effort to complete. 
 
-\michalis{The paragraph above is all over the place, and doesn't motivate fuzzing well IMO. I would suggest a structure like: \\
- - bugs can be catastrophic, bug detection is important\\
- - two ways to detect bugs: (1) formal methods establish their absence, but either don't scale or have false positives (2) testing cannot prove full correctness, but is very effective in finding real bugs\\
- - testing, however, can be inadequate (why?)\\
-~\\
- In the next paragraph you can introduce fuzzing by explaining how it overcomes certain shortcomings of testing. In principle, you could even avoid talking about formal verification and focus on bug detection.
-}
+% \michalis{The paragraph above is all over the place, and doesn't motivate fuzzing well IMO. I would suggest a structure like: \\
+%  - bugs can be catastrophic, bug detection is important\\
+%  - two ways to detect bugs: (1) formal methods establish their absence, but either don't scale or have false positives (2) testing cannot prove full correctness, but is very effective in finding real bugs\\
+%  - testing, however, can be inadequate (why?)\\
+% ~\\
+%  In the next paragraph you can introduce fuzzing by explaining how it overcomes certain shortcomings of testing. In principle, you could even avoid talking about formal verification and focus on bug detection.
+% }
 
 Fuzz testing has become increasingly popular in recent years. It repeatedly executes the tested program by generating random inputs and monitors for any observed buggy behaviors. These approaches are usually easy to apply and scale well. Fuzzers can be classified into three categories based on the level of knowledge they use from the tested programs: black-box, grey-box and white-box fuzzers. A fuzzer typically has a feedback loop. It maintains a set of seeds as program inputs to execute the program. The information about the execution is collected to determine whether a seed is interesting, which means the seed has triggered new interested behaviors, such as covering new code branches. The interesting seeds will be used for generating new seeds during repeated executions. One of the most popular fuzzing tool is AFL\cite{afl}, a coverage-guided mutation-based grey-box fuzzer which achieves superior efficiency than previous black-box fuzzers. Since then, researchers have developed various techniques to improve the code coverage and accelerate the bug detection. 
 
