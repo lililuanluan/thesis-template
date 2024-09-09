@@ -105,7 +105,7 @@ The process of the random walk test generation procedure is similar to the Galto
     \label{tree}  
 \end{figure}
 
-\michalis{Maybe the example above requires some more explanation. Assuming that a node in your tree is not an execution graph (but rather the rf choices within a graph), can it be the case that two paths yield the same graph? If so, why? If not, why does fuzzing help?}
+
 
 If each time we start from the top and randomly make decisions, those states in the middle will be reached more frequently than those in the corners. However, if we can start from some middle states, it would be easier to reach some corner states, and hence the states reached in the end will be more diverse. This is where our fuzzer come to help. An intuitive description of the fuzzer is: whenever the fuzzer reaches a new state (i.e. finds an interesting execution graph), it mutates one of the decisions made. For the next iteration, the fuzzer replays the decision making until the mutated point, change the decision as mutated, and continues randomly afterwards. As shown in Figure~\ref{tree3} (a), suppose the red path is the previous exploration and the fuzzer mutates the second decision from going right to left (b). Then for the next exploration, it replays until the mutated choice and the probability of reaching the left corner state becomes $\frac{1}{2^{n-2}}$ (c). 
 
@@ -116,6 +116,7 @@ If each time we start from the top and randomly make decisions, those states in 
     \label{tree3}  
 \end{figure}
 
+% \michalis{Maybe the example above requires some more explanation. Assuming that a node in your tree is not an execution graph (but rather the rf choices within a graph), can it be the case that two paths yield the same graph? If so, why? If not, why does fuzzing help?}
 
 Relating this to the randomized testing procedure, each parent node in the decision tree represents an intermediate state in the process of constructing a graph, while the leaf nodes represent completed graphs. The edges correspond to the scheduling or rf decisions made during exploration. Each time, the random walk tester restarts from the begining (top of the tree) and randomly generates execution graphs independently. However, due to the previously listed challenges, it often tends to generate a subset of frequently occurring execution graphs, sometimes repeatedly, leaving hard-to-find executions unexplored. We consider this approach inefficient and utilize fuzzing techniques to improve this. Ideally, the fuzzer should explore graphs with a more uniform frequency and broader coverage compared to  the random walk tester, as shown in Figure~\ref{tree-freq}.
 
@@ -173,12 +174,7 @@ Suppose during exploration, one execution graph is constructed as shown in Figur
 This section provides a high-level overview of the fuzzing algorithm. The implementation details and evaluation results will be presented in later chapters.
 
 
-
-
-
 The fuzzer uses partially constructed graphs, represented by "prefixes" in the following context, as guidance for further explorations. As shown in Algorithm~\ref{fuzzer}, the fuzzer executes the program $P$ a total of $N$ times (line~\ref{line:input}), generating an execution graph each time after exploring the search space. It maintains a set of prefixes, initially empty (line~\ref{line:init_prefix}). At the beginning of each exploration, it picks a prefix from the prefix set (line~\ref{line:pick_prefix}). If no prefixes are available in the set, the exploration will be entirely random (line~\ref{line:random_explore}). With a selected prefix, the fuzzer replays the execution up to the end of the prefix and randomly constructs the remaining part of the execution graph (line~\ref{line:explore_prefix}). When the exploration is finished, an execution graph is constructed, and the fuzzer determines whether this graph is interesting according to certain metrics (line~\ref{line:is_interesting}). A graph is considered interesting if it is a new execution graph or contains new relations or events. The interesting graph is then mutated to generate new prefixes (line~\ref{line:mutate}). These new prefixes are added to the prefix set for future use (line~\ref{line:add_prefix}). For example, the fuzzer might modify a reads-from relation in the graph and remove the invalid portion following that relation to create a prefix. The fuzzer may also dynamically discard some prefixes based on their effectiveness in finding new interesting graphs. New graphs are added to the graph set (line~\ref{line:add_graph}) and are ultimately outputted at the end (line~\ref{line:output}). 
-
-The number of unique execution graphs in the outputted graph set is a major metric for evaluating the fuzzer's searching ability. In our fuzzer implemented with GenMC, described in Chapter~\ref{cha:genmc}, we also evaluate the fuzzer by running it for a fixed time budget and count the number of unique executions found.
 
 
 % \michalis{Why execute only up to N times? Could you do this with a time budget too? If so, mention this.}
@@ -211,8 +207,23 @@ The number of unique execution graphs in the outputted graph set is a major metr
     \end{algorithmic}
 \end{algorithm}
 
+The following are a few notes regarding this algorithm.
 
-In the following chapters, we present two fuzzers based on C11Tester and GenMC, both of which implement the fuzzing algorithm, with different implementations for functions such as is\_interesting, mutate, and explore\_from\_prefix`.
+\paragraph*{$N$ as an input parameter} The number of unique execution graphs in the outputted graph set is a major metric for evaluating the fuzzer's searching ability. The algorithm takes a fixed number of iterations, $N$, as an input parameter. This facilitates the comparison of algorithmic efficiencies regardless of implementation details. In practice, execution time is also an important consideration. In our fuzzer implemented with GenMC, described in Chapter~\ref{cha:genmc}, we also evaluate the fuzzer by running it for a fixed time budget and count the number of unique executions found.
+
+% hash 
+\paragraph*{Counting the number of unique graphs} In order to count the number of execution graphs, we will also need a hash function that maps the set of graphs, $G$, to a subset of integers, $H$. This hash function, $h: G \to H$ should be a bijection. That is, it should satisfy the following properties:
+\begin{itemize}
+    \item $h$ is surjective: The same execution graphs should always have the same hash values. This requires the hash function to exclude irrelevant information, such as the timestamps of events. 
+	\item $h$ is injective: Different execution graphs should have different hash values. This requires the hash function to include enough information from the graphs. Ideally, there should be no hash collisions, but as this is a low-probability event, it can be ignored within the scope of our work.
+\end{itemize}
+
+If $h$ is bijective, the cardinality of the set of hashes, $|H|$, equals that of execution graphs, and can thus be used to count the number of distinct graphs. In our implementations, we use different hash functions due to the differing internals of the C11Tester and GenMC, but both are considered bijective functions.
+
+
+
+
+In the following chapters, we present two fuzzers based on C11Tester and GenMC, both of which implement the fuzzing algorithm, with different implementations for functions such as is\_interesting, mutate,  explore\_from\_prefix and the hash function.
 
 
 \michalis{Why does it matter whether g is interesting? Isn't it more important that the mutated graph is interesting?}

@@ -104,7 +104,7 @@ Firstly the hash function for a single event should be defined, as shown in Algo
 \end{algorithm}
 
 Then the events are iterated by thread ID and indices to compute the hash value of the graph, as listed in Algorithm~\ref{alg:hash-executiongraph}.
-\michalis{Why is this hash function different than C11Tester's?}
+% \michalis{Why is this hash function different than C11Tester's?} % discussed at the end of chapter 3
 
 \begin{algorithm}
 	\caption{Hashing an ExecutionGraph}
@@ -125,11 +125,18 @@ Then the events are iterated by thread ID and indices to compute the hash value 
 
 \subsection{Mutation methods}
 
-The mutation process is composed of two steps: changing an rf relation and cutting the graph. The driver has provided a function, getRfsApproximation, that calculates a list of possible stores given a read event. It first collects a list of coherent stores restricted by the memory model. In RC11, it selects all concurrent stores and the latest store in mo before the provided read. The fuzzer first picks out all read events that have multiple store choices and pairs each read with each of its alternative stores. Then the fuzzer randomly selects one of these pairs for mutation. Here we denote the selected read event as $R$, its original store as $S_{old}$, and the newly selected store as $S$. In accordance to GenMC's terminology, the word "view" is used to represent a subset of events in an execution graph. Here a "cut view" represents the view of the current graph to be kept in the following cutting strategies, which serves as a prefix defined in Algorithm~\ref{fuzzer}. The fuzzer implements three different cutting strategies, described as follows:
+The mutation process is composed of two steps: changing an rf relation and cutting the graph. The driver has provided a function, getRfsApproximation, that calculates a list of possible stores given a read event. It first collects a list of coherent stores restricted by the memory model. In RC11, it selects all concurrent stores and the latest store in mo before the provided read. The fuzzer first picks out all read events that have multiple store choices and pairs each read with each of its alternative stores. Then the fuzzer randomly selects one of these pairs for mutation. Here we denote the selected read event as $R$, its original store as $S_{old}$, and the newly selected store as $S$. In accordance to GenMC's terminology, the word "view" is used to represent a subset of events in an execution graph. Here a "cut view" represents the view of the current graph to be kept in the following cutting strategies, which serves as a prefix defined in Algorithm~\ref{fuzzer}. 
+Additionally, we use the following notations in the descriptions below:
+\begin{itemize}
+	\item $preds_{e}$: All events in a graph that has smaller stamps than event $e$.
+	\item $pporf_{e}$: All events in a graph that are porf predecessors of event $e$.
+\end{itemize}
+
+The fuzzer implements three different cutting strategies, described as follows:
 
 \paragraph{Revisit cut} It constructs the ReadForwardRevisit and BackwardRevisit objects and pushes them to the workqueue directly. These two kinds of Revisit's are defined in GenMC, used in its verification mode. We first compare the timestamps of $R$ and $S$. If $R$ has a greater stamp, a ReadForwardRevisit will be constructed. When the driver retrieves a ReadForwardRevisit from the workqueue, it removes all events whose stamps are greater than $R$. Since $S$'s stamp is smaller, it will be kept. Additionally, the read becomes the latest event added to the graph, hence the events that may no longer be valid due to the change in $R$'s rf will not be retained. This cut view can be denoted as $preds_{R}$. On the other hand, if $S$ has a greater stamp, a BackwardRevisit will be constructed. The driver first collects all events that has smaller stamps than $R$, i.e. $preds_{R}$, similar as did in ReadForwardRevisit. Since $S$ has a greater stamp this time, it will not be included in $preds_{R}$. Then the driver computes all events that are porf predecessors of $S$, denoted as $pporf_{S}$. The cut view is the union of the two sets of events, $preds_{R} \cup pporf_{S}$ and the rest of the graph will be cut.
 
-\michalis{preds and pporf are never defined.}
+% \michalis{preds and pporf are never defined.}
 
 \paragraph{Minimal cut} This cut strategy aims to retain as little events as possible. It only keeps those events that are both porf predecessors of $R$ and $S$. The events in unrelated threads (concurrent events) will be dropped. The minimal cut view can be written as $pporf_{R} \cup pporf_{S}$
 
