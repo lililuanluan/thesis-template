@@ -1,6 +1,6 @@
 \chapter{\label{cha:c11tester}Fuzzing with C11Tester}
 
-C11Tester is an automatic testing tool that supports a large fragment of C/C++ weak memory model. This chapter presents an overview of C11Tester and customization points of its pluggable framework. It then describes the fuzzer's implementation. Finally, we show the evaluation results on several benchmarks.
+C11Tester is an automatic testing tool that supports a large fragment of the C/C++ weak memory model. This chapter presents an overview of C11Tester and customization points of its pluggable framework. It then describes the fuzzer's implementation. Finally, we show the evaluation results on several benchmarks.
 
 \section{Overview of C11Tester}
 
@@ -203,7 +203,7 @@ One important metric for a fuzzer is whether it is able to detect the bug effect
 \end{table}
 
 
-Take the long-race benchmark for example. This benchmark is taken from the rff's repository, customazed with relaxed memory operations, as shown in Listing~\ref{long-race}.
+Take the long-race benchmark, for example. This benchmark is taken from the rff's repository, customized with relaxed memory operations, as shown in Listing~\ref{long-race}.
 
 \begin{lstlisting}[caption={long-race}, label={long-race}]
 	std::atomic<size_t> sum{ 0 };
@@ -248,7 +248,7 @@ Take the long-race benchmark for example. This benchmark is taken from the rff's
 
 Hitting the bug requires two workers to alternately modify the shared variable in a very strict order (we also tested the long-race benchmark with rff, and it took 15 thousand iterations to detect it). There are a total of 9 different possible executions of this program. Figure~\ref{graph-freq} shows how many times each execution graph are explored in $N$ iterations. It can be observed that the random tester is heavily biased towards the first and second executions, which together take up 96.5\% of $N$. In contrast, the fuzzer exhibits a more "flattened" frequency plot on executions and covers all 9 execution graphs. This more even distribution is due to mutations that target those infrequent executions during exploration.
 
-Figure~\ref{c11tester:bug-plot} shows the number of unique executions and bugs found in first 1000 iterations. It can be observed that the fuzzer detects the bug ealier than C11Tester and also covers a higher range of executions.
+Figure~\ref{c11tester:bug-plot} shows the number of unique executions and bugs found in first 1000 iterations. It can be observed that the fuzzer detects the bug earlier than C11Tester and also covers a higher range of executions.
 
 
 
