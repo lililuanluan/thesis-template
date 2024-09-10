@@ -26,11 +26,11 @@ Secondly, different orders of adding events and forming relations can result in 
     
     // group 1
     void thread1() { x = 1; }
-    void thread2() { while(!x) {;} }
+    void thread2() { if(x == 1) {x = 0; /*...*/} }
 
     // group 2
     void thread3() { y = 1; }
-    void thread4() { while(!y) {;} }
+    void thread4() { if(y == 1) {y = 0; /*...*/} }
 
 \end{lstlisting}
 
@@ -112,14 +112,14 @@ If each time we start from the top and randomly make decisions, those states in 
 
 % \michalis{Maybe the example above requires some more explanation. Assuming that a node in your tree is not an execution graph (but rather the rf choices within a graph), can it be the case that two paths yield the same graph? If so, why? If not, why does fuzzing help?}
 
-Relating this to the randomized testing procedure, each parent node in the decision tree represents an intermediate state in the process of constructing a graph, while the leaf nodes represent completed graphs. The edges correspond to the scheduling or rf decisions made during exploration. Each time, the random walk tester restarts from the beginning (top of the tree) and randomly generates execution graphs independently. However, due to the previously listed challenges, it often tends to generate a subset of frequently occurring execution graphs, sometimes repeatedly, leaving hard-to-find executions unexplored. We consider this approach inefficient and utilize fuzzing techniques to improve this. Ideally, the fuzzer should explore graphs with a more uniform frequency and broader coverage compared to  the random walk tester, as shown in Figure~\ref{tree-freq}.
+Relating this to the randomized testing procedure, each parent node in the decision tree represents an intermediate state in the process of constructing a graph, while the leaf nodes represent completed graphs. The edges correspond to the scheduling or rf decisions made during exploration. Each time, the random walk tester restarts from the beginning (top of the tree) and randomly generates execution graphs independently. However, due to the previously listed challenges, it often tends to generate a subset of frequently occurring execution graphs, sometimes repeatedly, leaving hard-to-find executions unexplored. We consider this approach inefficient and utilize fuzzing techniques to improve this. 
 
-\begin{figure}[h!tbp] 
-    \centering
-    \includegraphics[scale=0.28]{figure/tree_freq.pdf} 
-    \caption{Improvement of fuzzing}  
-    \label{tree-freq}  
-\end{figure}
+% \begin{figure}[h!tbp] 
+%     \centering
+%     \includegraphics[scale=0.28]{figure/tree_freq.pdf} 
+%     \caption{Improvement of fuzzing}  
+%     \label{tree-freq}  
+% \end{figure}
 
 
 The fuzzer aims to improve the performance of randomized testing approaches. Some random testers, such as C11Tester or GenMC in its estimation mode, use random walk testing. In contrast, exhaustive model checkers like GenMC explore all possible executions. Exhaustive checkers are useful when the search space is limited, typically when the program under test is not too large. Randomized testers are usually employed for testing larger programs. However, the drawback of this approach is that it does not retain state information between explorations, leading to redundant efforts. In our fuzzing algorithm, we track the explored execution graphs and mutate infrequent ones to guide the tester in covering a larger fraction of the graph search space.
