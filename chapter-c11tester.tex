@@ -83,7 +83,7 @@ Another optimization performed by C11Tester is that it avoids backtracking durin
     }
 \end{lstlisting}
 if \texttt{r1} has already selected \texttt{w3} to read from, only \texttt{w3} will be included in the rf-set for \texttt{r2}, because \texttt{w3} $\xrightarrow{\text{rf}}$ \texttt{r2} implies that \texttt{w0-2} are modification-ordered before \texttt{w3} and thus should not be visible to \texttt{r2}, which is sequence ordered after \texttt{r1}. Otherwise, the RR coherence will be violated. Excluding infeasible writes from the rf-set ensures the rf's to be valid, which in turn avoids the backtracking efforts.
-\michalis{How is backtracking related to coherence? Do you mean that it doesn't explicitly track mo?}
+% \michalis{How is backtracking related to coherence? Do you mean that it doesn't explicitly track mo?}
 
 To summarize, C11Tester will execute the program from beginning to end, randomly picking threads and writes, with the optimizations of consuming weak writes and constraining rf-sets.
 
@@ -258,7 +258,7 @@ Figure~\ref{c11tester:bug-plot} shows the number of unique executions and bugs f
     \caption{Frequencies of execution graphs } 
     \label{graph-freq} 
 \end{figure}
-\michalis{Is there a better way to visualize this?}
+% \michalis{Is there a better way to visualize this?}
 
 \begin{figure}[H]
 
@@ -562,5 +562,5 @@ We test our fuzzer using a real-world application, iris, which is an asynchronou
 
 % \burcu{TODO: Discuss the results/plots. What do we observe? What can we say about the results?}
 
-\michalis{Why not profile C11Fuzzer and see the percentage of mutation?}
-\michalis{Also, I'm not sure how to read this table. Is it that there are 7.4secs of overhead at each execution, for 1000 executions? Why not just take 1000 iterations K times and average them w/ C11Tester and C11Fuzzer, respectively? }
+% \michalis{Why not profile C11Fuzzer and see the percentage of mutation?}
+% \michalis{Also, I'm not sure how to read this table. Is it that there are 7.4secs of overhead at each execution, for 1000 executions? Why not just take 1000 iterations K times and average them w/ C11Tester and C11Fuzzer, respectively? }
