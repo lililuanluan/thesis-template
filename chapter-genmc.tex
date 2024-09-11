@@ -156,30 +156,65 @@ The fuzzer implements three different cutting strategies, described as follows:
 
 For revisit cut, since the read event has the greater stamp, the graph will be simply cut up until stamp = 7, shown in Figure~\ref{cut:revisit}.
 
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[scale=1]{figure/cuts/cut-revisit.pdf}
-	\caption{Revisit cut output}
-	\label{cut:revisit}
-\end{figure}
+% \begin{figure}[htbp]
+% 	\centering
+% 	\includegraphics[scale=1]{figure/cuts/cut-revisit.pdf}
+% 	\caption{Revisit cut output}
+% 	\label{cut:revisit}
+% \end{figure}
 
 For minimal cut, the fuzzer counts the porf predecessors of $\text{R}^7(x)$ and $\text{W}^5(x, 1)$. The events in the third thread (the rightmost column) will be removed. $\text{W}^{10}(z, 2)$ and $\text{W}^{8}(y, 2)$ are removed since they porf successors of porf successors of $\text{R}^7(x)$ and $\text{W}^5(x, 1)$, respectively. The resulting graph is shown in Figure~{cut:minimal}.
 
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[scale=1]{figure/cuts/cut-minimal.pdf}
-	\caption{Minimal cut output}
-	\label{cut:minimal}
-\end{figure}
+% \begin{figure}[htbp]
+% 	\centering
+% 	\includegraphics[scale=1]{figure/cuts/cut-minimal.pdf}
+% 	\caption{Minimal cut output}
+% 	\label{cut:minimal}
+% \end{figure}
 
 For maximal cut, only the porf successors of the read, $\text{R}^7(x)$, will be removed. In this graph, $\text{W}^{10}(z, 2)$ will be removed with all other events remained, shown in Figure~\ref{cut:maximal}.
 
+% \begin{figure}[htbp]
+% 	\centering
+% 	\includegraphics[scale=1]{figure/cuts/cut-maximal.pdf}
+% 	\caption{Maximal cut output}
+% 	\label{cut:maximal}
+% \end{figure}
+
 \begin{figure}[htbp]
-	\centering
-	\includegraphics[scale=1]{figure/cuts/cut-maximal.pdf}
-	\caption{Maximal cut output}
-	\label{cut:maximal}
+    \centering
+    \begin{minipage}[t]{0.30\textwidth}
+        \centering
+        \vtop{\vskip 0pt \hbox{
+            \includegraphics[width=\textwidth]{figure/cuts/cut-revisit.pdf}
+        }}
+        \vspace{2mm}
+        \vtop{\vskip 0pt \hbox{\parbox{\textwidth}{\centering \caption{Revisit cut output} \label{cut:revisit}}}}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.30\textwidth}
+        \centering
+        \vtop{\vskip 0pt \hbox{
+            \includegraphics[width=\textwidth]{figure/cuts/cut-minimal.pdf}
+        }}
+        \vspace{-3mm}
+        \vtop{\vskip 0pt \hbox{\parbox{\textwidth}{\centering \caption{Minimal cut output} \label{cut:minimal}}}}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.30\textwidth}
+        \centering
+        \vtop{\vskip 0pt \hbox{
+            \includegraphics[width=\textwidth]{figure/cuts/cut-maximal.pdf}
+        }}
+        \vspace{2mm}
+        \vtop{\vskip 0pt \hbox{\parbox{\textwidth}{\centering \caption{Maximal cut output} \label{cut:maximal}}}}
+    \end{minipage}
 \end{figure}
+
+
+
+
+
 
 
 \subsection{The is\_interesting function}
